@@ -9,17 +9,16 @@ namespace Vebram.LegalNative03;
 public sealed class NativeApp:IExternalApplication
 {
  record Job(string Project,string Output,string SimpleProject);
- string path="";Job? job;UIDocument? active;long final;
- public Result OnStartup(UIControlledApplication app){path=Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!,"legal-test-job.json");if(File.Exists(path)){new Vebram.Revit.App().OnStartup(app);app.Idling+=Run;}return Result.Succeeded;}
+ string path="";Job? job;
+ public Result OnStartup(UIControlledApplication app){path=Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!,"legal-test-job.json");if(File.Exists(path)){app.Idling+=Run;}return Result.Succeeded;}
  public Result OnShutdown(UIControlledApplication app)=>Result.Succeeded;
  void Run(object? sender,IdlingEventArgs e)
  {
   if(sender is not UIApplication ui)return;
-  if(active!=null){if(active.ActiveView.Id.Value==final){ui.Idling-=Run;active.GetOpenUIViews().FirstOrDefault(v=>v.ViewId.Value==final)?.ZoomToFit();}return;}
-  ui.Idling-=Run;if(!File.Exists(path))return;job=JsonSerializer.Deserialize<Job>(File.ReadAllText(path))!;File.Move(path,path+".executado",false);
+  ui.Idling-=Run;if(!File.Exists(path))return;job=JsonSerializer.Deserialize<Job>(File.ReadAllText(path))!;File.Move(path,path+".executado-"+DateTime.UtcNow.Ticks,false);
   try
   {
-   active=ui.OpenAndActivateDocument(job.Project);var doc=active.Document;
+   var doc=ui.Application.OpenDocumentFile(job.Project);
    var physical=Physical(doc);var views=LegalCatalog.Views(doc).Select(v=>v.Id.Value).Order().ToList();
    var source=Implantation.ModelPlans(doc).First(v=>v.Name=="PRE - Layout / Nível 1");var floor=Implantation.Footprints(doc,source).First();
    var results=new List<ModuleResult>();
@@ -48,7 +47,7 @@ public sealed class NativeApp:IExternalApplication
    if(!physical.SequenceEqual(Physical(doc))||!views.SequenceEqual(LegalCatalog.Views(doc).Select(v=>v.Id.Value).Order()))throw new Exception("Elementos físicos ou identidade das vistas foram alterados.");
    var report=new{Results=results,Repeat=true,EditedMarksProtected=protectedEdit,ChosenStyle=true,PhysicalPreserved=true,ViewsPreserved=true,SimpleRoofFaces=simpleWaters.Select(w=>new{w.Slope,Direction=w.Direction==null?null:new[]{w.Direction.X,w.Direction.Y,w.Direction.Z}})};
    File.WriteAllText(Path.Combine(job.Output,"TESTES_NATIVOS.json"),JsonSerializer.Serialize(report,new JsonSerializerOptions{WriteIndented=true}));
-   doc.Save();final=results[0].ViewId;active.RequestViewChange((View)doc.GetElement(new ElementId(final)));ui.Idling+=Run;
+   doc.Save();doc.Close(false);
    File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Módulos 0.3 executados e repetidos na Casa Terras; preferências e proteção de edição verificadas; casa básica com duas águas de 20% reconhecida.\n"+job.Project);
   }
   catch(Exception ex){File.WriteAllText(Path.Combine(job!.Output,"ERRO.txt"),ex.ToString());}
@@ -56,3 +55,5 @@ public sealed class NativeApp:IExternalApplication
  static List<long> Physical(Document doc)=>new FilteredElementCollector(doc).WhereElementIsNotElementType().Where(e=>e is HostObject||e is FamilyInstance||e is DirectShape||e is Autodesk.Revit.DB.Architecture.Room).Select(e=>e.Id.Value).Order().ToList();
  static int Annotations(Document doc,long id)=>new FilteredElementCollector(doc).WhereElementIsNotElementType().Count(e=>e.OwnerViewId.Value==id);
 }
+
+
