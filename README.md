@@ -1,5 +1,39 @@
-# automacao-arquitetonica-revit
+# VEBRAM — automação arquitetônica para Revit
 
-## Documentação
+Add-in nativo C# / .NET 8 / WPF, desenvolvido para Lucas. Revit validado: 2026.4.1. Prioridade atual: Projeto legal; Modelagem e Executivo serão ampliados após avaliação.
 
-- [Contexto mestre — automação arquitetônica para Revit](docs/CONTEXTO_MESTRE.md)
+## Estado atual
+
+- Implantação: piloto funcional aprovado por Lucas; lote retangular e contorno ortogonal, cotas nativas, norte/contexto informado e marcações rastreadas.
+- Versão 0.3: preferências de estilo de cota, escala e informação adicional; Planta legal inicial com cotas gerais e áreas; Cobertura com leitura por água plana; acesso ao quadro nativo Q04.
+- Cortes, fachadas, Situação, quadro urbanístico, cotas internas, tags de esquadrias, montagem de folhas e exportação: próximos passos.
+
+Consulte [estado e evidências](docs/ESTADO_ATUAL.md) antes de trabalhar. O [contexto mestre](docs/CONTEXTO_MESTRE.md) preserva o planejamento histórico; decisões recentes estão em ESTADO_ATUAL.
+
+## Estrutura
+
+- src/Vebram.Revit: código completo do produto.
+- profiles: contrato dos parâmetros compartilhados ARQ.
+- scripts: compilação e instalação local.
+- dev: rotinas locais para testes nativos em cópias de demonstração.
+- tools: fontes das rotinas pontuais de casa básica e correção de unidades.
+- docs: decisões, regras, evidências e pendências.
+
+## Compilar e instalar
+
+1. Windows, SDK .NET 8 e Revit 2026 licenciado instalado.
+2. Executar scripts/Build.ps1, informando -Dotnet e -RevitInstallDir quando necessário.
+3. Executar scripts/Install-Local.ps1 após a compilação.
+4. Reabrir o Revit e usar um RVT criado do template V02 compatível.
+
+O pacote compilado fica em dist-v03. A API Revit deve ser obtida da instalação local; suas DLLs não são redistribuídas. O projeto não usa pacotes NuGet de terceiros nem IA durante o uso dos botões.
+
+## Unidades e uso
+
+Padrão atual: comprimentos em metros; áreas em m² e volumes em m³. O botão Preferências legais permite escolher outro estilo existente de forma explícita, mostrando sua unidade. A seleção é armazenada no projeto e aplicada na próxima geração.
+
+RVT/RTE, famílias, bibliotecas Autodesk, binários, logs de máquina e dados de clientes ficam fora deste repositório. Os modelos de teste e o template são locais. Código disponível não significa que uma sessão cloud possa executar a API sem o Revit.
+
+## Distribuição
+
+Repositório privado. Licença comercial do produto ainda será definida por Lucas. Skills são auxiliares de desenvolvimento, não dependências redistribuídas do plugin. BIMwright/ToolBaker são ferramentas de desenvolvimento opcionais; não foram incorporadas ao produto.
