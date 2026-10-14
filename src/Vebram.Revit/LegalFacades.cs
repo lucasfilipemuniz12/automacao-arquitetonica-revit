@@ -104,21 +104,39 @@ public static class LegalFacades
     target.get_Parameter(BuiltInParameter.VIEWER_BOUND_FAR_CLIPPING).Set(1);target.get_Parameter(BuiltInParameter.VIEWER_BOUND_OFFSET_FAR).Set(Implantation.Feet(input.DistanceMeters*2)+(points.Max(p=>(p-center).DotProduct(outward))-points.Min(p=>(p-center).DotProduct(outward))));
     var phase=target.get_Parameter(BuiltInParameter.VIEW_PHASE);if(phase is {IsReadOnly:false})phase.Set(source.get_Parameter(BuiltInParameter.VIEW_PHASE).AsElementId());
     var annotationCrop=target.get_Parameter(BuiltInParameter.VIEWER_ANNOTATION_CROP_ACTIVE);if(annotationCrop is {IsReadOnly:false})annotationCrop.Set(0);
-    // Native levels receive view-specific extensions, preserving model elevation.
+    var made=new List<Element>();var pending=new List<string>();
     doc.Regenerate();foreach(var level in new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>().Where(l=>l.Elevation>=bottom&&l.Elevation<=top))
     {
-     var line=level.GetCurvesInView(DatumExtentType.Model,target).OfType<Line>().FirstOrDefault();if(line==null)continue;var dir=line.Direction;var basePoint=line.GetEndPoint(0);
-     XYZ At(double xx)=>box.Transform.OfPoint(new(xx,level.Elevation-box.Transform.Origin.Z,0));double a=(At(left-Implantation.Feet(2.8))-basePoint).DotProduct(dir),b=(At(left-Implantation.Feet(1.9))-basePoint).DotProduct(dir);
-     level.SetDatumExtentType(DatumEnds.End0,target,DatumExtentType.ViewSpecific);level.SetDatumExtentType(DatumEnds.End1,target,DatumExtentType.ViewSpecific);level.SetCurveInView(DatumExtentType.ViewSpecific,target,Line.CreateBound(basePoint+dir*Math.Min(a,b),basePoint+dir*Math.Max(a,b)));var bubble=dir.DotProduct(target.RightDirection)>0?DatumEnds.End0:DatumEnds.End1;level.ShowBubbleInView(bubble,target);level.HideBubbleInView(bubble==DatumEnds.End0?DatumEnds.End1:DatumEnds.End0,target);
+     bool native=false;using(var datum=new SubTransaction(doc))
+     {
+      datum.Start();try
+      {
+       if(level.CanBeVisibleInView(target))
+       {
+        var line=level.GetCurvesInView(DatumExtentType.Model,target).OfType<Line>().FirstOrDefault();
+        if(line!=null)
+        {
+         var dir=line.Direction;var basePoint=line.GetEndPoint(0);XYZ At(double xx)=>box.Transform.OfPoint(new(xx,level.Elevation-box.Transform.Origin.Z,0));double a=(At(left-Implantation.Feet(2.8))-basePoint).DotProduct(dir),b=(At(left-Implantation.Feet(1.9))-basePoint).DotProduct(dir);
+         level.SetDatumExtentType(DatumEnds.End0,target,DatumExtentType.ViewSpecific);level.SetDatumExtentType(DatumEnds.End1,target,DatumExtentType.ViewSpecific);level.SetCurveInView(DatumExtentType.ViewSpecific,target,Line.CreateBound(basePoint+dir*Math.Min(a,b),basePoint+dir*Math.Max(a,b)));var bubble=dir.DotProduct(target.RightDirection)>0?DatumEnds.End0:DatumEnds.End1;level.ShowBubbleInView(bubble,target);level.HideBubbleInView(bubble==DatumEnds.End0?DatumEnds.End1:DatumEnds.End0,target);native=true;
+        }
+       }
+       if(native)datum.Commit();else datum.RollBack();
+      }
+      catch(Autodesk.Revit.Exceptions.ArgumentException){if(datum.GetStatus()==TransactionStatus.Started)datum.RollBack();native=false;}
+     }
+     if(!native)
+     {
+      made.Add(TextNote.Create(doc,target.Id,box.Transform.OfPoint(new(left-Implantation.Feet(2.8),level.Elevation-box.Transform.Origin.Z,0)),level.Name+"\n"+Implantation.Meters(level.Elevation).ToString("0.00",Implantation.Pt)+" m",LegalContext.TextType(doc).Id));pending.Add(level.Name+": indicação textual; plano nativo indisponível nesta elevação.");
+     }
     }
-    var made=new List<Element>();var note=LegalPreferenceStore.Read(doc).AdditionalNote;if(!string.IsNullOrWhiteSpace(note))made.Add(TextNote.Create(doc,target.Id,box.Transform.OfPoint(new(left,corners.Min(p=>p.Y)-Implantation.Feet(.6),0)),note,LegalContext.TextType(doc).Id));
+    var note=LegalPreferenceStore.Read(doc).AdditionalNote;if(!string.IsNullOrWhiteSpace(note))made.Add(TextNote.Create(doc,target.Id,box.Transform.OfPoint(new(left,corners.Min(p=>p.Y)-Implantation.Feet(.6),0)),note,LegalContext.TextType(doc).Id));
     // Keep the original graphic template, excluding parameters this module has to control.
     if(savedTemplate!=ElementId.InvalidElementId)
     {
      string name="ARQ VT - FACHADAS - VEBRAM 05";var preset=new FilteredElementCollector(doc).OfClass(typeof(View)).Cast<View>().FirstOrDefault(v=>v.IsTemplate&&v.Name==name);if(preset==null){preset=target.CreateViewTemplate();preset.Name=name;}
      var excluded=preset.GetNonControlledTemplateParameterIds().ToHashSet();foreach(var id in preset.GetTemplateParameterIds())if(new[]{"VIEW_SCALE","VIEW_PHASE","VIEWER_CROP_REGION","VIEWER_CROP_REGION_VISIBLE","VIEWER_BOUND_FAR_CLIPPING","VIEWER_BOUND_OFFSET_FAR","VIEWER_VOLUME_OF_INTEREST_CROP"}.Contains(((BuiltInParameter)id.Value).ToString()))excluded.Add(id);preset.SetNonControlledTemplateParameterIds(excluded.ToList());target.ViewTemplateId=preset.Id;
     }
-    doc.Regenerate();foreach(var e in made)DrawingOwnership.MarkAnnotation(e);Write(target,new(source.UniqueId,made.Select(e=>new ElementStamp(e.UniqueId,DrawingOwnership.Fingerprint(e))).ToList(),Frame(target)));results.Add(new(target.Id.Value,0,made.Count,item.Label+": elevação nativa recortada com níveis laterais. Revise materiais, esquadrias e informações adicionais antes de emitir."));
+    doc.Regenerate();foreach(var e in made)DrawingOwnership.MarkAnnotation(e);Write(target,new(source.UniqueId,made.Select(e=>new ElementStamp(e.UniqueId,DrawingOwnership.Fingerprint(e))).ToList(),Frame(target)));results.Add(new(target.Id.Value,0,made.Count,item.Label+": elevação nativa recortada com níveis laterais. Revise materiais, esquadrias e informações adicionais antes de emitir.\n"+string.Join("\n",pending)));
    }
    if(tx.Commit()!=TransactionStatus.Committed)throw new InvalidOperationException("Operação revertida.");return results;
   }
@@ -129,3 +147,4 @@ public static class LegalFacades
  static FacadeStamp? Read(View v){var s=Autodesk.Revit.DB.ExtensibleStorage.Schema.Lookup(SchemaId);if(s==null)return null;var e=v.GetEntity(s);return e.IsValid()?JsonSerializer.Deserialize<FacadeStamp>(e.Get<string>(s.GetField("Json"))):null;}
  static void Write(View v,FacadeStamp data){var s=Schema();var e=new Entity(s);e.Set(s.GetField("Json"),JsonSerializer.Serialize(data));v.SetEntity(e);}
 }
+

@@ -20,6 +20,7 @@ internal sealed class SectionValidation:IExternalApplication
   try
   {
    doc=ui.Application.OpenDocumentFile(job.Project);
+   if(job.Mode=="facades055"){ValidateFacades055(doc,job.Output);doc.Save();doc.Close(false);doc=null;File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Fachadas e linhas de situação validadas na cópia de teste.");return;}
    if(job.Mode=="legal05"){ValidateLegal05(doc,job.Output);doc.Save();doc.Close(false);doc=null;File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Módulos legais 0.5 verificados na cópia de teste.\n"+job.Project);return;}
    var physical=Physical(doc);var ids=LegalCatalog.Views(doc).Select(v=>v.Id.Value).Order().ToList();var elevations=new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>().ToDictionary(l=>l.Id.Value,l=>l.Elevation);
    var source=Implantation.ModelPlans(doc).First(v=>v.Name=="PRE - Layout / Nível 1");var floor=Implantation.Footprints(doc,source).First();
@@ -63,6 +64,15 @@ internal sealed class SectionValidation:IExternalApplication
   }
   catch(Exception ex){File.WriteAllText(Path.Combine(job.Output,"ERRO.txt"),ex.ToString());}
   finally{if(doc?.IsValidObject==true)doc.Close(false);}
+ }
+ static void ValidateFacades055(Document doc,string output)
+ {
+  var before=Physical(doc);var source=Implantation.ModelPlans(doc).First(v=>v.Name=="PRE - Layout / Nível 1");var floor=Implantation.Footprints(doc,source).First();
+  var results=LegalFacades.Apply(doc,new(source.Id.Value,floor.Id.Value));var counts=results.Select(r=>Count(doc,r.ViewId)).ToList();var again=LegalFacades.Apply(doc,new(source.Id.Value,floor.Id.Value));if(!counts.SequenceEqual(again.Select(r=>Count(doc,r.ViewId))))throw new Exception("Fachadas instáveis ao repetir.");
+  foreach(var result in again){var view=(ViewSection)doc.GetElement(new ElementId(result.ViewId));if(view.ViewType!=ViewType.Elevation)throw new Exception("Fachada sem elevação nativa.");var direction=view.Name.EndsWith("Norte")?-XYZ.BasisY:view.Name.EndsWith("Sul")?XYZ.BasisY:view.Name.EndsWith("Leste")?-XYZ.BasisX:XYZ.BasisX;if(view.ViewDirection.DotProduct(direction)<.999)throw new Exception("Direção incorreta.");}
+  var context=LegalContext.Saved(doc,"situacao")??new ContextSelection("situacao",source.Id.Value,"Lote de estudo",Confirmed:true);var situation=LegalContext.Apply(doc,context with{Confirmed=true});var site=(View)doc.GetElement(new ElementId(situation.ViewId));var lines=doc.Settings.Categories.get_Item(BuiltInCategory.OST_Lines);if(site.GetCategoryHidden(lines.Id))throw new Exception("Categoria de linhas oculta.");
+  var curves=new FilteredElementCollector(doc,site.Id).OfClass(typeof(CurveElement)).Cast<CurveElement>().Where(c=>c.OwnerViewId==site.Id&&DrawingOwnership.IsAnnotation(c)).ToList();if(curves.Count<7||curves.Any(c=>site.GetCategoryHidden(c.Category.Id)))throw new Exception("Linhas do diagrama ausentes ou ocultas.");
+  if(!before.SequenceEqual(Physical(doc)))throw new Exception("Modelagem física alterada.");File.WriteAllText(Path.Combine(output,"TESTES_FACHADAS_SITUACAO.json"),JsonSerializer.Serialize(new{Version="0.5.5",Facades=again,Situation=situation,Repeated=true,NativeDirections=true,SituationLinesVisible=true,CurveCount=curves.Count,PhysicalBoundsPreserved=true},new JsonSerializerOptions{WriteIndented=true}));
  }
  static void ValidateLegal05(Document doc,string output)
  {

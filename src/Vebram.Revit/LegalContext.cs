@@ -38,10 +38,11 @@ public static class LegalContext
     view.ViewTemplateId=ElementId.InvalidElementId;view.Scale=500;
     var annotationCrop=view.get_Parameter(BuiltInParameter.VIEWER_ANNOTATION_CROP_ACTIVE);if(annotationCrop is {IsReadOnly:false})annotationCrop.Set(0);
     // A localization diagram intentionally excludes the physical building; it is not a surveyed map.
-    foreach(Category category in doc.Settings.Categories)if(category.CategoryType==CategoryType.Model&&view.CanCategoryBeHidden(category.Id))view.SetCategoryHidden(category.Id,true);
+    foreach(Category category in doc.Settings.Categories)if(category.CategoryType==CategoryType.Model&&category.Id.Value!=(long)BuiltInCategory.OST_Lines&&view.CanCategoryBeHidden(category.Id))view.SetCategoryHidden(category.Id,true);
+    var lines=doc.Settings.Categories.get_Item(BuiltInCategory.OST_Lines);if(view.CanCategoryBeHidden(lines.Id))view.SetCategoryHidden(lines.Id,false);foreach(Category sub in lines.SubCategories)if(view.CanCategoryBeHidden(sub.Id))view.SetCategoryHidden(sub.Id,false);
     double z=((ViewPlan)view).GenLevel.Elevation,x=Implantation.Feet(options.LotMinX),y=Implantation.Feet(options.LotMinY),w=Implantation.Feet(options.LotWidth),h=Implantation.Feet(options.LotDepth);
     XYZ P(double a,double b)=>new(a,b,z);
-    DetailCurve L(XYZ a,XYZ b){var c=doc.Create.NewDetailCurve(view,Line.CreateBound(a,b));made.Add(c);return c;}
+    DetailCurve L(XYZ a,XYZ b){var c=doc.Create.NewDetailCurve(view,Line.CreateBound(a,b));view.SetElementOverrides(c.Id,new OverrideGraphicSettings().SetProjectionLineColor(new Color(0,0,0)).SetProjectionLineWeight(3));made.Add(c);return c;}
     void Text(double a,double b,string value)=>made.Add(TextNote.Create(doc,view.Id,P(a,b),value,type.Id));
     var edges=new[]{L(P(x,y),P(x+w,y)),L(P(x+w,y),P(x+w,y+h)),L(P(x+w,y+h),P(x,y+h)),L(P(x,y+h),P(x,y))};
     double gap=Implantation.Feet(3);
@@ -90,6 +91,7 @@ public static class LegalContext
  static ContextStamp? Read(View view){var s=Autodesk.Revit.DB.ExtensibleStorage.Schema.Lookup(SchemaId);if(s==null)return null;var e=view.GetEntity(s);return e.IsValid()?JsonSerializer.Deserialize<ContextStamp>(e.Get<string>(s.GetField("Json"))):null;}
  static void Write(View view,ContextStamp state){var s=Schema();var e=new Entity(s);e.Set(s.GetField("Json"),JsonSerializer.Serialize(state));view.SetEntity(e);}
 }
+
 
 
 
