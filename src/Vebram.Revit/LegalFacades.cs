@@ -10,12 +10,35 @@ public static class LegalFacades
  public static IReadOnlyList<ModuleResult> Apply(Document doc,FacadeSelection input)
  {
   if(doc.IsFamilyDocument||doc.IsReadOnly||doc.IsWorkshared||doc.PathName.EndsWith(".rte",StringComparison.OrdinalIgnoreCase))throw new InvalidOperationException("Use um RVT local editável.");
+  using var group=new TransactionGroup(doc,"VEBRAM — fachadas e recuperação de referências");group.Start();
+  try{var result=ApplyCore(doc,input);if(group.Assimilate()!=TransactionStatus.Committed)throw new InvalidOperationException("Preparação das fachadas revertida.");return result;}
+  catch{if(group.GetStatus()==TransactionStatus.Started)group.RollBack();throw;}
+ }
+ static IReadOnlyList<ModuleResult> ApplyCore(Document doc,FacadeSelection input)
+ {
+  if(doc.IsFamilyDocument||doc.IsReadOnly||doc.IsWorkshared||doc.PathName.EndsWith(".rte",StringComparison.OrdinalIgnoreCase))throw new InvalidOperationException("Use um RVT local editável.");
   if(!double.IsFinite(input.DistanceMeters)||input.DistanceMeters<.5||input.DistanceMeters>100||!double.IsFinite(input.RotationDegrees))throw new InvalidOperationException("Informe distância entre 0,5 e 100 m e giro válido.");
   var source=doc.GetElement(new ElementId(input.SourceId)) as ViewPlan??throw new InvalidOperationException("Escolha uma planta de modelagem.");
   var floor=doc.GetElement(new ElementId(input.FloorId)) as Floor??throw new InvalidOperationException("Escolha o piso base.");
   if(!Implantation.Footprints(doc,source).Any(f=>f.Id==floor.Id))throw new InvalidOperationException("Piso fora do nível escolhido.");
   var views=LegalCatalog.Items.Where(i=>i.Key.StartsWith("fachada-")).Select(i=>(Item:i,View:LegalCatalog.Reference(LegalCatalog.Views(doc),i) as ViewSection)).ToList();
-  if(views.Any(p=>p.View==null||p.View.IsTemplate||p.View.Pinned))throw new InvalidOperationException("As quatro fachadas do V02 devem estar presentes e desbloqueadas.");
+  if(views.Any(p=>p.View is {IsTemplate:true} or {Pinned:true}))throw new InvalidOperationException("Desbloqueie as fachadas fixadas antes de prepará-las.");
+  if(views.Any(p=>p.View==null))
+  {
+   var reference=views.Select(p=>p.View).FirstOrDefault(v=>v?.ViewType==ViewType.Elevation);
+   var type=reference!=null?doc.GetElement(reference.GetTypeId()) as ViewFamilyType:new FilteredElementCollector(doc).OfClass(typeof(ViewFamilyType)).Cast<ViewFamilyType>().Where(t=>t.ViewFamily==ViewFamily.Elevation).OrderBy(t=>t.Name).FirstOrDefault();
+   if(type==null)throw new InvalidOperationException("O projeto precisa de um tipo de elevação nativa para criar fachadas.");
+   var graphic=reference?.ViewTemplateId??new FilteredElementCollector(doc).OfClass(typeof(View)).Cast<View>().FirstOrDefault(v=>v.IsTemplate&&v.Name=="ARQ VT - FACHADAS - VEBRAM 05")?.Id??ElementId.InvalidElementId;
+   using var create=new Transaction(doc,"VEBRAM — recriar fachadas ausentes");create.Start();
+   var bounds=floor.get_BoundingBox(null)!;var point=new XYZ((bounds.Min.X+bounds.Max.X)/2,(bounds.Min.Y+bounds.Max.Y)/2,source.GenLevel.Elevation);
+   for(int index=0;index<views.Count;index++)if(views[index].View==null)
+   {
+    var item=views[index].Item;var marker=ElevationMarker.CreateElevationMarker(doc,type.Id,point,LegalPreferenceStore.Read(doc).Scale);var view=marker.CreateElevation(doc,source.Id,0);view.Name=item.ReferenceName;
+    foreach(var pair in new[]{(LegalCatalog.StageId,LegalCatalog.Stage),(LegalCatalog.FunctionId,"FACHADAS")}){var parameter=view.get_Parameter(pair.Item1);if(parameter==null||parameter.IsReadOnly)throw new InvalidOperationException("Configure os parâmetros ARQ do projeto antes de criar as fachadas.");parameter.Set(pair.Item2);}
+    if(graphic!=ElementId.InvalidElementId)view.ViewTemplateId=graphic;views[index]=(item,view);
+   }
+   if(create.Commit()!=TransactionStatus.Committed)throw new InvalidOperationException("Criação das fachadas revertida.");
+  }
   var markers=new FilteredElementCollector(doc).OfClass(typeof(ElevationMarker)).Cast<ElevationMarker>().ToList();
   var previous=views.ToDictionary(p=>p.View!.Id.Value,p=>Read(p.View!));
   foreach(var (_,v) in views)
@@ -92,7 +115,7 @@ public static class LegalFacades
     // Keep the original graphic template, excluding parameters this module has to control.
     if(savedTemplate!=ElementId.InvalidElementId)
     {
-     string name="ARQ VT - FACHADAS - VEBRAM 05";var preset=new FilteredElementCollector(doc).OfClass(typeof(View)).Cast<View>().FirstOrDefault(v=>v.IsTemplate&&v.Name==name);if(preset==null){preset=(View)doc.GetElement(((View)doc.GetElement(savedTemplate)).Duplicate(ViewDuplicateOption.Duplicate));preset.Name=name;}
+     string name="ARQ VT - FACHADAS - VEBRAM 05";var preset=new FilteredElementCollector(doc).OfClass(typeof(View)).Cast<View>().FirstOrDefault(v=>v.IsTemplate&&v.Name==name);if(preset==null){preset=target.CreateViewTemplate();preset.Name=name;}
      var excluded=preset.GetNonControlledTemplateParameterIds().ToHashSet();foreach(var id in preset.GetTemplateParameterIds())if(new[]{"VIEW_SCALE","VIEW_PHASE","VIEWER_CROP_REGION","VIEWER_CROP_REGION_VISIBLE","VIEWER_BOUND_FAR_CLIPPING","VIEWER_BOUND_OFFSET_FAR","VIEWER_VOLUME_OF_INTEREST_CROP"}.Contains(((BuiltInParameter)id.Value).ToString()))excluded.Add(id);preset.SetNonControlledTemplateParameterIds(excluded.ToList());target.ViewTemplateId=preset.Id;
     }
     doc.Regenerate();foreach(var e in made)DrawingOwnership.MarkAnnotation(e);Write(target,new(source.UniqueId,made.Select(e=>new ElementStamp(e.UniqueId,DrawingOwnership.Fingerprint(e))).ToList(),Frame(target)));results.Add(new(target.Id.Value,0,made.Count,item.Label+": elevação nativa recortada com níveis laterais. Revise materiais, esquadrias e informações adicionais antes de emitir."));

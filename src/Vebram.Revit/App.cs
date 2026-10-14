@@ -43,6 +43,8 @@ public sealed class App : IExternalApplication
             var button = (PushButton)panel.AddItem(new PushButtonData("Vebram_" + key + "_" + buttonIndex++,
                 label, assembly, command.FullName));
             button.ToolTip = tooltip;
+            button.LargeImage=RibbonIcons.For(key);
+            button.Image=button.LargeImage;
             if (command != typeof(DemoCommand)) button.AvailabilityClassName = typeof(ProjectAvailable).FullName;
         }
     }
