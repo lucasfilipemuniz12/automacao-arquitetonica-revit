@@ -38,6 +38,10 @@ public sealed class PrepareLegalCommand : IExternalCommand
             if (doc == null || doc.IsFamilyDocument) return Result.Cancelled;
             var form = new PrepareWindow(data.Application);
             if (form.ShowDialog() != true) return Result.Cancelled;
+            if(form.ComposeSheets)
+            {
+                var composition=LegalSheetComposition.Apply(doc);data.Application.ActiveUIDocument!.ActiveView=(View)doc.GetElement(new ElementId(composition.SheetId));data.Application.ActiveUIDocument.GetOpenUIViews().FirstOrDefault(v=>v.ViewId.Value==composition.SheetId)?.ZoomToFit();TaskDialog.Show("VEBRAM — composição",composition.Report);return Result.Succeeded;
+            }
             if(form.Sheet is {} sheet)
             {
                 var prepared=LegalSheets.Apply(doc,sheet);data.Application.ActiveUIDocument!.ActiveView=(View)doc.GetElement(new ElementId(prepared.ViewId));data.Application.ActiveUIDocument.GetOpenUIViews().FirstOrDefault(v=>v.ViewId.Value==prepared.ViewId)?.ZoomToFit();TaskDialog.Show("VEBRAM — folha",prepared.Report);return Result.Succeeded;

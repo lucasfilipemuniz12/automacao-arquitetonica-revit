@@ -1,7 +1,7 @@
 param(
  [Parameter(Mandatory=$true)][string]$SourceProject,
  [Parameter(Mandatory=$true)][string]$OutputFolder,
- [ValidateSet('sections','legal05')][string]$Mode='legal05'
+ [ValidateSet('sections','legal05','composition014')][string]$Mode='legal05'
 )
 $ErrorActionPreference='Stop'
 $packageRoot=Split-Path $PSScriptRoot -Parent
@@ -22,4 +22,6 @@ Copy-Item -LiteralPath $sourceFile -Destination $targetFile
 @{Project=$targetFile;Output=$destinationFolder;Mode=$Mode} | ConvertTo-Json | Set-Content -LiteralPath $jobPath -Encoding utf8
 Write-Output "Job preparado: $jobPath"
 Write-Output "Abra o Revit para validar somente a cópia: $targetFile"
-Write-Output 'legal05 usa dados fictícios explicitamente identificados. Não verifica conformidade municipal. Sem job, o produto não executa testes na inicialização.'
+if($Mode -eq 'composition014'){Write-Output 'composition014 verifica a revisão explícita de composição V02, margens, escalas, repetição e preservação da geometria numa cópia com entregáveis já preparados e colocados.'}
+else{Write-Output 'legal05 usa dados fictícios explicitamente identificados. Não verifica conformidade municipal.'}
+Write-Output 'Sem job explícito, o produto não executa testes na inicialização.'

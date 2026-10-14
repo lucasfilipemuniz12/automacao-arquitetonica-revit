@@ -30,6 +30,7 @@ public sealed class PrepareWindow : Window
     public ContextSelection? Context{get;private set;}
     public FacadeSelection? Facades{get;private set;}
     public SheetSelection? Sheet{get;private set;}
+    public bool ComposeSheets{get;private set;}
     public IReadOnlyList<Request> Requests{get;}=[];
     ViewPlan? Source=>sources.SelectedItem is SourceChoice c?doc.GetElement(new ElementId(c.Id)) as ViewPlan:null;
     public PrepareWindow(UIApplication app)
@@ -76,6 +77,7 @@ public sealed class PrepareWindow : Window
         cards.Children.Add(Card("Áreas dos ambientes","Quadro Q04 do template","area",true,()=>ChooseModule("areas")));
         cards.Children.Add(Card("Quadro urbanístico","Áreas e limites informados pelo projetista","area",true,()=>ChooseContext("urbanistico")));
         cards.Children.Add(Card("Organizar folhas","Escolha um entregável e a folha LEG","area",true,ChooseSheet));
+        cards.Children.Add(Card("Revisar composição","V02: limpar guias, centralizar e aproveitar folhas","area",true,()=>{ComposeSheets=true;DialogResult=true;}));
         body.Children.Add(new TextBlock{Text="Estilo das cotas, escala e informação adicional: Preferências legais. Situação e quadro urbanístico usam o lote confirmado na Implantação. Confira os entregáveis antes de organizar as folhas.",TextWrapping=TextWrapping.Wrap,Foreground=Brushes.SlateGray,Margin=new Thickness(0,12,0,0)});
     }
     Button Card(string title,string description,string kind,bool active=false,Action? action=null)

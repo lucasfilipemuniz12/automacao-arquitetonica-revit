@@ -20,6 +20,7 @@ internal sealed class SectionValidation:IExternalApplication
   try
   {
    doc=ui.Application.OpenDocumentFile(job.Project);
+   if(job.Mode=="composition014"){ValidateComposition014(doc,job.Output);doc.Save();doc.Close(false);doc=null;File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Composição V02 limpa e centralizada na cópia de teste.");return;}
    if(job.Mode=="facades055"){ValidateFacades055(doc,job.Output);doc.Save();doc.Close(false);doc=null;File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Fachadas e linhas de situação validadas na cópia de teste.");return;}
    if(job.Mode=="legal05"){ValidateLegal05(doc,job.Output);doc.Save();doc.Close(false);doc=null;File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Urbanismo e folhas verificados na cópia de teste.\n"+job.Project);return;}
    var physical=Physical(doc);var ids=LegalCatalog.Views(doc).Select(v=>v.Id.Value).Order().ToList();var elevations=new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>().ToDictionary(l=>l.Id.Value,l=>l.Elevation);
@@ -139,6 +140,27 @@ internal sealed class SectionValidation:IExternalApplication
   if(!physical.SequenceEqual(Physical(doc))||views.Except(LegalCatalog.Views(doc).Select(v=>v.Id.Value)).Any())throw new Exception("Geometria ou identidade das vistas alterada.");
   if(existingPlacements.Any(p=>doc.GetElement(p.UniqueId) is not {} e||LegalSheets.Rect(e,(ViewSheet)doc.GetElement(p.Sheet))!=p.Bounds))throw new Exception("Colocação anterior deslocada.");
   File.WriteAllText(Path.Combine(output,"TESTES_LEGAIS_05.json"),JsonSerializer.Serialize(new{Version=Assembly.GetExecutingAssembly().GetName().Version?.ToString(),Results=results,SheetResults=sheetResults,Placements=placements,Unplaced=unplaced,NewSheets=newSheets,AllDeliverablesPlaced=unplaced.Count==0,NewSheetFailureRolledBack=newSheetFailureRolledBack,Repeat=true,EditedAnnotationsProtected=protectedEdit,SheetRepeat=true,NoNewSheetOverlaps=true,PreExistingOverlapPairs=initialOverlaps.ToList(),ExistingPlacementsPreserved=true,FailedPlacementsRolledBack=true,PhysicalBoundsPreserved=true,OriginalViewsPreserved=true,FictitiousData=true},new JsonSerializerOptions{WriteIndented=true}));
+ }
+ static void ValidateComposition014(Document doc,string output)
+ {
+  var physical=Physical(doc);var viewIds=LegalCatalog.Views(doc).Select(v=>v.Id.Value).Order().ToList();var scales=LegalCatalog.Views(doc).ToDictionary(v=>v.Id.Value,v=>v.Scale);
+  var result=LegalSheetComposition.Apply(doc);doc.Save();
+  string PlacementState()=>string.Join("\n",new FilteredElementCollector(doc).OfClass(typeof(Viewport)).Cast<Viewport>().OrderBy(v=>v.Id.Value).Select(v=>v.Id.Value+"/"+v.ViewId.Value+"/"+v.SheetId.Value+"/"+v.GetBoxCenter().ToString()+"/"+v.LabelOffset.ToString()));
+  string placed=PlacementState();var repeat=LegalSheetComposition.Apply(doc);
+  if(placed!=PlacementState()||repeat.HiddenGuides!=0||repeat.RemovedEmptySheets!=0)throw new Exception("Revisão de composição instável ao repetir.");
+  var sheets=new FilteredElementCollector(doc).OfClass(typeof(ViewSheet)).Cast<ViewSheet>().Where(LegalSheets.IsLegalSheet).OrderBy(s=>s.SheetNumber).ToList();
+  if(sheets.Count!=3)throw new Exception("Composição deveria usar três folhas.");
+  foreach(var sheet in sheets)LegalSheetComposition.Validate(doc,sheet);
+  if(!physical.SequenceEqual(Physical(doc))||!viewIds.SequenceEqual(LegalCatalog.Views(doc).Select(v=>v.Id.Value).Order())||scales.Any(p=>((View)doc.GetElement(new ElementId(p.Key))).Scale!=p.Value))throw new Exception("Geometria, identidade das vistas ou escala alterada.");
+  var roof=LegalCatalog.Reference(LegalCatalog.Views(doc),LegalCatalog.Items.First(i=>i.Key=="cobertura"))!;
+  var south=LegalCatalog.Reference(LegalCatalog.Views(doc),LegalCatalog.Items.First(i=>i.Key=="fachada-sul"))!;
+  foreach(var view in new[]{roof,south})if(new FilteredElementCollector(doc).OfClass(typeof(Viewport)).Cast<Viewport>().Single(v=>v.ViewId==view.Id).SheetId!=sheets.Single(s=>s.SheetNumber=="LEG-02").Id)throw new Exception("Conteúdo da antiga LEG-04 não foi para LEG-02.");
+  var urban=LegalCatalog.Reference(LegalCatalog.Views(doc),LegalCatalog.Items.First(i=>i.Key=="urbanistico"))!;
+  var texts=new FilteredElementCollector(doc,urban.Id).OfClass(typeof(TextNote)).Cast<TextNote>().Where(n=>DrawingOwnership.IsAnnotation(n)).ToList();
+  // TextNote bounding boxes include invisible margins. The table uses top-left
+  // anchors at scale 1; use the native paper Width/Height for reading collisions.
+  var boxes=texts.Select(n=>new LegalPaperRect(n.Coord.X,n.Coord.Y-n.Height,n.Coord.X+n.Width,n.Coord.Y)).ToList();for(int a=0;a<boxes.Count;a++)for(int b=a+1;b<boxes.Count;b++)if(boxes[a].Intersects(boxes[b],0))throw new Exception("Textos sobrepostos no quadro compacto: "+texts[a].Text+" / "+texts[b].Text);
+  File.WriteAllText(Path.Combine(output,"COMPOSICAO.json"),JsonSerializer.Serialize(new{Version=Assembly.GetExecutingAssembly().GetName().Version?.ToString(),Result=result,Repeat=true,AllTitlesInsideMargins=true,NoViewportOverlaps=true,CompactTableTextNoOverlap=true,ScalesPreserved=true,PhysicalBoundsPreserved=true,OriginalViewsPreserved=true,RoofAndSouthOnLeg02=true,Sheets=sheets.Select(s=>new{s.SheetNumber,s.Name,Area=LegalSheetComposition.Area(doc,s),Viewports=new FilteredElementCollector(doc,s.Id).OfClass(typeof(Viewport)).Cast<Viewport>().Where(v=>!v.IsHidden(s)).Select(v=>new{Id=v.Id.Value,View=doc.GetElement(v.ViewId).Name,Scale=((View)doc.GetElement(v.ViewId)).Scale,Bounds=LegalSheetComposition.Bounds(v,s),LabelOffset=new[]{v.LabelOffset.X,v.LabelOffset.Y},Detail=v.get_Parameter(BuiltInParameter.VIEWPORT_DETAIL_NUMBER)?.AsString()}),VisibleSheetNotes=new FilteredElementCollector(doc,s.Id).OfClass(typeof(TextNote)).Cast<TextNote>().Where(n=>!n.IsHidden(s)).Select(n=>n.Text).ToList()})},new JsonSerializerOptions{WriteIndented=true}));
  }
  static int Count(Document doc,long view)=>new FilteredElementCollector(doc).WhereElementIsNotElementType().Count(e=>e.OwnerViewId.Value==view);
  static List<string> Physical(Document doc)=>new FilteredElementCollector(doc).WhereElementIsNotElementType().Where(e=>e is HostObject or DirectShape||e is FamilyInstance&&e.Category?.CategoryType==CategoryType.Model).Select(e=>e.Id.Value+"/"+(e.get_BoundingBox(null) is {} b?string.Join("/",new[]{b.Min.X,b.Min.Y,b.Min.Z,b.Max.X,b.Max.Y,b.Max.Z}.Select(v=>Math.Round(v,6))):"none")).Order().ToList();
