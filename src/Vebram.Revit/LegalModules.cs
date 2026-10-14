@@ -38,19 +38,19 @@ public static class LegalModules
   using var tx=new Transaction(doc,"VEBRAM — "+item.Label);tx.Start();
   try
   {
-   if(previous!=null){var ids=previous.Elements.Select(s=>doc.GetElement(s.UniqueId)).Where(e=>e!=null&&e.OwnerViewId==target.Id&&DrawingOwnership.IsAnnotation(e)).Select(e=>e!.Id).ToList();if(ids.Count>0)doc.Delete(ids);}
+   if(previous!=null){var ids=previous.Elements.Select(s=>doc.GetElement(s.UniqueId)).Where(e=>e!=null&&e.OwnerViewId==target.Id&&DrawingOwnership.IsAnnotation(e)).Select(e=>e!.Id).ToList();if(ids.Count>0){var allowed=ids.ToHashSet();var removed=doc.Delete(ids);if(removed.Any(id=>!allowed.Contains(id)))throw new InvalidOperationException("Há elementos manuais dependentes das marcações geradas. A atualização foi revertida para preservá-los.");}}
    var prefs=LegalPreferenceStore.Read(doc);Preset(doc,target,source,item,prefs.Scale);
    var made=new List<Element>();var textType=TextType(doc);var dimensionType=LegalPreferenceStore.Dimension(doc);
    var z=target.GenLevel.Elevation;var drawing=new Drawing(doc,target,made,textType,dimensionType,z);
    double x0=contour.Min(p=>p.X),x1=contour.Max(p=>p.X),y0=contour.Min(p=>p.Y),y1=contour.Max(p=>p.Y);
+   PlanAnnotationResult? planResult=null;
    if(request.Key=="planta")
    {
     // Linhas auxiliares nativas de referência; o contorno segue o piso e as paredes adjacentes.
     var c=drawing.Polygon(new[]{new XYZ(x0,y0,z),new XYZ(x1,y0,z),new XYZ(x1,y1,z),new XYZ(x0,y1,z)});
     drawing.Dimension(new[]{c[3],c[1]},new(x0,y0-Implantation.Feet(.8),z),new(x1,y0-Implantation.Feet(.8),z));
     drawing.Dimension(new[]{c[0],c[2]},new(x0-Implantation.Feet(.8),y0,z),new(x0-Implantation.Feet(.8),y1,z));
-    foreach(var room in new FilteredElementCollector(doc).OfClass(typeof(SpatialElement)).OfType<Room>().Where(r=>r.LevelId==source.GenLevel.Id&&r.Area>0))
-     if(room.Location is LocationPoint p)drawing.Text(new XYZ(p.Point.X,p.Point.Y,z),room.Name+"\n"+(room.Area*.09290304).ToString("0.00",Implantation.Pt)+" m²",true);
+    planResult=PlanAnnotations.Apply(doc,target,source,made,textType,dimensionType,prefs);
    }
    else
    {
@@ -63,13 +63,14 @@ public static class LegalModules
     }
    }
    if(!string.IsNullOrWhiteSpace(prefs.AdditionalNote))drawing.Text(new(x0,y0-Implantation.Feet(2),z),prefs.AdditionalNote);
+   doc.Regenerate();foreach(var annotation in made){var ab=annotation.get_BoundingBox(target);if(ab!=null){x0=Math.Min(x0,ab.Min.X);x1=Math.Max(x1,ab.Max.X);y0=Math.Min(y0,ab.Min.Y);y1=Math.Max(y1,ab.Max.Y);}}
    var box=target.CropBox;var inverse=box.Transform.Inverse;
    var corners=new[]{inverse.OfPoint(new XYZ(x0-Implantation.Feet(3),y0-Implantation.Feet(4),z)),inverse.OfPoint(new XYZ(x1+Implantation.Feet(3),y1+Implantation.Feet(3),z))};
    box.Min=new XYZ(corners.Min(p=>p.X),corners.Min(p=>p.Y),box.Min.Z);box.Max=new XYZ(corners.Max(p=>p.X),corners.Max(p=>p.Y),box.Max.Z);target.CropBox=box;
    doc.Regenerate();foreach(var e in made)DrawingOwnership.MarkAnnotation(e);Write(target,new(source.UniqueId,made.Select(e=>new ElementStamp(e.UniqueId,DrawingOwnership.Fingerprint(e))).ToList()));
    if(tx.Commit()!=TransactionStatus.Committed)throw new InvalidOperationException("Operação revertida pelo Revit.");
    return new(target.Id.Value,made.OfType<Dimension>().Count(),made.Count,item.Label+" preparada na vista do V02.\n"+made.OfType<Dimension>().Count()+" cotas e "+made.Count+" marcações geradas.\n"+
-    (request.Key=="planta"?"Inclui cotas gerais e identificação de ambientes; cotas internas e tags de esquadrias serão a próxima etapa.":waters.Count+" águas planas reconhecidas; inclinações lidas da geometria, sem alterar o telhado.")+"\nExecute novamente após mudanças de modelo. Revise antes de colocar na folha.");
+    (planResult!=null?$"Cotas entre acabamentos: {planResult.RoomDimensions}; espessuras: {planResult.WallDimensions}; larguras de esquadrias: {planResult.OpeningDimensions}.\nRótulos com chamada externa: {planResult.ExternalLabels}.\n"+string.Join("\n",planResult.Pending):waters.Count+" águas planas reconhecidas; inclinações lidas da geometria, sem alterar o telhado.")+"\nExecute novamente após mudanças de modelo. Revise antes de colocar na folha.");
   }
   catch{if(tx.GetStatus()==TransactionStatus.Started)tx.RollBack();throw;}
  }

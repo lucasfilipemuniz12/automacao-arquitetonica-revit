@@ -435,7 +435,7 @@ public static class DrawingOwnership
     public static string Fingerprint(Element element)
     {
         var text=element.GetType().Name+"/"+element.GetTypeId().Value;
-        if(element is TextNote note)text+="/"+note.Text+"/"+Point(note.Coord)+"/"+note.Width.ToString("R",CultureInfo.InvariantCulture);
+        if(element is TextNote note){text+="/"+note.Text+"/"+Point(note.Coord)+"/"+note.Width.ToString("R",CultureInfo.InvariantCulture);foreach(var leader in note.GetLeaders())text+="/"+Point(leader.End)+"/"+Point(leader.Elbow);}
         if(element is CurveElement curve)text+="/"+Point(curve.GeometryCurve.GetEndPoint(0))+"/"+Point(curve.GeometryCurve.GetEndPoint(1));
         if(element is Dimension dimension)
         {

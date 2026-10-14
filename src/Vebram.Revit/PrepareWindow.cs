@@ -71,7 +71,7 @@ public sealed class PrepareWindow : Window
         cards.Children.Add(Card("Cobertura","Inclinação e seta por água modelada","roof",true,()=>ChooseModule("cobertura")));
         cards.Children.Add(Card("Áreas dos ambientes","Quadro Q04 do template","area",true,()=>ChooseModule("areas")));
         cards.Children.Add(Card("Quadro urbanístico","Dados e critérios do projeto","area"));
-        body.Children.Add(new TextBlock{Text="Estilo das cotas, escala e informação adicional: botão Preferências legais na faixa do Revit. Planta legal inicia com cotas gerais; cortes e fachadas serão o próximo lote.",TextWrapping=TextWrapping.Wrap,Foreground=Brushes.SlateGray,Margin=new Thickness(0,12,0,0)});
+        body.Children.Add(new TextBlock{Text="Estilo das cotas, escala e informação adicional: botão Preferências legais na faixa do Revit. Planta legal inclui cotas internas de acabamento e rótulos ajustados; cortes e fachadas serão o próximo lote.",TextWrapping=TextWrapping.Wrap,Foreground=Brushes.SlateGray,Margin=new Thickness(0,12,0,0)});
     }
     Button Card(string title,string description,string kind,bool active=false,Action? action=null)
     {
@@ -143,7 +143,7 @@ public sealed class PrepareWindow : Window
         var candidates=Implantation.Footprints(doc,Source);var bases=new ComboBox{ItemsSource=candidates.Select(f=>new SourceChoice(f.Id.Value,f.Name)).ToList(),MinHeight=32,Margin=new Thickness(0,10,0,10)};
         if(candidates.Count>0)bases.SelectedIndex=0;if(key!="areas"){body.Children.Add(Label("Piso base do nível escolhido"));body.Children.Add(bases);}
         var edited=new CheckBox{Content="Refazer marcas do gerador que editei manualmente",Margin=new Thickness(0,12,0,12)};if(key!="areas")body.Children.Add(edited);
-        body.Children.Add(new TextBlock{Text=key=="planta"?"Cotas gerais e identificação de ambientes; preserva marcas manuais. Cotas internas e esquadrias serão ampliadas depois.":key=="cobertura"?"Ler inclinação e sentido de cada água plana. Telhados curvos exigem outro perfil.":"Abrir o quadro Q04 existente, que acompanha as áreas do modelo.",TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,0,0,12)});
+        body.Children.Add(new TextBlock{Text=key=="planta"?"Cotas gerais e internas entre acabamentos; rótulos ajustados com chamada externa quando necessário. Espessuras e larguras de esquadrias opcionais nas preferências. Limites sem referência válida são relatados.":key=="cobertura"?"Ler inclinação e sentido de cada água plana. Telhados curvos exigem outro perfil.":"Abrir o quadro Q04 existente, que acompanha as áreas do modelo.",TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,0,0,12)});
         var apply=new Button{Content="Preparar "+title,Padding=new Thickness(15,8,15,8),HorizontalAlignment=HorizontalAlignment.Right};body.Children.Add(apply);apply.Click+=(_,_)=>{if(key!="areas"&&bases.SelectedItem==null){MessageBox.Show(dialog,"Este nível não possui piso base disponível.");return;}dialog.DialogResult=true;};
         if(dialog.ShowDialog()==true){Module=new(key,Source.Id.Value,(bases.SelectedItem as SourceChoice)?.Id??0,edited.IsChecked==true);DialogResult=true;}
     }
@@ -162,3 +162,4 @@ public sealed class PrepareWindow : Window
         catch(Exception e){MessageBox.Show(this,e.Message,"Conferir Implantação",MessageBoxButton.OK,MessageBoxImage.Information);}
     }
 }
+

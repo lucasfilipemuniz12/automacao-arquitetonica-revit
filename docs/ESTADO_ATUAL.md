@@ -41,3 +41,11 @@ BIMwright rvt-mcp/ToolBaker v1.1.0: pacote oficial baixado e SHA-256 conferido; 
 Este repositório contém os fontes atuais e a documentação textual. Os arquivos RVT/RTE e famílias permanecem locais. Cloud pode revisar e editar C#, mas a validação da API exige Revit no Windows. Manter o histórico mestre; priorizar pedido recente de Lucas e evidência executada. Não reexecutar scripts históricos nos modelos aprovados.
 
 
+
+## Atualização 0.3.2 — rótulos e cotas internas
+
+Substitui a limitação de rótulos sobrepostos da 0.3.1. ROOM_NAME evita número duplicado; textos são distribuídos no interior ou enviados a uma coluna externa com chamadas. Na amostra da Casa Terras, quatro rótulos permaneceram internos e cinco receberam chamada; não houve sobreposição entre rótulos internos gerados no teste automatizado.
+
+Planta final: duas cotas gerais + 16 cotas internas entre referências reais das faces de acabamento. Opções desligadas por padrão para reduzir conteúdo: espessuras (27 cotas no teste) e larguras de portas/janelas (14 cotas no teste). Valores e referências positivos conferidos; repetição, proteção de edição, estilo e preservação de IDs passaram. Pendências declaradas: duas medidas horizontais dos ambientes 01/03 não encontraram par ortogonal válido.
+
+Fonte nativo compilado sem erros/avisos; versão instalada em dist-v032. Cópia local Casa_Terras_LEGAL_V032.rvt salva; evidências e limites em TESTES_V032.md. Revisão visual final aguarda recuperação do controle da janela Revit. Não afirmar que disposição das cotas/linhas indicadoras foi aprovada nem que cotagem de posicionamento de esquadrias está implementada.
