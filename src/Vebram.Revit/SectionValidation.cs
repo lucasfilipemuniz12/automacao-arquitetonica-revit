@@ -82,12 +82,13 @@ internal sealed class SectionValidation:IExternalApplication
    if(!placed)throw new Exception("Entregável sem espaço nas duas folhas: "+result.ViewId);
   }
   foreach(var sheet in sheets){var elements=new FilteredElementCollector(doc,sheet.Id).WhereElementIsNotElementType().Where(e=>e is Viewport or ScheduleSheetInstance).ToList();var rectangles=elements.Select(e=>LegalSheets.Rect(e,sheet)!.Value).ToList();for(int a=0;a<rectangles.Count;a++)for(int b=a+1;b<rectangles.Count;b++)if(rectangles[a].Intersects(rectangles[b],0))throw new Exception("Sobreposição na folha "+sheet.SheetNumber);}
-  if(!physical.SequenceEqual(Physical(doc))||!views.SequenceEqual(LegalCatalog.Views(doc).Select(v=>v.Id.Value).Order()))throw new Exception("Geometria ou identidade das vistas alterada.");
-  File.WriteAllText(Path.Combine(output,"TESTES_LEGAIS_05.json"),JsonSerializer.Serialize(new{Version="0.5.1",Results=results,SheetResults=sheetResults,Placements=placements,Repeat=true,EditedAnnotationsProtected=protectedEdit,NativeFacades=true,CardinalDirections=true,SheetRepeat=true,SheetOverlapCheck=true,PhysicalBoundsPreserved=true,ViewsPreserved=true,FictitiousData=true},new JsonSerializerOptions{WriteIndented=true}));
+  if(!physical.SequenceEqual(Physical(doc))||views.Except(LegalCatalog.Views(doc).Select(v=>v.Id.Value)).Any())throw new Exception("Geometria ou identidade das vistas alterada.");
+  File.WriteAllText(Path.Combine(output,"TESTES_LEGAIS_05.json"),JsonSerializer.Serialize(new{Version="0.5.2",Results=results,SheetResults=sheetResults,Placements=placements,Repeat=true,EditedAnnotationsProtected=protectedEdit,NativeFacades=true,CardinalDirections=true,SheetRepeat=true,SheetOverlapCheck=true,PhysicalBoundsPreserved=true,OriginalViewsPreserved=true,FictitiousData=true},new JsonSerializerOptions{WriteIndented=true}));
  }
  static int Count(Document doc,long view)=>new FilteredElementCollector(doc).WhereElementIsNotElementType().Count(e=>e.OwnerViewId.Value==view);
  static List<string> Physical(Document doc)=>new FilteredElementCollector(doc).WhereElementIsNotElementType().Where(e=>e is HostObject or FamilyInstance or DirectShape).Select(e=>e.Id.Value+"/"+(e.get_BoundingBox(null) is {} b?string.Join("/",new[]{b.Min.X,b.Min.Y,b.Min.Z,b.Max.X,b.Max.Y,b.Max.Z}.Select(v=>Math.Round(v,6))):"none")).Order().ToList();
 }
+
 
 
 

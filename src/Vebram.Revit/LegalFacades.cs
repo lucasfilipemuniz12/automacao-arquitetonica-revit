@@ -27,7 +27,7 @@ public static class LegalFacades
    if(v.ViewType==ViewType.Elevation)
    {
     var marker=markers.FirstOrDefault(m=>Enumerable.Range(0,4).Any(index=>m.GetViewId(index)==v.Id))??throw new InvalidOperationException("Marcador nativo da fachada não encontrado.");
-    if(marker.CurrentViewCount!=1)throw new InvalidOperationException("Marcador compartilhado por várias elevações: mantenha sua orientação e revise o conjunto antes de automatizar. Use marcadores independentes do template.");
+    if(marker.CurrentViewCount>1&&new FilteredElementCollector(doc).OfClass(typeof(Viewport)).Cast<Viewport>().Any(p=>p.ViewId==v.Id))throw new InvalidOperationException("Esta fachada já está em uma folha. Abra-a pelo Navegador do Revit; a preparação automática precisa preservar essa colocação.");
    }
   }
   var points=Implantation.GetContour(doc,floor);double z=source.GenLevel.Elevation,angle=input.RotationDegrees*Math.PI/180;
@@ -37,6 +37,24 @@ public static class LegalFacades
   using var tx=new Transaction(doc,"VEBRAM — preparar quatro fachadas");tx.Start();
   try
   {
+   // Shared markers are normal in Revit. Keep their views as a recoverable reserve,
+   // and create independent native elevations instead of rotating all hosted views.
+   for(int index=0;index<views.Count;index++)
+   {
+    var entry=views[index];var oldView=entry.View!;if(oldView.ViewType!=ViewType.Elevation)continue;
+    var shared=markers.First(m=>Enumerable.Range(0,4).Any(i=>m.GetViewId(i)==oldView.Id));if(shared.CurrentViewCount<=1)continue;
+    var template=oldView.ViewTemplateId;var scale=LegalPreferenceStore.Read(doc).Scale;
+    var outward=rotate.OfVector(entry.Item.Key switch{"fachada-norte"=>XYZ.BasisY,"fachada-sul"=>-XYZ.BasisY,"fachada-leste"=>XYZ.BasisX,_=>-XYZ.BasisX});
+    var position=center+outward*(points.Max(p=>(p-center).DotProduct(outward))+Implantation.Feet(input.DistanceMeters));
+    var marker=ElevationMarker.CreateElevationMarker(doc,oldView.GetTypeId(),position,scale);var independent=marker.CreateElevation(doc,source.Id,0);
+    // The reserve keeps original annotations, IDs and native marker intact.
+    var originalName=oldView.Name;oldView.ViewTemplateId=ElementId.InvalidElementId;
+    var oldStage=oldView.get_Parameter(LegalCatalog.StageId);if(oldStage==null||oldStage.IsReadOnly)throw new InvalidOperationException("Não foi possível guardar a fachada original na área de reserva; operação revertida.");
+    oldStage.Set("00 RESERVA VEBRAM");oldView.Name="RESERVA - "+originalName+" - "+oldView.Id.Value;oldView.ViewTemplateId=template;
+    independent.Name=originalName;
+    foreach(var pair in new[]{(LegalCatalog.StageId,LegalCatalog.Stage),(LegalCatalog.FunctionId,"FACHADAS")}){var parameter=independent.get_Parameter(pair.Item1);if(parameter==null||parameter.IsReadOnly)throw new InvalidOperationException("Classificação ARQ ausente na nova elevação; operação revertida.");parameter.Set(pair.Item2);}
+    independent.ViewTemplateId=template;views[index]=(entry.Item,independent);previous[independent.Id.Value]=null;markers.Add(marker);
+   }
    foreach(var (item,targetNullable) in views)
    {
     var target=targetNullable!;var stamp=previous[target.Id.Value];if(stamp!=null){var ids=stamp.Elements.Select(s=>doc.GetElement(s.UniqueId)).Where(e=>e!=null).Select(e=>e!.Id).ToList();if(ids.Count>0){var allowed=ids.ToHashSet();if(doc.Delete(ids).Any(id=>!allowed.Contains(id)))throw new InvalidOperationException("Há elementos dependentes das marcas da fachada.");}}

@@ -187,7 +187,7 @@ public sealed class PrepareWindow : Window
         var bases=new ComboBox{ItemsSource=Implantation.Footprints(doc,Source).Select(f=>new SourceChoice(f.Id.Value,f.Name)).ToList(),SelectedIndex=0,MinHeight=32};body.Children.Add(Label("Piso base"));body.Children.Add(bases);
         var distance=new TextBox{Text="3",MinHeight=32};body.Children.Add(Label("Distância da observação até a casa (m)"));body.Children.Add(distance);
         var rotation=new TextBox{Text="0",MinHeight=32};body.Children.Add(Label("Giro das fachadas em relação aos eixos do projeto (graus)"));body.Children.Add(rotation);
-        var edited=new CheckBox{Content="Refazer fachadas/marcas do gerador que editei",Margin=new Thickness(0,10,0,10)};body.Children.Add(edited);body.Children.Add(new TextBlock{Text="Reutiliza as elevações nativas Norte/Sul/Leste/Oeste do template. Marcadores compartilhados e anotações manuais exigem revisão. O giro não altera o norte verdadeiro do modelo.",TextWrapping=TextWrapping.Wrap});
+        var edited=new CheckBox{Content="Refazer fachadas/marcas do gerador que editei",Margin=new Thickness(0,10,0,10)};body.Children.Add(edited);body.Children.Add(new TextBlock{Text="Reutiliza as elevações nativas Norte/Sul/Leste/Oeste do template. Marcadores compartilhados são separados automaticamente, guardando as vistas originais em Reserva. Fachadas já em folhas e anotações manuais exigem revisão. O giro não altera o norte verdadeiro do modelo.",TextWrapping=TextWrapping.Wrap});
         var apply=new Button{Content="Preparar fachadas",Margin=new Thickness(0,15,0,0),Padding=new Thickness(15,8,15,8)};body.Children.Add(apply);apply.Click+=(_,_)=>{if(bases.SelectedItem is not SourceChoice f||!double.TryParse(distance.Text.Replace(',','.'),NumberStyles.Float,CultureInfo.InvariantCulture,out var d)||!double.TryParse(rotation.Text.Replace(',','.'),NumberStyles.Float,CultureInfo.InvariantCulture,out var r)||!double.IsFinite(d)||d<.5||d>100||!double.IsFinite(r)){MessageBox.Show(dialog,"Escolha o piso e confira distância e giro.");return;}Facades=new(Source.Id.Value,f.Id,d,r,edited.IsChecked==true);dialog.DialogResult=true;};if(dialog.ShowDialog()==true)DialogResult=true;
     }
     void ChooseContext(string key)
@@ -218,5 +218,6 @@ public sealed class PrepareWindow : Window
         catch(Exception e){MessageBox.Show(this,e.Message,"Conferir Implantação",MessageBoxButton.OK,MessageBoxImage.Information);}
     }
 }
+
 
 
