@@ -5,8 +5,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <PlatformTarget>x64</PlatformTarget>
-    <AssemblyName>Vebram.Revit.Legal.V03</AssemblyName>
-    <Version>0.3.0</Version>
+    <AssemblyName>Vebram.Revit.Legal.V031</AssemblyName>
+    <Version>0.3.1</Version>
     <RevitInstallDir Condition="'$(RevitInstallDir)' == ''">D:\Autodesk\Revit2026\Revit 2026</RevitInstallDir>
   </PropertyGroup>
   <ItemGroup>
@@ -20,3 +20,4 @@
     <Error Condition="!Exists('$(RevitInstallDir)\RevitAPI.dll')" Text="Informe RevitInstallDir com a pasta do Revit 2026 instalado." />
   </Target>
 </Project>
+

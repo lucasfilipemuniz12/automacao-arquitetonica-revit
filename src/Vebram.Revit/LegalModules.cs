@@ -17,7 +17,7 @@ public static class LegalModules
   if(request.Key=="areas")
   {
    var schedule=LegalCatalog.Reference(LegalCatalog.Views(doc),LegalCatalog.Items.First(i=>i.Key=="areas")) as ViewSchedule??throw new InvalidOperationException("Q04 do V02 não encontrado. Use o template compatível.");
-   var rooms=new FilteredElementCollector(doc).OfClass(typeof(Room)).Cast<Room>().ToList();
+   var rooms=new FilteredElementCollector(doc).OfClass(typeof(SpatialElement)).OfType<Room>().ToList();
    return new(schedule.Id.Value,0,0,$"Q04 nativo do template: {rooms.Count(r=>r.Area>0)} ambientes com área; {rooms.Count(r=>r.Area<=0)} sem área.\nO quadro acompanha o modelo. Confira os ambientes e as pendências de modelagem antes de emitir.");
   }
   if(request.Key is not ("planta" or "cobertura"))throw new InvalidOperationException("Módulo ainda não habilitado.");
@@ -49,7 +49,7 @@ public static class LegalModules
     var c=drawing.Polygon(new[]{new XYZ(x0,y0,z),new XYZ(x1,y0,z),new XYZ(x1,y1,z),new XYZ(x0,y1,z)});
     drawing.Dimension(new[]{c[3],c[1]},new(x0,y0-Implantation.Feet(.8),z),new(x1,y0-Implantation.Feet(.8),z));
     drawing.Dimension(new[]{c[0],c[2]},new(x0-Implantation.Feet(.8),y0,z),new(x0-Implantation.Feet(.8),y1,z));
-    foreach(var room in new FilteredElementCollector(doc).OfClass(typeof(Room)).Cast<Room>().Where(r=>r.LevelId==source.GenLevel.Id&&r.Area>0))
+    foreach(var room in new FilteredElementCollector(doc).OfClass(typeof(SpatialElement)).OfType<Room>().Where(r=>r.LevelId==source.GenLevel.Id&&r.Area>0))
      if(room.Location is LocationPoint p)drawing.Text(new XYZ(p.Point.X,p.Point.Y,z),room.Name+"\n"+(room.Area*.09290304).ToString("0.00",Implantation.Pt)+" m²",true);
    }
    else

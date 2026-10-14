@@ -1,4 +1,4 @@
-param([string]$Dotnet = 'dotnet', [string]$RevitInstallDir = 'D:\Autodesk\Revit2026\Revit 2026', [string]$DistName = 'dist-v03')
+param([string]$Dotnet = 'dotnet', [string]$RevitInstallDir = 'D:\Autodesk\Revit2026\Revit 2026', [string]$DistName = 'dist-v031')
 $ErrorActionPreference = 'Stop'
 $package = Split-Path -Parent $PSScriptRoot
 $project = Join-Path $package 'src\Vebram.Revit\Vebram.Revit.csproj'
@@ -19,4 +19,5 @@ foreach ($extension in @('.dll','.pdb','.deps.json')) {
 New-Item -ItemType Directory -Path (Join-Path $dist 'profiles') -Force | Out-Null
 Copy-Item -LiteralPath (Join-Path $output 'profiles\ARQ_Parametros_Compartilhados.txt') -Destination (Join-Path $dist 'profiles\ARQ_Parametros_Compartilhados.txt')
 Write-Output "Pacote compilado: $dist"
+
 

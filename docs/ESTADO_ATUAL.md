@@ -22,9 +22,9 @@ Caimento de projeto de 2% pertence à decisão posterior R19/R20 da Casa Terras.
 - Planta legal: completa a referência do V02 com duas cotas gerais e textos de nome/área dos ambientes. Ainda não é cotagem interna completa; textos se atualizam quando o botão é executado novamente.
 - Cobertura: completa a referência do V02 e lê as águas planas, caimento e direção pela geometria. Não cria nem remodela telhados.
 - Áreas dos ambientes: abre o Q04 nativo existente e informa ambientes sem área; não inventa áreas computáveis nem resolve pendências de modelagem.
-- Identidade das vistas mantida; anotações manuais externas ao gerador preservadas. Edições de marcas próprias exigem decisão explícita de refazer.
+- Identidade das vistas mantida; anotações manuais externas ao gerador não são selecionadas para exclusão. Referências manuais dependentes das linhas geradas ainda precisam de proteção adicional. Edições de marcas próprias exigem decisão explícita de refazer.
 
-A compilação da 0.3 concluiu com zero erros/avisos. O estado dos testes nativos é registrado separadamente em docs/TESTES_V03.md. Não confundir compilação com execução.
+A compilação da 0.3.1 concluiu com zero erros/avisos. O estado dos testes nativos é registrado separadamente em docs/TESTES_V03.md. Não confundir compilação com execução.
 
 ## Pendências
 
@@ -32,10 +32,11 @@ Cortes A/B, quatro fachadas, Situação, quadro urbanístico e folhas/exportaç�
 
 ## Ferramentas auxiliares
 
-Skills Revit BIM, Architectural Civil Drafter e binlog-generation disponíveis. csharp-expert instalada do repositório oficial dotnet/skills, licença MIT; disponibilidade normal no próximo turno. Nenhum conteúdo de skill incorporado ao produto.
+Skills Revit BIM, Architectural Civil Drafter e binlog-generation disponíveis. csharp-expert instalada do repositório oficial dotnet/skills, licença MIT; disponível na sessão atual. Nenhum conteúdo de skill incorporado ao produto.
 
 BIMwright rvt-mcp/ToolBaker v1.1.0: pacote oficial baixado e SHA-256 conferido; instalação efetiva ainda pendente, porque o instalador exige fechar o Revit. O módulo funciona sem essa ponte. A instalação/conexão não devem ser declaradas concluídas pela existência do ZIP.
 
 ## Continuidade entre chats
 
 Este repositório contém os fontes atuais e a documentação textual. Os arquivos RVT/RTE e famílias permanecem locais. Cloud pode revisar e editar C#, mas a validação da API exige Revit no Windows. Manter o histórico mestre; priorizar pedido recente de Lucas e evidência executada. Não reexecutar scripts históricos nos modelos aprovados.
+

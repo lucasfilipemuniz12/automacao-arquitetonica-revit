@@ -10,15 +10,18 @@ public sealed class NativeApp:IExternalApplication
 {
  record Job(string Project,string Output,string SimpleProject);
  string path="";Job? job;
- public Result OnStartup(UIControlledApplication app){path=Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!,"legal-test-job.json");if(File.Exists(path)){app.Idling+=Run;}return Result.Succeeded;}
+ public Result OnStartup(UIControlledApplication app){path=Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!,"legal-test-job.json");if(File.Exists(path)){new Vebram.Revit.App().OnStartup(app);app.Idling+=Run;}return Result.Succeeded;}
  public Result OnShutdown(UIControlledApplication app)=>Result.Succeeded;
  void Run(object? sender,IdlingEventArgs e)
  {
   if(sender is not UIApplication ui)return;
   ui.Idling-=Run;if(!File.Exists(path))return;job=JsonSerializer.Deserialize<Job>(File.ReadAllText(path))!;File.Move(path,path+".executado-"+DateTime.UtcNow.Ticks,false);
+  Document? doc=null;bool closeDoc=false;
   try
   {
-   var doc=ui.Application.OpenDocumentFile(job.Project);
+   doc=ui.Application.Documents.Cast<Document>().FirstOrDefault(d=>d.PathName.Equals(job.Project,StringComparison.OrdinalIgnoreCase));
+   if(doc!=null&&ui.ActiveUIDocument?.Document==doc)throw new InvalidOperationException("A cópia de teste está ativa. Ative outro projeto antes de executar.");
+   doc??=ui.Application.OpenDocumentFile(job.Project);closeDoc=true;
    var physical=Physical(doc);var views=LegalCatalog.Views(doc).Select(v=>v.Id.Value).Order().ToList();
    var source=Implantation.ModelPlans(doc).First(v=>v.Name=="PRE - Layout / Nível 1");var floor=Implantation.Footprints(doc,source).First();
    var results=new List<ModuleResult>();
@@ -47,10 +50,11 @@ public sealed class NativeApp:IExternalApplication
    if(!physical.SequenceEqual(Physical(doc))||!views.SequenceEqual(LegalCatalog.Views(doc).Select(v=>v.Id.Value).Order()))throw new Exception("Elementos físicos ou identidade das vistas foram alterados.");
    var report=new{Results=results,Repeat=true,EditedMarksProtected=protectedEdit,ChosenStyle=true,PhysicalPreserved=true,ViewsPreserved=true,SimpleRoofFaces=simpleWaters.Select(w=>new{w.Slope,Direction=w.Direction==null?null:new[]{w.Direction.X,w.Direction.Y,w.Direction.Z}})};
    File.WriteAllText(Path.Combine(job.Output,"TESTES_NATIVOS.json"),JsonSerializer.Serialize(report,new JsonSerializerOptions{WriteIndented=true}));
-   doc.Save();doc.Close(false);
+   doc.Save();doc.Close(false);closeDoc=false;
    File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Módulos 0.3 executados e repetidos na Casa Terras; preferências e proteção de edição verificadas; casa básica com duas águas de 20% reconhecida.\n"+job.Project);
   }
   catch(Exception ex){File.WriteAllText(Path.Combine(job!.Output,"ERRO.txt"),ex.ToString());}
+  finally{if(closeDoc&&doc?.IsValidObject==true)doc.Close(false);}
  }
  static List<long> Physical(Document doc)=>new FilteredElementCollector(doc).WhereElementIsNotElementType().Where(e=>e is HostObject||e is FamilyInstance||e is DirectShape||e is Autodesk.Revit.DB.Architecture.Room).Select(e=>e.Id.Value).Order().ToList();
  static int Annotations(Document doc,long id)=>new FilteredElementCollector(doc).WhereElementIsNotElementType().Count(e=>e.OwnerViewId.Value==id);
