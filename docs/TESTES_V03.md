@@ -22,3 +22,5 @@ Referência: https://blog.autodesk.io/footprintroofslopeangle-property-value-mea
 ## Limites
 
 A Planta legal ainda tem somente cotas gerais e textos de ambientes; não implementa cotagem interna completa nem tags de esquadrias. Não houve teste de fachadas/cortes/Situação/urbanismo/folhas, superfícies curvas, três/quatro águas ou geração completa em outra casa. A leitura de duas águas da casa básica não equivale a um teste completo do módulo nessa casa. Implantação mantém as evidências históricas do piloto anterior; suas alterações 0.3 por água ainda precisam de validação específica. Não houve aprovação municipal.
+
+Revisão visual: formulário de preferências abre e exibe padrão metros/0,01 m, escala 100 e nota persistida. Planta legal aberta no Revit. Há rótulos sobrepostos nos ambientes pequenos; disposição e nomes repetidos ainda precisam de refinamento.
