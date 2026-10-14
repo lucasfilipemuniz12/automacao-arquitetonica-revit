@@ -1,7 +1,7 @@
 param([string]$AssemblyPath)
 $ErrorActionPreference = 'Stop'
 $package = Split-Path -Parent $PSScriptRoot
-if (-not $AssemblyPath) { $AssemblyPath = Join-Path $package 'dist-v032\Vebram.Revit.Legal.V032.dll' }
+if (-not $AssemblyPath) { $AssemblyPath = Join-Path $package 'dist-v035\Vebram.Revit.Legal.V035.dll' }
 $resolved = (Resolve-Path -LiteralPath $AssemblyPath).Path
 if (-not (Test-Path -LiteralPath (Join-Path (Split-Path -Parent $resolved) 'profiles\ARQ_Parametros_Compartilhados.txt'))) {
     throw 'Perfil ARQ ausente junto da DLL.'
@@ -36,6 +36,7 @@ foreach ($entry in $values.GetEnumerator()) {
 $xml.Save($manifest)
 Write-Output "Manifesto instalado: $manifest"
 Write-Output "DLL: $resolved"
+
 
 
 

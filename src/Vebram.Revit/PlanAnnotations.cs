@@ -30,11 +30,40 @@ public static class PlanAnnotations
    var box=room.get_BoundingBox(null);if(box==null)continue;
    var candidates=new List<XYZ>();
    // Search the interior rather than relying on a room insertion point near a wall.
-   for(int ix=1;ix<=7;ix++)for(int iy=1;iy<=7;iy++)
-   {var p=new XYZ(box.Min.X+(box.Max.X-box.Min.X)*ix/8,box.Min.Y+(box.Max.Y-box.Min.Y)*iy/8,z);if(room.IsPointInRoom(new(p.X,p.Y,z+Implantation.Feet(1))))candidates.Add(p);}
+   for(int ix=1;ix<=15;ix++)for(int iy=1;iy<=15;iy++)
+   {var p=new XYZ(box.Min.X+(box.Max.X-box.Min.X)*ix/16,box.Min.Y+(box.Max.Y-box.Min.Y)*iy/16,z);if(room.IsPointInRoom(new(p.X,p.Y,z+Implantation.Feet(1))))candidates.Add(p);}
    if(candidates.Count==0){pending.Add("Ambiente "+room.Number+": não foi encontrada posição interna para identificar/cotar.");continue;}
    var mid=new XYZ((box.Min.X+box.Max.X)/2,(box.Min.Y+box.Max.Y)/2,z);
    var anchor=candidates.OrderBy(p=>p.DistanceTo(mid)).First();
+   var raw=room.get_Parameter(BuiltInParameter.ROOM_NAME)?.AsString()??"Ambiente";
+   // Room.Name appends the number; ROOM_NAME contains only the user-authored name.
+   string name=raw.Trim();var number=room.Number?.Trim();if(!string.IsNullOrEmpty(number)&&name.EndsWith(" "+number,StringComparison.Ordinal))name=name[..^(number.Length+1)].TrimEnd();
+   TextNote? note=null;Rect? labelRect=null;
+   const string compactName="ARQ - Ambientes 2 mm - VEBRAM";
+   var compact=new FilteredElementCollector(doc).OfClass(typeof(TextNoteType)).Cast<TextNoteType>().FirstOrDefault(t=>t.Name==compactName);
+   if(compact==null){compact=(TextNoteType)textType.Duplicate(compactName);compact.get_Parameter(BuiltInParameter.TEXT_SIZE).Set(Implantation.Feet(.002));}
+   foreach(var format in new[]{(22,textType),(14,textType),(10,textType),(7,textType),(14,compact),(10,compact),(7,compact)})
+   {
+    string label=Wrap(name,format.Item1)+"\n"+(room.Area*.09290304).ToString("0.00",Implantation.Pt)+"m²";
+    note=TextNote.Create(doc,view.Id,anchor,label,new TextNoteOptions(format.Item2.Id){HorizontalAlignment=HorizontalTextAlignment.Center,VerticalAlignment=VerticalTextAlignment.Middle});
+    doc.Regenerate();var original=TextBounds(note,view.Scale);
+    if(original!=null)foreach(var point in candidates.OrderBy(p=>p.DistanceTo(anchor)))
+    {
+     var delta=point-anchor;var rect=new Rect(original.X0+delta.X,original.Y0+delta.Y,original.X1+delta.X,original.Y1+delta.Y);
+     if(occupied.Any(b=>b.Overlaps(rect,paper*.12))||!Inside(room,rect,z+Implantation.Feet(1)))continue;
+     ElementTransformUtils.MoveElement(doc,note.Id,delta);occupied.Add(rect);labelRect=rect;break;
+    }
+    if(labelRect!=null)break;
+    doc.Delete(note.Id);note=null;
+   }
+   if(note==null)
+   {
+    // Keep the room identified inside; report an unresolved fit instead of drawing external leaders.
+    note=TextNote.Create(doc,view.Id,anchor,Wrap(name,10)+"\n"+(room.Area*.09290304).ToString("0.00",Implantation.Pt)+"m²",new TextNoteOptions(textType.Id){HorizontalAlignment=HorizontalTextAlignment.Center,VerticalAlignment=VerticalTextAlignment.Middle});
+    pending.Add("Ambiente "+room.Number+": conferir encaixe do rótulo interno; nenhuma chamada externa foi criada.");
+    doc.Regenerate();var rb=TextBounds(note,view.Scale);labelRect=rb;occupied.Add(labelRect);
+   }
+   made.Add(note);
    if(prefs.InternalDimensions)
    {
     foreach(bool horizontal in new[]{true,false})
@@ -49,35 +78,15 @@ public static class PlanAnnotations
      double end=horizontal?high.Line.GetEndPoint(0).X:high.Line.GetEndPoint(0).Y;
      var p0=horizontal?new XYZ(start,cross,z):new XYZ(cross,start,z);var p1=horizontal?new XYZ(end,cross,z):new XYZ(cross,end,z);
      // Offset dimension text toward one side of the room to leave its central label clear.
-     double shift=Math.Min(Implantation.Feet(.6),((horizontal?box.Max.Y-box.Min.Y:box.Max.X-box.Min.X)*.22));
+     double margin=paper*1.2;double crossTarget=horizontal?box.Min.Y+margin:box.Max.X-margin; double shift=horizontal?cross-crossTarget:crossTarget-cross;
      var offset=horizontal?new XYZ(0,-shift,0):new XYZ(shift,0,0);p0+=offset;p1+=offset;
+     var dimensionBand=horizontal?new Rect(p0.X,(p0.Y+p1.Y)/2-paper*.7,p1.X,(p0.Y+p1.Y)/2+paper*.7):new Rect((p0.X+p1.X)/2-paper*.7,p0.Y,(p0.X+p1.X)/2+paper*.7,p1.Y);
+     if(labelRect!=null&&labelRect.Overlaps(dimensionBand,0)){pending.Add("Ambiente "+room.Number+": cota "+(horizontal?"horizontal":"vertical")+" pendente para preservar leitura do rótulo.");continue;}
      if(TryDimension(doc,view,dimType,new[]{a,b},p0,p1,made,pending,"Ambiente "+room.Number))
      {roomDims++;var center=(p0+p1)/2;occupied.Add(new(center.X-paper*2,center.Y-paper,center.X+paper*2,center.Y+paper));}
     }
    }
-   var raw=room.get_Parameter(BuiltInParameter.ROOM_NAME)?.AsString()??"Ambiente";
-   // Room.Name appends the number; ROOM_NAME contains only the user-authored name.
-   string name=raw.Trim();var number=room.Number?.Trim();if(!string.IsNullOrEmpty(number)&&name.EndsWith(" "+number,StringComparison.Ordinal))name=name[..^(number.Length+1)].TrimEnd();
-   string label=Wrap(name,22)+"\n"+(room.Area*.09290304).ToString("0.00",Implantation.Pt)+" m²";
-   var note=TextNote.Create(doc,view.Id,anchor,label,new TextNoteOptions(textType.Id){HorizontalAlignment=HorizontalTextAlignment.Center,VerticalAlignment=VerticalTextAlignment.Middle});
-   doc.Regenerate();var original=note.get_BoundingBox(view);bool placed=false;
-   if(original!=null)
-   {
-    foreach(var point in candidates.OrderBy(p=>p.DistanceTo(anchor)))
-    {
-     var delta=point-anchor;var rect=new Rect(original.Min.X+delta.X,original.Min.Y+delta.Y,original.Max.X+delta.X,original.Max.Y+delta.Y);
-     if(occupied.Any(b=>b.Overlaps(rect,paper*.35))||!Inside(room,rect,z+Implantation.Feet(1)))continue;
-     ElementTransformUtils.MoveElement(doc,note.Id,delta);occupied.Add(rect);placed=true;break;
-    }
-   }
-   if(!placed)
-   {
-    note.HorizontalAlignment=HorizontalTextAlignment.Left;
-    note.Coord=new XYZ(calloutX,calloutY,z);doc.Regenerate();var textBox=note.get_BoundingBox(view);
-    if(textBox!=null)calloutY=textBox.Min.Y-paper*2;else calloutY-=paper*6;
-    var leader=note.AddLeader(TextNoteLeaderTypes.TNLT_STRAIGHT_L);leader.End=anchor;leader.Elbow=new XYZ(calloutX-Implantation.Feet(.5),note.Coord.Y,z);external++;
-   }
-   made.Add(note);
+
   }
   foreach(var wall in walls.Values.OrderBy(w=>w.Id.Value))
   {
@@ -102,6 +111,7 @@ public static class PlanAnnotations
   }
   return new(roomDims,wallDims,openingDims,external,pending);
  }
+ static Rect TextBounds(TextNote note,int scale)=>new(note.Coord.X-note.Width*scale/2,note.Coord.Y-note.Height*scale/2,note.Coord.X+note.Width*scale/2,note.Coord.Y+note.Height*scale/2);
  static bool Crosses(Line line,double cross,bool horizontal){var a=line.GetEndPoint(0);var b=line.GetEndPoint(1);double low=horizontal?Math.Min(a.Y,b.Y):Math.Min(a.X,b.X),high=horizontal?Math.Max(a.Y,b.Y):Math.Max(a.X,b.X);return cross>low+.01&&cross<high-.01;}
  static bool Inside(Room room,Rect b,double z)=>new[]{new XYZ(b.X0,b.Y0,z),new XYZ(b.X0,b.Y1,z),new XYZ(b.X1,b.Y0,z),new XYZ(b.X1,b.Y1,z),new XYZ((b.X0+b.X1)/2,(b.Y0+b.Y1)/2,z)}.All(room.IsPointInRoom);
  static Reference? Side(Wall wall,ShellLayerType side){try{return HostObjectUtils.GetSideFaces(wall,side).FirstOrDefault();}catch(Autodesk.Revit.Exceptions.ArgumentException){return null;}}
@@ -132,4 +142,7 @@ public static class PlanAnnotations
  static string Wrap(string value,int limit)
  {var lines=new List<string>();string line="";foreach(var word in value.Split(' ',StringSplitOptions.RemoveEmptyEntries)){if(line.Length>0&&line.Length+word.Length+1>limit){lines.Add(line);line="";}line+=(line.Length==0?"":" ")+word;}if(line.Length>0)lines.Add(line);return string.Join("\n",lines);}
 }
+
+
+
 

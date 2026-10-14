@@ -15,9 +15,9 @@ public sealed class App : IExternalApplication
             // Reutiliza uma aba existente com esse nome sem esconder outros erros.
             try { app.CreateRibbonTab(tab); }
             catch (Autodesk.Revit.Exceptions.ArgumentException) { }
-            foreach (var old in app.GetRibbonPanels(tab).Where(p => p.Name is "VEBRAM · Base" or "VEBRAM · Entregáveis" or "VEBRAM · Projeto legal" or "VEBRAM · Entregáveis legais" or "VEBRAM · Projeto legal 0.3" or "VEBRAM · Entregáveis legais 0.3" or "VEBRAM · Projeto legal 0.3.1" or "VEBRAM · Entregáveis legais 0.3.1"))
+            foreach (var old in app.GetRibbonPanels(tab).Where(p => p.Name is "VEBRAM · Base" or "VEBRAM · Entregáveis" or "VEBRAM · Projeto legal" or "VEBRAM · Entregáveis legais" or "VEBRAM · Projeto legal 0.3" or "VEBRAM · Entregáveis legais 0.3" or "VEBRAM · Projeto legal 0.3.1" or "VEBRAM · Entregáveis legais 0.3.1" or "VEBRAM · Projeto legal 0.3.2" or "VEBRAM · Entregáveis legais 0.3.2" or "VEBRAM · Projeto legal 0.3.3" or "VEBRAM · Entregáveis legais 0.3.3" or "VEBRAM · Projeto legal 0.3.4" or "VEBRAM · Entregáveis legais 0.3.4"))
                 old.Visible = false;
-            var panel = app.CreateRibbonPanel(tab, "VEBRAM · Projeto legal 0.3.2");
+            var panel = app.CreateRibbonPanel(tab, "VEBRAM · Projeto legal 0.3.5");
             Add(panel, "Diagnosticar", "Diagnosticar\nprojeto", typeof(DiagnoseCommand),
                 "Inventaria o modelo e compara com o contrato do template V02. Somente leitura.");
             if (tab == "Projeto legal")
@@ -30,7 +30,7 @@ public sealed class App : IExternalApplication
             }
             if (tab == "Projeto legal")
             {
-                var deliverables = app.CreateRibbonPanel(tab, "VEBRAM · Entregáveis legais 0.3.2");
+                var deliverables = app.CreateRibbonPanel(tab, "VEBRAM · Entregáveis legais 0.3.5");
                 Add(deliverables, "Preparar", "Preparar\nlegal", typeof(PrepareLegalCommand),
                     "Escolha uma planta de modelagem e clique em um entregável. Piloto funcional: Implantação com cotas e detalhamento.");
             }
@@ -53,6 +53,9 @@ public sealed class ProjectAvailable : IExternalCommandAvailability
     public bool IsCommandAvailable(UIApplication app, CategorySet categories) =>
         app.ActiveUIDocument?.Document is { IsFamilyDocument: false };
 }
+
+
+
 
 
 
