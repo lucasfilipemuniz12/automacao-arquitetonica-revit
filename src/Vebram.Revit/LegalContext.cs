@@ -31,6 +31,14 @@ public static class LegalContext
   using var tx=new Transaction(doc,"VEBRAM — "+item.Label);tx.Start();
   try
   {
+   // The V02 reference may already occupy the title-block sidebar. Keep that content
+   // and its placement intact; the complete generated table needs its own paper area.
+   if(input.Key=="urbanistico"&&previous==null&&view.Name==item.ReferenceName)
+   {
+    var reference=view;view=ViewDrafting.Create(doc,reference.GetTypeId());view.Name=item.ReferenceName+" — VEBRAM";
+    foreach(var parameter in new[]{LegalCatalog.StageId,LegalCatalog.FunctionId})
+     if(view.get_Parameter(parameter) is {IsReadOnly:false} target)target.Set(LegalCatalog.Text(reference,parameter));
+   }
    if(previous!=null){var ids=previous.Elements.Select(s=>doc.GetElement(s.UniqueId)).Where(e=>e!=null).Select(e=>e!.Id).ToList();if(ids.Count>0){var allowed=ids.ToHashSet();if(doc.Delete(ids).Any(id=>!allowed.Contains(id)))throw new InvalidOperationException("Existem elementos dependentes das marcações. Operação revertida.");}}
    var made=new List<Element>();var type=TextType(doc);var report=new List<string>();
    if(input.Key=="situacao")

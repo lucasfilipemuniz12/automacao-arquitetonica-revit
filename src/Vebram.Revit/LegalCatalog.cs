@@ -36,12 +36,21 @@ public static class LegalCatalog
         (char[]?)null, StringSplitOptions.RemoveEmptyEntries));
     public static bool Same(string? a, string? b) => Normalize(a).Equals(Normalize(b), StringComparison.OrdinalIgnoreCase);
     public static string Text(Element element, Guid id) => element.get_Parameter(id)?.AsString() ?? "";
-    public static bool IsLegal(View view) => Same(Text(view, StageId), Stage);
+    public static bool IsLegal(View view) => Same(Text(view, StageId), Stage) ||
+        (view is ViewSchedule && Items.Any(item=>item.Type==ViewType.Schedule&&Same(view.Name,item.ReferenceName)));
     public static bool HasRole(View view, Deliverable item) => Same(Text(view, FunctionId), item.Role);
     public static bool Compatible(View view, Deliverable item) => view.ViewType == item.Type ||
         (item.Role == "FACHADAS" && view.ViewType == ViewType.Section);
     public static List<View> Views(Document doc) => new FilteredElementCollector(doc).OfClass(typeof(View))
         .Cast<View>().Where(v => !v.IsTemplate && v.ViewType != ViewType.DrawingSheet).ToList();
-    public static View? Reference(IEnumerable<View> views, Deliverable item) => views.FirstOrDefault(v =>
-        Compatible(v, item) && Same(v.Name, item.ReferenceName));
+    public static View? Reference(IEnumerable<View> views, Deliverable item)
+    {
+        var candidates=views.ToList();
+        if(item.Key=="urbanistico")
+        {
+            var generated=candidates.FirstOrDefault(v=>Compatible(v,item)&&Same(v.Name,item.ReferenceName+" — VEBRAM"));
+            if(generated!=null)return generated;
+        }
+        return candidates.FirstOrDefault(v=>Compatible(v,item)&&Same(v.Name,item.ReferenceName));
+    }
 }

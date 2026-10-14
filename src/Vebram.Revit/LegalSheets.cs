@@ -1,13 +1,34 @@
 using Autodesk.Revit.DB;
 namespace Vebram.Revit;
-public sealed record SheetSelection(long SheetId,long ViewId);
+public sealed record SheetSelection(long SheetId,long ViewId,bool CreateNext=false);
 public static class LegalSheets
 {
+ public static bool IsLegalSheet(ViewSheet sheet)=>System.Text.RegularExpressions.Regex.IsMatch(sheet.SheetNumber,@"^LEG-\d{2,}$");
+ public static ViewSheet CreateNext(Document doc,ViewSheet reference)
+ {
+  if(doc.IsFamilyDocument||doc.IsReadOnly||doc.IsWorkshared||doc.PathName.EndsWith(".rte",StringComparison.OrdinalIgnoreCase))throw new InvalidOperationException("Use um RVT local editável.");
+  if(!IsLegalSheet(reference))throw new InvalidOperationException("Escolha uma folha legal como referência de carimbo.");
+  var title=new FilteredElementCollector(doc,reference.Id).OfCategory(BuiltInCategory.OST_TitleBlocks).WhereElementIsNotElementType().OfType<FamilyInstance>().FirstOrDefault()??throw new InvalidOperationException("A folha de referência não possui carimbo.");
+  int number=new FilteredElementCollector(doc).OfClass(typeof(ViewSheet)).Cast<ViewSheet>().Where(IsLegalSheet).Select(s=>int.Parse(s.SheetNumber[4..],System.Globalization.CultureInfo.InvariantCulture)).DefaultIfEmpty(0).Max()+1;
+  using var tx=new Transaction(doc,"VEBRAM — nova folha legal");tx.Start();
+  var sheet=ViewSheet.Create(doc,title.GetTypeId());sheet.SheetNumber="LEG-"+number.ToString("00");sheet.Name="Projeto legal — complementos";
+  foreach(var id in new[]{LegalCatalog.StageId,LegalCatalog.FunctionId,LegalCatalog.StatusId})
+   if(sheet.get_Parameter(id) is {IsReadOnly:false} parameter)parameter.Set(LegalCatalog.Text(reference,id));
+  doc.Regenerate();
+  if(tx.Commit()!=TransactionStatus.Committed)throw new InvalidOperationException("Criação da folha revertida.");
+  return sheet;
+ }
  public static ModuleResult Apply(Document doc,SheetSelection input)
  {
   if(doc.IsFamilyDocument||doc.IsReadOnly||doc.IsWorkshared||doc.PathName.EndsWith(".rte",StringComparison.OrdinalIgnoreCase))throw new InvalidOperationException("Use um RVT local editável.");
   var sheet=doc.GetElement(new ElementId(input.SheetId)) as ViewSheet??throw new InvalidOperationException("Escolha a folha legal.");var view=doc.GetElement(new ElementId(input.ViewId)) as View??throw new InvalidOperationException("Escolha o entregável.");
-  if(sheet.SheetNumber is not ("LEG-01" or "LEG-02")||view.IsTemplate||!LegalCatalog.IsLegal(view))throw new InvalidOperationException("Escolha um entregável legal e a folha LEG-01 ou LEG-02.");
+  if(!IsLegalSheet(sheet)||view.IsTemplate||!LegalCatalog.IsLegal(view))throw new InvalidOperationException("Escolha um entregável legal e uma folha LEG.");
+  if(input.CreateNext)
+  {
+   using var group=new TransactionGroup(doc,"VEBRAM — nova folha com entregável");group.Start();
+   try{var created=CreateNext(doc,sheet);var result=Apply(doc,new(created.Id.Value,input.ViewId));if(group.Assimilate()!=TransactionStatus.Committed)throw new InvalidOperationException("Nova folha revertida.");return result with{Report="Nova folha "+created.SheetNumber+" criada com o mesmo tipo de carimbo. "+result.Report};}
+   catch{if(group.GetStatus()==TransactionStatus.Started)group.RollBack();throw;}
+  }
   var existing=new FilteredElementCollector(doc,sheet.Id).WhereElementIsNotElementType().ToList();
   if(existing.OfType<Viewport>().Any(v=>v.ViewId==view.Id)||existing.OfType<ScheduleSheetInstance>().Any(s=>s.ScheduleId==view.Id))return new(sheet.Id.Value,0,0,"Este entregável já está nesta folha. Sua posição foi preservada.");
   if(view is not ViewSchedule&&!Viewport.CanAddViewToSheet(doc,sheet.Id,view.Id))throw new InvalidOperationException("Esta vista já está em outra folha ou não pode ser colocada aqui. Confira sua organização.");
@@ -20,9 +41,10 @@ public static class LegalSheets
    Element placed=view is ViewSchedule?ScheduleSheetInstance.Create(doc,sheet.Id,view.Id,new(usable.Left,usable.Top,0)):Viewport.Create(doc,sheet.Id,view.Id,new((usable.Left+usable.Right)/2,(usable.Bottom+usable.Top)/2,0));doc.Regenerate();
    var rect=Rect(placed,sheet)??throw new InvalidOperationException("Não foi possível medir a vista na folha.");
    // Grid spacing is measured on paper. Includes viewport label and preserves every existing placement.
-   var candidate=usable.FindFree(occupied,rect,Implantation.Feet(.01),Implantation.Feet(.006))??throw new InvalidOperationException("Não há espaço livre na área de desenhos desta folha com a escala atual. Escolha a outra folha, revise a escala nas Preferências legais ou organize manualmente.");
+   var candidate=usable.FindFree(occupied,rect,Implantation.Feet(.01),Implantation.Feet(.006))??throw new InvalidOperationException($"Não há espaço livre nesta folha com a escala atual (1:{view.Scale}). Vista e título: {Implantation.Meters(rect.Right-rect.Left)*1000:0} × {Implantation.Meters(rect.Top-rect.Bottom)*1000:0} mm; área de desenhos: {Implantation.Meters(usable.Right-usable.Left)*1000:0} × {Implantation.Meters(usable.Top-usable.Bottom)*1000:0} mm. Escolha a outra folha, revise o enquadramento/escala do entregável ou organize manualmente.");
    ElementTransformUtils.MoveElement(doc,placed.Id,new(candidate.Left-rect.Left,candidate.Top-rect.Top,0));doc.Regenerate();var actual=Rect(placed,sheet)??throw new InvalidOperationException("Limites da vista indisponíveis.");
-   if(!usable.Contains(actual,.001)||occupied.Any(r=>actual.Intersects(r,Implantation.Feet(.006))))throw new InvalidOperationException("A vista não coube sem sobreposição. Operação revertida.");
+   var refreshedOccupied=existing.Where(e=>e is Viewport or ScheduleSheetInstance or TextNote).Select(e=>Rect(e,sheet)).Where(r=>r!=null).Select(r=>r!.Value).ToList();
+   if(!usable.Contains(actual,.001)||refreshedOccupied.Any(r=>actual.Intersects(r,Implantation.Feet(.006))))throw new InvalidOperationException("A vista não coube sem sobreposição. Operação revertida.");
    DrawingOwnership.MarkAnnotation(placed);if(tx.Commit()!=TransactionStatus.Committed)throw new InvalidOperationException("Colocação revertida.");return new(sheet.Id.Value,0,1,"Entregável colocado sem sobrepor vistas ou quadros existentes. A faixa direita do carimbo foi reservada. Revise a composição, os espaços-guia e os textos do template antes de emitir.");
   }
   catch{if(tx.GetStatus()==TransactionStatus.Started)tx.RollBack();throw;}

@@ -1,3 +1,14 @@
+# Atualização 0.5.13 — 14/10/2026
+
+Quadro urbanístico e colocação nas folhas validados nativamente no Revit 2026.4. Quatro folhas abertas para revisão visual. Lucas escolheu manter 1:100 e acrescentar LEG-03/04. O quadro completo usa vista própria, preservando a referência do template e posições anteriores. Q04 reconhecido pelo catálogo. Nova folha e colocação são revertidas juntas se não couber.
+
+Teste final 0.5.13.0: todos os 12 entregáveis de teste colocados; cálculos, pendências, repetição, proteção de edição, escala, reversão, posições e geometria preservados; sem novas colisões. Dados fictícios. Consulte [evidência e limites](TESTES_URBANISMO_FOLHAS_V0513.md).
+
+A composição ainda exige acabamento antes de emissão: espaços-guia, campos do carimbo e sobreposição antiga entre Q04 e referência vazia na LEG-01. Cotagem completa, classificação explícita e adaptação geral a outros templates continuam pendentes. Não declarar todo o Projeto legal concluído.
+
+Os registros abaixo são históricos.
+
+---
 # Atualização 0.5.11 — 14/10/2026
 
 Fachadas corrigidas: quatro elevações nativas mostram a casa e foram revisadas visualmente na 0.5.9. Reexecução, direções e preservação dos limites físicos passaram. 0.5.10 oculta marcadores da Situação; 0.5.11 também oculta separações de ambientes que apareciam sobre o diagrama. Consulte TESTES_FACHADAS_SITUACAO_V0511.md para evidências e limites. A versão 0.5.11 está instalada e passou no teste nativo. A Situação foi revisada visualmente: lote, duas cotas, confrontantes, via e norte visíveis, sem marcadores ou separações sobrepostas.
