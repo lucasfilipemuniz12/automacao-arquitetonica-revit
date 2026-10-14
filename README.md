@@ -6,7 +6,7 @@ Plugin nativo C# / .NET 8 / WPF / Revit 2026. Prioridade: Projeto legal. Modelag
 
 - Implantação, planta legal, cobertura por água plana e Q04: implementados e testados nos lotes anteriores. Rótulos internos priorizados; cotas sem espaço ou referência válida são relatadas.
 - Cortes A/B 0.4.4: testes nativos e revisão visual concluídos na Casa Terras. Níveis curtos na lateral com uma bolha, sem texto duplicado ou cruzamento sobre a casa/terreno; cota vertical separada e nota inferior reposicionada.
-- Candidato 0.5.1: código de quatro fachadas, situação esquemática, quadro urbanístico e colocação de entregáveis nas folhas LEG-01/02. Compilado sem erros/avisos; 19 testes de cálculos e retângulos passaram. Ainda não validado dentro do Revit: a sessão ficou no aviso de complemento não certificado. Não declarar o Projeto legal inteiro concluído.
+- Versão 0.5.11: fachadas corrigidas e revisão visual das quatro vistas concluída na 0.5.9; situação com linhas/cotas e limpeza de marcadores/separações. Veja docs/TESTES_FACHADAS_SITUACAO_V0511.md. Urbanismo e composição de folhas continuam exigindo validação própria. Não declarar o Projeto legal inteiro concluído.
 
 Leia [continuidade atual e retomada](docs/CONTINUIDADE_014_PROJETO_LEGAL.md), [evidência de cortes](docs/TESTES_CORTES_V044.md) e [histórico](docs/ESTADO_ATUAL.md). Decisões recentes prevalecem sobre textos históricos.
 
@@ -14,7 +14,7 @@ Leia [continuidade atual e retomada](docs/CONTINUIDADE_014_PROJETO_LEGAL.md), [e
 
 Na aba Projeto legal, abra Preparar legal, escolha a planta de modelagem e um botão ilustrado. Os módulos reutilizam as referências do template V02 e preservam a planta fonte. Preferências legais recebe estilo de cota, escala e nota adicional.
 
-Situação/urbanismo exigem lote já confirmado na Implantação. Áreas computáveis/permeáveis e limites municipais são informados pelo projetista; campos vazios ficam pendentes. Situação é um diagrama, não um levantamento. Fachadas preferem elevações nativas e recusam marcadores compartilhados ou marcações manuais ao reposicionar. Folhas preservam colocações existentes e não reduzem a escala automaticamente para encaixar uma vista.
+Situação/urbanismo exigem lote já confirmado na Implantação. Áreas computáveis/permeáveis e limites municipais são informados pelo projetista; campos vazios ficam pendentes. Situação é um diagrama, não um levantamento. Fachadas usam elevações nativas; marcadores compartilhados sem vistas em folhas podem migrar para independentes, preservando vistas antigas na reserva. Vistas em folhas e edições manuais continuam protegidas. Folhas preservam colocações existentes e não reduzem a escala automaticamente para encaixar uma vista.
 
 ## Estrutura
 
@@ -39,6 +39,7 @@ O aviso de segurança reapareceu após a atualização, apesar do caminho/ID fix
 
 ## Limites
 
-Lote retangular e contorno ortogonal; áreas de urbanismo precisam de critérios do projetista. Não há cotagem construtiva completa, posicionamento completo de esquadrias, exportação final, cadastro municipal, suporte geral a marcadores compartilhados ou aprovação legal automática. A composição das folhas, espaços-guia e cada vista exigem revisão visual.
+Lote retangular e contorno ortogonal; áreas de urbanismo precisam de critérios do projetista. Não há cotagem construtiva completa, posicionamento completo de esquadrias, exportação final, cadastro municipal, migração geral de vistas já colocadas em folhas ou aprovação legal automática. A composição das folhas, espaços-guia e cada vista exigem revisão visual.
 
 Os RVT/RTE, famílias, materiais e DLLs permanecem locais. GitHub compartilha fontes e documentação; a API e o resultado gráfico são validados no Revit do Windows.
+

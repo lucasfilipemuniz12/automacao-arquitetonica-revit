@@ -3,7 +3,7 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.ExtensibleStorage;
 namespace Vebram.Revit;
 public sealed record FacadeSelection(long SourceId,long FloorId,double DistanceMeters=3,double RotationDegrees=0,bool ReplaceEdited=false);
-record FacadeStamp(string Source,List<ElementStamp> Elements,string Frame);
+record FacadeStamp(string Source,List<ElementStamp> Elements,string Frame,double[]? MarkerPosition=null);
 public static class LegalFacades
 {
  static readonly Guid SchemaId=new("ba677f68-d203-43ba-a5f5-b12ac5d49f34");
@@ -21,6 +21,7 @@ public static class LegalFacades
   var source=doc.GetElement(new ElementId(input.SourceId)) as ViewPlan??throw new InvalidOperationException("Escolha uma planta de modelagem.");
   var floor=doc.GetElement(new ElementId(input.FloorId)) as Floor??throw new InvalidOperationException("Escolha o piso base.");
   if(!Implantation.Footprints(doc,source).Any(f=>f.Id==floor.Id))throw new InvalidOperationException("Piso fora do nível escolhido.");
+  var createdPositions=new Dictionary<long,XYZ>();
   var views=LegalCatalog.Items.Where(i=>i.Key.StartsWith("fachada-")).Select(i=>(Item:i,View:LegalCatalog.Reference(LegalCatalog.Views(doc),i) as ViewSection)).ToList();
   if(views.Any(p=>p.View is {IsTemplate:true} or {Pinned:true}))throw new InvalidOperationException("Desbloqueie as fachadas fixadas antes de prepará-las.");
   if(views.Any(p=>p.View==null))
@@ -33,7 +34,7 @@ public static class LegalFacades
    var bounds=floor.get_BoundingBox(null)!;var point=new XYZ((bounds.Min.X+bounds.Max.X)/2,(bounds.Min.Y+bounds.Max.Y)/2,source.GenLevel.Elevation);
    for(int index=0;index<views.Count;index++)if(views[index].View==null)
    {
-    var item=views[index].Item;var marker=ElevationMarker.CreateElevationMarker(doc,type.Id,point,LegalPreferenceStore.Read(doc).Scale);var view=marker.CreateElevation(doc,source.Id,0);view.Name=item.ReferenceName;
+    var item=views[index].Item;var marker=ElevationMarker.CreateElevationMarker(doc,type.Id,point,LegalPreferenceStore.Read(doc).Scale);var view=marker.CreateElevation(doc,source.Id,0);createdPositions[marker.Id.Value]=point;view.Name=item.ReferenceName;
     foreach(var pair in new[]{(LegalCatalog.StageId,LegalCatalog.Stage),(LegalCatalog.FunctionId,"FACHADAS")}){var parameter=view.get_Parameter(pair.Item1);if(parameter==null||parameter.IsReadOnly)throw new InvalidOperationException("Configure os parâmetros ARQ do projeto antes de criar as fachadas.");parameter.Set(pair.Item2);}
     if(graphic!=ElementId.InvalidElementId)view.ViewTemplateId=graphic;views[index]=(item,view);
    }
@@ -76,13 +77,13 @@ public static class LegalFacades
     oldStage.Set("00 RESERVA VEBRAM");oldView.Name="RESERVA - "+originalName+" - "+oldView.Id.Value;oldView.ViewTemplateId=template;
     independent.Name=originalName;
     foreach(var pair in new[]{(LegalCatalog.StageId,LegalCatalog.Stage),(LegalCatalog.FunctionId,"FACHADAS")}){var parameter=independent.get_Parameter(pair.Item1);if(parameter==null||parameter.IsReadOnly)throw new InvalidOperationException("Classificação ARQ ausente na nova elevação; operação revertida.");parameter.Set(pair.Item2);}
-    independent.ViewTemplateId=template;views[index]=(entry.Item,independent);previous[independent.Id.Value]=null;markers.Add(marker);
+    independent.ViewTemplateId=template;views[index]=(entry.Item,independent);previous[independent.Id.Value]=null;markers.Add(marker);createdPositions[marker.Id.Value]=position;
    }
    foreach(var (item,targetNullable) in views)
    {
     var target=targetNullable!;var stamp=previous[target.Id.Value];if(stamp!=null){var ids=stamp.Elements.Select(s=>doc.GetElement(s.UniqueId)).Where(e=>e!=null).Select(e=>e!.Id).ToList();if(ids.Count>0){var allowed=ids.ToHashSet();if(doc.Delete(ids).Any(id=>!allowed.Contains(id)))throw new InvalidOperationException("Há elementos dependentes das marcas da fachada.");}}
-    // Name denotes the side observed. North camera looks south, for example.
-    var outward=rotate.OfVector(item.Key switch{"fachada-norte"=>XYZ.BasisY,"fachada-sul"=>-XYZ.BasisY,"fachada-leste"=>XYZ.BasisX,_=>-XYZ.BasisX});var forward=-outward;
+    // ViewDirection points towards the observer, so a north facade uses +Y.
+    var outward=rotate.OfVector(item.Key switch{"fachada-norte"=>XYZ.BasisY,"fachada-sul"=>-XYZ.BasisY,"fachada-leste"=>XYZ.BasisX,_=>-XYZ.BasisX});var forward=outward;
     double distance=points.Max(p=>(p-center).DotProduct(outward))+Implantation.Feet(input.DistanceMeters);var origin=center+outward*distance;
     var savedTemplate=target.ViewTemplateId;target.ViewTemplateId=ElementId.InvalidElementId;target.Scale=LegalPreferenceStore.Read(doc).Scale;
     var scope=target.get_Parameter(BuiltInParameter.VIEWER_VOLUME_OF_INTEREST_CROP);if(scope is {IsReadOnly:false})scope.Set(ElementId.InvalidElementId);
@@ -90,12 +91,13 @@ public static class LegalFacades
     if(target.ViewType==ViewType.Elevation)
     {
      var marker=markers.First(m=>Enumerable.Range(0,4).Any(i=>m.GetViewId(i)==target.Id));
+     XYZ placement;if(createdPositions.TryGetValue(marker.Id.Value,out var createdPlacement))placement=createdPlacement;else if(stamp?.MarkerPosition is {Length:3} savedPlacement)placement=new XYZ(savedPlacement[0],savedPlacement[1],savedPlacement[2]);else if(marker.Location is LocationPoint located)placement=located.Point;else{var bounds=marker.get_BoundingBox(source)??marker.get_BoundingBox(null)??throw new InvalidOperationException("Posição do marcador não disponível.");placement=new XYZ((bounds.Min.X+bounds.Max.X)/2,(bounds.Min.Y+bounds.Max.Y)/2,source.GenLevel.Elevation);}
      if(Math.Abs(turn)>1e-7){ // Two rotations avoid the known native 180-degree marker edge case.
-      ElementTransformUtils.RotateElement(doc,marker.Id,Line.CreateBound(target.Origin,target.Origin+XYZ.BasisZ),turn/2);doc.Regenerate();ElementTransformUtils.RotateElement(doc,marker.Id,Line.CreateBound(target.Origin,target.Origin+XYZ.BasisZ),turn/2);doc.Regenerate();}
-     ElementTransformUtils.MoveElement(doc,marker.Id,origin-target.Origin);
+      ElementTransformUtils.RotateElement(doc,marker.Id,Line.CreateBound(placement,placement+XYZ.BasisZ),turn/2);doc.Regenerate();ElementTransformUtils.RotateElement(doc,marker.Id,Line.CreateBound(placement,placement+XYZ.BasisZ),turn/2);doc.Regenerate();}
+     ElementTransformUtils.MoveElement(doc,marker.Id,origin-placement);
     }
     else{var crop=LegalSections.CropElement(doc,target);if(Math.Abs(turn)>1e-7)ElementTransformUtils.RotateElement(doc,crop,Line.CreateBound(target.Origin,target.Origin+XYZ.BasisZ),turn);doc.Regenerate();ElementTransformUtils.MoveElement(doc,crop,origin-target.Origin);}
-    doc.Regenerate();if(target.ViewDirection.DotProduct(forward)<.999)throw new InvalidOperationException("Orientação nativa da fachada divergente; operação revertida.");
+    doc.Regenerate();var actualCrop=LegalSections.CropElement(doc,target);ElementTransformUtils.MoveElement(doc,actualCrop,origin-outward*Implantation.Feet(.1)-target.CropBox.Transform.Origin);doc.Regenerate();if(target.ViewDirection.DotProduct(forward)<.999)throw new InvalidOperationException("Orientação nativa divergente em "+item.Label+": "+target.ViewDirection+", esperada "+forward+"; operação revertida.");
     var box=target.CropBox;var inverse=box.Transform.Inverse;var corners=points.SelectMany(p=>new[]{inverse.OfPoint(new(p.X,p.Y,bottom)),inverse.OfPoint(new(p.X,p.Y,top))}).ToList();
     // Include the whole physical context, so short level lines never sit over terrain or annexes.
     foreach(var bounds in new FilteredElementCollector(doc).WhereElementIsNotElementType().Where(e=>e is HostObject or FamilyInstance or DirectShape).Select(e=>e.get_BoundingBox(null)).Where(b=>b!=null))foreach(var xx in new[]{bounds!.Min.X,bounds.Max.X})foreach(var yy in new[]{bounds.Min.Y,bounds.Max.Y})foreach(var zz in new[]{bounds.Min.Z,bounds.Max.Z})corners.Add(inverse.OfPoint(new(xx,yy,zz)));
@@ -134,9 +136,10 @@ public static class LegalFacades
     if(savedTemplate!=ElementId.InvalidElementId)
     {
      string name="ARQ VT - FACHADAS - VEBRAM 05";var preset=new FilteredElementCollector(doc).OfClass(typeof(View)).Cast<View>().FirstOrDefault(v=>v.IsTemplate&&v.Name==name);if(preset==null){preset=target.CreateViewTemplate();preset.Name=name;}
-     var excluded=preset.GetNonControlledTemplateParameterIds().ToHashSet();foreach(var id in preset.GetTemplateParameterIds())if(new[]{"VIEW_SCALE","VIEW_PHASE","VIEWER_CROP_REGION","VIEWER_CROP_REGION_VISIBLE","VIEWER_BOUND_FAR_CLIPPING","VIEWER_BOUND_OFFSET_FAR","VIEWER_VOLUME_OF_INTEREST_CROP"}.Contains(((BuiltInParameter)id.Value).ToString()))excluded.Add(id);preset.SetNonControlledTemplateParameterIds(excluded.ToList());target.ViewTemplateId=preset.Id;
+     var excluded=preset.GetNonControlledTemplateParameterIds().ToHashSet();foreach(var id in preset.GetTemplateParameterIds())if(new[]{"VIS_GRAPHICS_ANNOTATION","VIEW_SCALE","VIEW_PHASE","VIEWER_CROP_REGION","VIEWER_CROP_REGION_VISIBLE","VIEWER_BOUND_FAR_CLIPPING","VIEWER_BOUND_OFFSET_FAR","VIEWER_VOLUME_OF_INTEREST_CROP"}.Contains(((BuiltInParameter)id.Value).ToString()))excluded.Add(id);preset.SetNonControlledTemplateParameterIds(excluded.ToList());target.ViewTemplateId=preset.Id;
     }
-    doc.Regenerate();foreach(var e in made)DrawingOwnership.MarkAnnotation(e);Write(target,new(source.UniqueId,made.Select(e=>new ElementStamp(e.UniqueId,DrawingOwnership.Fingerprint(e))).ToList(),Frame(target)));results.Add(new(target.Id.Value,0,made.Count,item.Label+": elevação nativa recortada com níveis laterais. Revise materiais, esquadrias e informações adicionais antes de emitir.\n"+string.Join("\n",pending)));
+    foreach(var category in new[]{BuiltInCategory.OST_Sections,BuiltInCategory.OST_Elev}){var id=new ElementId(category);if(target.CanCategoryBeHidden(id))target.SetCategoryHidden(id,true);}
+    doc.Regenerate();foreach(var e in made)DrawingOwnership.MarkAnnotation(e);Write(target,new(source.UniqueId,made.Select(e=>new ElementStamp(e.UniqueId,DrawingOwnership.Fingerprint(e))).ToList(),Frame(target),new[]{origin.X,origin.Y,origin.Z}));results.Add(new(target.Id.Value,0,made.Count,item.Label+": elevação nativa recortada com níveis laterais. Revise materiais, esquadrias e informações adicionais antes de emitir.\n"+string.Join("\n",pending)));
    }
    if(tx.Commit()!=TransactionStatus.Committed)throw new InvalidOperationException("Operação revertida.");return results;
   }
@@ -147,5 +150,10 @@ public static class LegalFacades
  static FacadeStamp? Read(View v){var s=Autodesk.Revit.DB.ExtensibleStorage.Schema.Lookup(SchemaId);if(s==null)return null;var e=v.GetEntity(s);return e.IsValid()?JsonSerializer.Deserialize<FacadeStamp>(e.Get<string>(s.GetField("Json"))):null;}
  static void Write(View v,FacadeStamp data){var s=Schema();var e=new Entity(s);e.Set(s.GetField("Json"),JsonSerializer.Serialize(data));v.SetEntity(e);}
 }
+
+
+
+
+
 
 

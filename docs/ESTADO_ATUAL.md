@@ -1,3 +1,12 @@
+# Atualização 0.5.11 — 14/10/2026
+
+Fachadas corrigidas: quatro elevações nativas mostram a casa e foram revisadas visualmente na 0.5.9. Reexecução, direções e preservação dos limites físicos passaram. 0.5.10 oculta marcadores da Situação; 0.5.11 também oculta separações de ambientes que apareciam sobre o diagrama. Consulte TESTES_FACHADAS_SITUACAO_V0511.md para evidências e limites. A versão 0.5.11 está instalada e passou no teste nativo. A Situação foi revisada visualmente: lote, duas cotas, confrontantes, via e norte visíveis, sem marcadores ou separações sobrepostas.
+
+Próximos módulos a validar: quadro urbanístico e composição das folhas legais. Classificação explícita de piscina/deck/jardim ainda é uma melhoria pendente; heurísticas atuais não equivalem a identificação por IA. Não declarar todo o Projeto legal concluído.
+
+Os registros abaixo são históricos. As decisões mais recentes prevalecem.
+
+---
 # Retomada das fachadas — candidato 0.5.6
 
 A validação nativa 0.5.5 foi finalmente executada: quatro elevações nativas, direções cardeais e repetição passaram; Situação produziu duas cotas e oito curvas com a categoria Lines ativa; limites físicos preservados.
@@ -133,6 +142,8 @@ Instalação padronizada em current/Vebram.Revit.dll com AssemblyName fixo Vebra
 
 ## Correção de níveis 0.4.3
 Após print de Lucas, textos duplicados dos níveis removidos; linhas nativas curtas de 0,9 m em faixa à esquerda, um símbolo por nível; cota vertical em faixa separada e nota inferior afastada. Testes nativos passaram confirmando linhas fora da edificação e uma bolha por nível, além da bateria de cortes. DLL fixa atualizada com mesmo caminho/ID após fechamento das janelas e verificação de liberação da DLL; processo antigo sem janela não foi encerrado à força. Revit reabriu e executou validação pela própria DLL fixa, sem outro manifesto/carregador. Job explícito consumido uma vez; sem job o produto não inicia validação. Cópia salva; detalhes TESTES_CORTES_V043.md.
+
+
 
 
 

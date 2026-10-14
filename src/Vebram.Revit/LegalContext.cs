@@ -40,6 +40,8 @@ public static class LegalContext
     // A localization diagram intentionally excludes the physical building; it is not a surveyed map.
     foreach(Category category in doc.Settings.Categories)if(category.CategoryType==CategoryType.Model&&category.Id.Value!=(long)BuiltInCategory.OST_Lines&&view.CanCategoryBeHidden(category.Id))view.SetCategoryHidden(category.Id,true);
     var lines=doc.Settings.Categories.get_Item(BuiltInCategory.OST_Lines);if(view.CanCategoryBeHidden(lines.Id))view.SetCategoryHidden(lines.Id,false);foreach(Category sub in lines.SubCategories)if(view.CanCategoryBeHidden(sub.Id))view.SetCategoryHidden(sub.Id,false);
+    // Elevation and section markers belong to model navigation, not the localization diagram.
+    foreach(var builtIn in new[]{BuiltInCategory.OST_Elev,BuiltInCategory.OST_Sections,BuiltInCategory.OST_RoomSeparationLines}){var category=doc.Settings.Categories.get_Item(builtIn);if(category!=null&&view.CanCategoryBeHidden(category.Id))view.SetCategoryHidden(category.Id,true);}
     double z=((ViewPlan)view).GenLevel.Elevation,x=Implantation.Feet(options.LotMinX),y=Implantation.Feet(options.LotMinY),w=Implantation.Feet(options.LotWidth),h=Implantation.Feet(options.LotDepth);
     XYZ P(double a,double b)=>new(a,b,z);
     DetailCurve L(XYZ a,XYZ b){var c=doc.Create.NewDetailCurve(view,Line.CreateBound(a,b));view.SetElementOverrides(c.Id,new OverrideGraphicSettings().SetProjectionLineColor(new Color(0,0,0)).SetProjectionLineWeight(3));made.Add(c);return c;}
@@ -91,6 +93,7 @@ public static class LegalContext
  static ContextStamp? Read(View view){var s=Autodesk.Revit.DB.ExtensibleStorage.Schema.Lookup(SchemaId);if(s==null)return null;var e=view.GetEntity(s);return e.IsValid()?JsonSerializer.Deserialize<ContextStamp>(e.Get<string>(s.GetField("Json"))):null;}
  static void Write(View view,ContextStamp state){var s=Schema();var e=new Entity(s);e.Set(s.GetField("Json"),JsonSerializer.Serialize(state));view.SetEntity(e);}
 }
+
 
 
 
