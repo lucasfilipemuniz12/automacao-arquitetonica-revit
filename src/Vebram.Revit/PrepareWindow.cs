@@ -26,6 +26,7 @@ public sealed class PrepareWindow : Window
     CheckBox confirm=null!,study=null!,street=null!,replace=null!;
     public ImplantationOptions? Selection{get;private set;}
     public ModuleSelection? Module{get;private set;}
+    public SectionSelection? Section{get;private set;}
     public IReadOnlyList<Request> Requests{get;}=[];
     ViewPlan? Source=>sources.SelectedItem is SourceChoice c?doc.GetElement(new ElementId(c.Id)) as ViewPlan:null;
     public PrepareWindow(UIApplication app)
@@ -66,7 +67,7 @@ public sealed class PrepareWindow : Window
         cards.Children.Add(Card("Implantação","Lote, cobertura, acesso e cotas","site",true,Configure));
         cards.Children.Add(Card("Situação","Localização e contexto do terreno","map"));
         cards.Children.Add(Card("Planta legal","Cotas gerais e áreas dos ambientes","plan",true,()=>ChooseModule("planta")));
-        cards.Children.Add(Card("Corte A","Corte longitudinal","cut"));cards.Children.Add(Card("Corte B","Corte transversal","cut"));
+        cards.Children.Add(Card("Corte A","Posição, sentido e profundidade","cut",true,()=>ChooseSection("corte-a")));cards.Children.Add(Card("Corte B","Posição, sentido e profundidade","cut",true,()=>ChooseSection("corte-b")));
         cards.Children.Add(Card("Fachadas","Elevações a partir do modelo","facade"));
         cards.Children.Add(Card("Cobertura","Inclinação e seta por água modelada","roof",true,()=>ChooseModule("cobertura")));
         cards.Children.Add(Card("Áreas dos ambientes","Quadro Q04 do template","area",true,()=>ChooseModule("areas")));
@@ -143,9 +144,29 @@ public sealed class PrepareWindow : Window
         var candidates=Implantation.Footprints(doc,Source);var bases=new ComboBox{ItemsSource=candidates.Select(f=>new SourceChoice(f.Id.Value,f.Name)).ToList(),MinHeight=32,Margin=new Thickness(0,10,0,10)};
         if(candidates.Count>0)bases.SelectedIndex=0;if(key!="areas"){body.Children.Add(Label("Piso base do nível escolhido"));body.Children.Add(bases);}
         var edited=new CheckBox{Content="Refazer marcas do gerador que editei manualmente",Margin=new Thickness(0,12,0,12)};if(key!="areas")body.Children.Add(edited);
-        body.Children.Add(new TextBlock{Text=key=="planta"?"Cotas gerais e internas entre acabamentos; rótulos ajustados com chamada externa quando necessário. Espessuras e larguras de esquadrias opcionais nas preferências. Limites sem referência válida são relatados.":key=="cobertura"?"Ler inclinação e sentido de cada água plana. Telhados curvos exigem outro perfil.":"Abrir o quadro Q04 existente, que acompanha as áreas do modelo.",TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,0,0,12)});
+        body.Children.Add(new TextBlock{Text=key=="planta"?"Cotas gerais e internas entre acabamentos; nomes e áreas priorizados dentro dos ambientes. Espessuras e larguras de esquadrias opcionais nas preferências. Cotas sem espaço ou referência válida são relatadas.":key=="cobertura"?"Ler inclinação e sentido de cada água plana. Telhados curvos exigem outro perfil.":"Abrir o quadro Q04 existente, que acompanha as áreas do modelo.",TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,0,0,12)});
         var apply=new Button{Content="Preparar "+title,Padding=new Thickness(15,8,15,8),HorizontalAlignment=HorizontalAlignment.Right};body.Children.Add(apply);apply.Click+=(_,_)=>{if(key!="areas"&&bases.SelectedItem==null){MessageBox.Show(dialog,"Este nível não possui piso base disponível.");return;}dialog.DialogResult=true;};
         if(dialog.ShowDialog()==true){Module=new(key,Source.Id.Value,(bases.SelectedItem as SourceChoice)?.Id??0,edited.IsChecked==true);DialogResult=true;}
+    }
+    void ChooseSection(string key)
+    {
+        if(Source==null){MessageBox.Show(this,"Escolha sua planta de modelagem.");return;}
+        var title=key=="corte-a"?"Corte A":"Corte B";
+        var dialog=new Window{Owner=this,Title=title,Width=650,Height=590,WindowStartupLocation=WindowStartupLocation.CenterOwner};
+        var body=new StackPanel{Margin=new Thickness(24)};dialog.Content=new ScrollViewer{Content=body,VerticalScrollBarVisibility=ScrollBarVisibility.Auto};
+        body.Children.Add(new TextBlock{Text=title,FontSize=23});body.Children.Add(new TextBlock{Text="Fonte: "+Source.Name,TextWrapping=TextWrapping.Wrap});
+        var candidates=Implantation.Footprints(doc,Source);var bases=new ComboBox{ItemsSource=candidates.Select(f=>new SourceChoice(f.Id.Value,f.Name)).ToList(),MinHeight=32};if(candidates.Count>0)bases.SelectedIndex=0;
+        body.Children.Add(Label("Piso base"));body.Children.Add(bases);
+        var axis=new ComboBox{ItemsSource=new[]{"Ao longo de X — posição medida em Y","Ao longo de Y — posição medida em X"},SelectedIndex=key=="corte-a"?0:1,MinHeight=32};body.Children.Add(Label("Direção do corte (eixos do projeto)"));body.Children.Add(axis);
+        var position=new Slider{Minimum=5,Maximum=95,Value=50,TickFrequency=5,IsSnapToTickEnabled=true,Margin=new Thickness(0,5,0,0)};var location=new TextBlock{Text="50% — centro da casa"};position.ValueChanged+=(_,_)=>location.Text=position.Value.ToString("0")+"% da extensão do piso";
+        body.Children.Add(Label("Posição dentro da casa"));body.Children.Add(position);body.Children.Add(location);
+        var reverse=new CheckBox{Content="Inverter sentido de observação",Margin=new Thickness(0,12,0,5)};body.Children.Add(reverse);
+        var depth=new TextBox{Text="15",MinHeight=32};body.Children.Add(Label("Profundidade visível, em metros"));body.Children.Add(depth);
+        var edited=new CheckBox{Content="Refazer corte/marcações do gerador que editei",Margin=new Thickness(0,12,0,8)};body.Children.Add(edited);
+        body.Children.Add(new TextBlock{Text="Reutiliza o corte do template, identifica níveis e cota altura entre faces horizontais quando disponíveis. Escala/estilo: Preferências legais. Não substitui detalhamento construtivo. Cortes com anotações manuais externas ao gerador exigem revisão antes de reposicionar.",TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,0,0,12)});
+        var apply=new Button{Content="Preparar "+title,Padding=new Thickness(16,8,16,8),HorizontalAlignment=HorizontalAlignment.Right};body.Children.Add(apply);
+        apply.Click+=(_,_)=>{if(bases.SelectedItem is not SourceChoice floor||!double.TryParse(depth.Text.Replace(',','.'),NumberStyles.Float,CultureInfo.InvariantCulture,out var meters)||!double.IsFinite(meters)||meters<=.1||meters>200){MessageBox.Show(dialog,"Escolha o piso e informe uma profundidade entre 0,1 e 200 m.");return;}Section=new(key,Source.Id.Value,floor.Id,axis.SelectedIndex==0,position.Value,reverse.IsChecked==true,meters,edited.IsChecked==true);dialog.DialogResult=true;};
+        if(dialog.ShowDialog()==true)DialogResult=true;
     }
     void Accept()
     {

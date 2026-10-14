@@ -1,5 +1,6 @@
-param([string]$Dotnet = 'dotnet', [string]$RevitInstallDir = 'D:\Autodesk\Revit2026\Revit 2026', [string]$DistName = 'dist-v035')
+param([string]$Dotnet = 'dotnet', [string]$RevitInstallDir = 'D:\Autodesk\Revit2026\Revit 2026', [string]$DistName = 'current')
 $ErrorActionPreference = 'Stop'
+if (Get-Process -Name Revit -ErrorAction SilentlyContinue) { throw 'Feche o Revit antes de compilar/atualizar a instalação fixa. Isso evita DLL bloqueada e carregadores temporários.' }
 $package = Split-Path -Parent $PSScriptRoot
 $project = Join-Path $package 'src\Vebram.Revit\Vebram.Revit.csproj'
 $logs = Join-Path $package 'logs'
@@ -19,6 +20,8 @@ foreach ($extension in @('.dll','.pdb','.deps.json')) {
 New-Item -ItemType Directory -Path (Join-Path $dist 'profiles') -Force | Out-Null
 Copy-Item -LiteralPath (Join-Path $output 'profiles\ARQ_Parametros_Compartilhados.txt') -Destination (Join-Path $dist 'profiles\ARQ_Parametros_Compartilhados.txt')
 Write-Output "Pacote compilado: $dist"
+
+
 
 
 

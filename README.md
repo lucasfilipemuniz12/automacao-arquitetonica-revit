@@ -5,8 +5,8 @@ Add-in nativo C# / .NET 8 / WPF, desenvolvido para Lucas. Revit validado: 2026.4
 ## Estado atual
 
 - Implantação: piloto funcional aprovado por Lucas; lote retangular e contorno ortogonal, cotas nativas, norte/contexto informado e marcações rastreadas.
-- Versão 0.3.5 (testes nativos concluídos na Casa Terras): preferências de estilo de cota, escala e informação adicional; Planta legal com cotas gerais/internas entre acabamentos e rótulos ajustados; Cobertura com leitura por água plana; acesso ao quadro nativo Q04.
-- Cortes, fachadas, Situação, quadro urbanístico, cotagem de posicionamento e tags de esquadrias, montagem de folhas e exportação: próximos passos.
+- Versão 0.4.2 (testes nativos concluídos na Casa Terras): preferências de estilo de cota, escala e informação adicional; Planta legal com cotas gerais/internas entre acabamentos e rótulos ajustados; Cobertura com leitura por água plana; acesso ao quadro nativo Q04.
+- Fachadas, Situação, quadro urbanístico, cotagem de posicionamento e tags de esquadrias, montagem de folhas e exportação: próximos passos.
 
 Consulte [estado e evidências](docs/ESTADO_ATUAL.md) antes de trabalhar. O [contexto mestre](docs/CONTEXTO_MESTRE.md) preserva o planejamento histórico; decisões recentes estão em ESTADO_ATUAL.
 
@@ -26,7 +26,7 @@ Consulte [estado e evidências](docs/ESTADO_ATUAL.md) antes de trabalhar. O [con
 3. Executar scripts/Install-Local.ps1 após a compilação.
 4. Reabrir o Revit e usar um RVT criado do template V02 compatível.
 
-O pacote compilado fica em dist-v035. A API Revit deve ser obtida da instalação local; suas DLLs não são redistribuídas. O projeto não usa pacotes NuGet de terceiros nem IA durante o uso dos botões.
+O pacote compilado fica em current, com DLL Vebram.Revit.dll e ID fixo. Fechar Revit antes de compilar/atualizar; o script impede substituir a DLL durante a sessão. A API Revit deve ser obtida da instalação local; suas DLLs não são redistribuídas. O projeto não usa pacotes NuGet de terceiros nem IA durante o uso dos botões.
 
 ## Unidades e uso
 
@@ -44,4 +44,8 @@ Detalhes da evolução de rótulos e cotas: [testes 0.3.2](docs/TESTES_V032.md).
 
 
 Correção visual mais recente: [rótulos internos 0.3.5](docs/TESTES_V035.md). Nove rótulos internos sem chamadas externas no teste; cinco cotas internas pendentes para preservar sua leitura. Revisão visual da nova cópia ainda pendente.
+
+
+Cortes A/B disponíveis: posição, sentido, profundidade, níveis e cota vertical. [Testes dos cortes](docs/TESTES_CORTES_V04.md). Revisão visual pendente.
+
 

@@ -38,6 +38,13 @@ public sealed class PrepareLegalCommand : IExternalCommand
             if (doc == null || doc.IsFamilyDocument) return Result.Cancelled;
             var form = new PrepareWindow(data.Application);
             if (form.ShowDialog() != true) return Result.Cancelled;
+            if(form.Section is {} section)
+            {
+                var prepared=LegalSections.Apply(doc,section);
+                data.Application.ActiveUIDocument!.ActiveView=(View)doc.GetElement(new ElementId(prepared.ViewId));
+                data.Application.ActiveUIDocument.GetOpenUIViews().FirstOrDefault(v=>v.ViewId.Value==prepared.ViewId)?.ZoomToFit();
+                TaskDialog.Show("VEBRAM — corte preparado",prepared.Report);return Result.Succeeded;
+            }
             if(form.Module is { } module)
             {
                 var prepared=LegalModules.Apply(doc,module);
