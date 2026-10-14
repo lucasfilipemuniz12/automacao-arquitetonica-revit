@@ -68,11 +68,17 @@ internal sealed class SectionValidation:IExternalApplication
  static void ValidateFacades055(Document doc,string output)
  {
   var before=Physical(doc);var source=Implantation.ModelPlans(doc).First(v=>v.Name=="PRE - Layout / Nível 1");var floor=Implantation.Footprints(doc,source).First();
-  var results=LegalFacades.Apply(doc,new(source.Id.Value,floor.Id.Value));var counts=results.Select(r=>Count(doc,r.ViewId)).ToList();var again=LegalFacades.Apply(doc,new(source.Id.Value,floor.Id.Value));if(!counts.SequenceEqual(again.Select(r=>Count(doc,r.ViewId))))throw new Exception("Fachadas instáveis ao repetir.");
+  var results=LegalFacades.Apply(doc,new(source.Id.Value,floor.Id.Value));WriteFacadeGeometry(doc,results,output);var counts=results.Select(r=>Count(doc,r.ViewId)).ToList();var again=LegalFacades.Apply(doc,new(source.Id.Value,floor.Id.Value));if(!counts.SequenceEqual(again.Select(r=>Count(doc,r.ViewId))))throw new Exception("Fachadas instáveis ao repetir.");
   foreach(var result in again){var view=(ViewSection)doc.GetElement(new ElementId(result.ViewId));if(view.ViewType!=ViewType.Elevation)throw new Exception("Fachada sem elevação nativa.");var direction=view.Name.EndsWith("Norte")?-XYZ.BasisY:view.Name.EndsWith("Sul")?XYZ.BasisY:view.Name.EndsWith("Leste")?-XYZ.BasisX:XYZ.BasisX;if(view.ViewDirection.DotProduct(direction)<.999)throw new Exception("Direção incorreta.");}
   var context=LegalContext.Saved(doc,"situacao")??new ContextSelection("situacao",source.Id.Value,"Lote de estudo",Confirmed:true);var situation=LegalContext.Apply(doc,context with{Confirmed=true});var site=(View)doc.GetElement(new ElementId(situation.ViewId));var lines=doc.Settings.Categories.get_Item(BuiltInCategory.OST_Lines);if(site.GetCategoryHidden(lines.Id))throw new Exception("Categoria de linhas oculta.");
   var curves=new FilteredElementCollector(doc,site.Id).OfClass(typeof(CurveElement)).Cast<CurveElement>().Where(c=>c.OwnerViewId==site.Id&&DrawingOwnership.IsAnnotation(c)).ToList();if(curves.Count<7||curves.Any(c=>site.GetCategoryHidden(c.Category.Id)))throw new Exception("Linhas do diagrama ausentes ou ocultas.");
-  if(!before.SequenceEqual(Physical(doc)))throw new Exception("Modelagem física alterada.");File.WriteAllText(Path.Combine(output,"TESTES_FACHADAS_SITUACAO.json"),JsonSerializer.Serialize(new{Version="0.5.5",Facades=again,Situation=situation,Repeated=true,NativeDirections=true,SituationLinesVisible=true,CurveCount=curves.Count,PhysicalBoundsPreserved=true},new JsonSerializerOptions{WriteIndented=true}));
+  if(!before.SequenceEqual(Physical(doc)))throw new Exception("Modelagem física alterada.");File.WriteAllText(Path.Combine(output,"TESTES_FACHADAS_SITUACAO.json"),JsonSerializer.Serialize(new{Version="0.5.6",Facades=again,Situation=situation,Repeated=true,NativeDirections=true,SituationLinesVisible=true,CurveCount=curves.Count,PhysicalBoundsPreserved=true},new JsonSerializerOptions{WriteIndented=true}));
+ }
+ static void WriteFacadeGeometry(Document doc,IReadOnlyList<ModuleResult> results,string output)
+ {
+  double[] P(XYZ p)=>new[]{p.X,p.Y,p.Z};
+  var data=results.Select(r=>{var v=(ViewSection)doc.GetElement(new ElementId(r.ViewId));var box=v.CropBox;var inv=box.Transform.Inverse;var physical=new FilteredElementCollector(doc).WhereElementIsNotElementType().Where(e=>e is Wall or RoofBase or Floor).Select(e=>new{Id=e.Id.Value,Type=e.GetType().Name,Name=e.Name,Hidden=e.IsHidden(v),Box=e.get_BoundingBox(null)}).Where(e=>e.Box!=null).Select(e=>new{e.Id,e.Type,e.Name,e.Hidden,Min=P(inv.OfPoint(e.Box!.Min)),Max=P(inv.OfPoint(e.Box.Max))});return new{v.Name,Origin=P(v.Origin),Direction=P(v.ViewDirection),CropOrigin=P(box.Transform.Origin),CropMin=P(box.Min),CropMax=P(box.Max),WallCategoryHidden=v.GetCategoryHidden(new ElementId(BuiltInCategory.OST_Walls)),VisibleWalls=new FilteredElementCollector(doc,v.Id).OfClass(typeof(Wall)).GetElementCount(),Phase=v.get_Parameter(BuiltInParameter.VIEW_PHASE).AsElementId().Value,PhaseFilter=v.get_Parameter(BuiltInParameter.VIEW_PHASE_FILTER).AsElementId().Value,Physical=physical.ToList()};});
+  File.WriteAllText(Path.Combine(output,"GEOMETRIA_FACHADAS.json"),JsonSerializer.Serialize(data,new JsonSerializerOptions{WriteIndented=true}));
  }
  static void ValidateLegal05(Document doc,string output)
  {
@@ -98,6 +104,8 @@ internal sealed class SectionValidation:IExternalApplication
  static int Count(Document doc,long view)=>new FilteredElementCollector(doc).WhereElementIsNotElementType().Count(e=>e.OwnerViewId.Value==view);
  static List<string> Physical(Document doc)=>new FilteredElementCollector(doc).WhereElementIsNotElementType().Where(e=>e is HostObject or FamilyInstance or DirectShape).Select(e=>e.Id.Value+"/"+(e.get_BoundingBox(null) is {} b?string.Join("/",new[]{b.Min.X,b.Min.Y,b.Min.Z,b.Max.X,b.Max.Y,b.Max.Z}.Select(v=>Math.Round(v,6))):"none")).Order().ToList();
 }
+
+
 
 
 

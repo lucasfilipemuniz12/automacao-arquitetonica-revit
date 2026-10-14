@@ -99,9 +99,9 @@ public static class LegalFacades
     var box=target.CropBox;var inverse=box.Transform.Inverse;var corners=points.SelectMany(p=>new[]{inverse.OfPoint(new(p.X,p.Y,bottom)),inverse.OfPoint(new(p.X,p.Y,top))}).ToList();
     // Include the whole physical context, so short level lines never sit over terrain or annexes.
     foreach(var bounds in new FilteredElementCollector(doc).WhereElementIsNotElementType().Where(e=>e is HostObject or FamilyInstance or DirectShape).Select(e=>e.get_BoundingBox(null)).Where(b=>b!=null))foreach(var xx in new[]{bounds!.Min.X,bounds.Max.X})foreach(var yy in new[]{bounds.Min.Y,bounds.Max.Y})foreach(var zz in new[]{bounds.Min.Z,bounds.Max.Z})corners.Add(inverse.OfPoint(new(xx,yy,zz)));
-    double left=corners.Min(p=>p.X),right=corners.Max(p=>p.X);
-    box.Min=new(left-Implantation.Feet(3.5),corners.Min(p=>p.Y)-Implantation.Feet(1.5),box.Min.Z);box.Max=new(right+Implantation.Feet(1),corners.Max(p=>p.Y),box.Max.Z);target.CropBox=box;target.CropBoxActive=true;target.CropBoxVisible=false;
-    target.get_Parameter(BuiltInParameter.VIEWER_BOUND_FAR_CLIPPING).Set(1);target.get_Parameter(BuiltInParameter.VIEWER_BOUND_OFFSET_FAR).Set(Implantation.Feet(input.DistanceMeters*2)+(points.Max(p=>(p-center).DotProduct(outward))-points.Min(p=>(p-center).DotProduct(outward))));
+    double left=corners.Min(p=>p.X),right=corners.Max(p=>p.X);double depth=Implantation.Feet(input.DistanceMeters*2)+(points.Max(p=>(p-center).DotProduct(outward))-points.Min(p=>(p-center).DotProduct(outward)));
+    box.Min=new(left-Implantation.Feet(3.5),corners.Min(p=>p.Y)-Implantation.Feet(1.5),-depth);box.Max=new(right+Implantation.Feet(1),corners.Max(p=>p.Y),0);target.CropBox=box;target.CropBoxActive=true;target.CropBoxVisible=false;
+    target.get_Parameter(BuiltInParameter.VIEWER_BOUND_FAR_CLIPPING).Set(1);target.get_Parameter(BuiltInParameter.VIEWER_BOUND_OFFSET_FAR).Set(depth);
     var phase=target.get_Parameter(BuiltInParameter.VIEW_PHASE);if(phase is {IsReadOnly:false})phase.Set(source.get_Parameter(BuiltInParameter.VIEW_PHASE).AsElementId());
     var annotationCrop=target.get_Parameter(BuiltInParameter.VIEWER_ANNOTATION_CROP_ACTIVE);if(annotationCrop is {IsReadOnly:false})annotationCrop.Set(0);
     var made=new List<Element>();var pending=new List<string>();
@@ -147,4 +147,5 @@ public static class LegalFacades
  static FacadeStamp? Read(View v){var s=Autodesk.Revit.DB.ExtensibleStorage.Schema.Lookup(SchemaId);if(s==null)return null;var e=v.GetEntity(s);return e.IsValid()?JsonSerializer.Deserialize<FacadeStamp>(e.Get<string>(s.GetField("Json"))):null;}
  static void Write(View v,FacadeStamp data){var s=Schema();var e=new Entity(s);e.Set(s.GetField("Json"),JsonSerializer.Serialize(data));v.SetEntity(e);}
 }
+
 
