@@ -49,7 +49,7 @@ public sealed class HouseApp:IExternalApplication
    var terrain=Toposolid.Create(doc,new List<CurveLoop>{Rect(-5,-5,20,25)},terrainType.Id,level.Id);ElementTransformUtils.MoveElement(doc,terrain.Id,P(0,0,-.3));made.Add(terrain);
    var outline=new CurveArray();foreach(var c in Rect(-.4,-.4,10.8,15.8))outline.Append(c);
    ModelCurveArray roofEdges=new ModelCurveArray();var roof=doc.Create.NewFootPrintRoof(outline,level2,rt,out roofEdges);
-   foreach(ModelCurve edge in roofEdges){bool side=Math.Abs(edge.GeometryCurve.GetEndPoint(0).X-edge.GeometryCurve.GetEndPoint(1).X)<.001;roof.set_DefinesSlope(edge,side);if(side)roof.set_SlopeAngle(edge,Math.Atan(.2));}made.Add(roof);
+   foreach(ModelCurve edge in roofEdges){bool side=Math.Abs(edge.GeometryCurve.GetEndPoint(0).X-edge.GeometryCurve.GetEndPoint(1).X)<.001;roof.set_DefinesSlope(edge,side);if(side)roof.set_SlopeAngle(edge,.2);}made.Add(roof);
    if(!door.IsActive)door.Activate();if(!window.IsActive)window.Activate();doc.Regenerate();
    made.Add(doc.Create.NewFamilyInstance(P(5,0),door,walls[0],level,StructuralType.NonStructural));
    foreach(var item in new[]{(P(2,0,1),walls[0]),(P(8,0,1),walls[0]),(P(10,7.5,1),walls[1]),(P(5,15,1),walls[2])})
@@ -64,5 +64,6 @@ public sealed class HouseApp:IExternalApplication
   catch(Exception ex){File.WriteAllText(Path.Combine(job.Output,"ERRO.txt"),ex.ToString());}
  }
 }
+
 
 

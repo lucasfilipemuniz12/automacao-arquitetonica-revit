@@ -5,7 +5,7 @@ Add-in nativo C# / .NET 8 / WPF, desenvolvido para Lucas. Revit validado: 2026.4
 ## Estado atual
 
 - Implantação: piloto funcional aprovado por Lucas; lote retangular e contorno ortogonal, cotas nativas, norte/contexto informado e marcações rastreadas.
-- Versão 0.3.1 (teste nativo pendente): preferências de estilo de cota, escala e informação adicional; Planta legal inicial com cotas gerais e áreas; Cobertura com leitura por água plana; acesso ao quadro nativo Q04.
+- Versão 0.3.1 (testes nativos concluídos na Casa Terras): preferências de estilo de cota, escala e informação adicional; Planta legal inicial com cotas gerais e áreas; Cobertura com leitura por água plana; acesso ao quadro nativo Q04.
 - Cortes, fachadas, Situação, quadro urbanístico, cotas internas, tags de esquadrias, montagem de folhas e exportação: próximos passos.
 
 Consulte [estado e evidências](docs/ESTADO_ATUAL.md) antes de trabalhar. O [contexto mestre](docs/CONTEXTO_MESTRE.md) preserva o planejamento histórico; decisões recentes estão em ESTADO_ATUAL.
@@ -37,4 +37,5 @@ RVT/RTE, famílias, bibliotecas Autodesk, binários, logs de máquina e dados de
 ## Distribuição
 
 Repositório privado. Licença comercial do produto ainda será definida por Lucas. Skills são auxiliares de desenvolvimento, não dependências redistribuídas do plugin. BIMwright/ToolBaker são ferramentas de desenvolvimento opcionais; não foram incorporadas ao produto.
+
 
