@@ -2,6 +2,8 @@
 
 Plugin nativo C# / .NET 8 / WPF / Revit 2026. Prioridade: Projeto legal. Modelagem e Executivo serão ampliados após avaliação de Lucas.
 
+Leia a [passagem para revisão no Claude](docs/PASSAGEM_CLAUDE.md), o [guia de conexão](docs/COMO_USAR_CLAUDE.md) e o [prompt](docs/PROMPT_PARA_CLAUDE.txt). A branch da entrega é `codex/vebram-projeto-legal-v03`.
+
 ## Estado atual
 
 - Versão 0.5.14: composição opcional corrigida no plugin para V02 A1 horizontal. Planta em destaque, quadro compacto abaixo, cobertura e quatro fachadas na LEG-02, implantação e cortes na LEG-03. Guias ocultas e títulos/números centralizados, com escalas preservadas. Testes nativos e revisão visual concluídos. Veja [evidência e limites](docs/TESTES_COMPOSICAO_V0514.md).

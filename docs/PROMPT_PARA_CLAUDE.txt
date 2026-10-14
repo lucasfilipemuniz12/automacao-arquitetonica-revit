@@ -1,0 +1,18 @@
+Quero uma revisão técnica independente do VEBRAM, plugin C#/.NET 8/WPF para Autodesk Revit 2026.
+
+Repositório: lucasfilipemuniz12/automacao-arquitetonica-revit
+Branch correta: codex/vebram-projeto-legal-v03
+PR de contexto: https://github.com/lucasfilipemuniz12/automacao-arquitetonica-revit/pull/1
+Produto atual: 0.5.14. A main não contém necessariamente esta entrega.
+
+Leia primeiro docs/PASSAGEM_CLAUDE.md, README.md, docs/TESTES_COMPOSICAO_V0514.md e o estado atual mais recente. Textos antigos são históricos. Depois revise src/Vebram.Revit, scripts e testes.
+
+Analise arquitetura, transações/reversão, preservação da modelagem e de edições manuais, repetição sem duplicatas, unidades internas/papel, medição de textos/títulos, visibilidade/recorte das fachadas, dependências do template V02 e riscos de distribuir o plugin para outros projetos.
+
+Receberá também CASA_TERRAS_SO_MODELAGEM.rvt, imagens de suas plantas/3D e INVENTARIO_MODELAGEM.json. É uma cópia da casa com apenas vistas de modelagem; entregáveis legais, folhas e tabelas foram retirados. Templates de vista, famílias, materiais e parâmetros foram conservados como recursos. As referências legais do V02 não estão nessa cópia: diferencie uma base só modelada de uma base preparada para os testes existentes.
+
+Primeiro entregue uma revisão, sem alterar código: liste problemas por gravidade, arquivo/linha, cenário reproduzível, consequência e correção sugerida; diferencie bug comprovado de hipótese, melhoria e limitação conhecida. Avalie a qualidade visual usando as imagens e diga o que mudaria no produto. Proponha uma sequência curta de melhorias com critérios de aceitação.
+
+Não declare testes nativos aprovados sem Revit/API local e evidência. A conexão GitHub não abre RVT nem controla Revit. Se só tiver o ambiente web, faça revisão estática e análise das imagens/JSON e indique o que precisa ser validado localmente. Compilação do plugin requer Windows e referências locais Autodesk; não substitua essas DLLs por stubs para alegar aprovação.
+
+Se depois eu pedir implementação, trabalhe em outra branch e apresente alterações para revisão, mantendo a PR original. Preserve escala, modelo físico e conteúdo manual. Use binlog único em toda invocação MSBuild. Não faça merge ou substituição da instalação local sem meu pedido.

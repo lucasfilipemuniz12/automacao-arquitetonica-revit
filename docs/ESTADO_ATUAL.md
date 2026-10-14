@@ -1,3 +1,15 @@
+# Passagem para revisão no Claude — 14/10/2026
+
+Produto continua na 0.5.14. Fontes e composição validadas já publicadas na branch codex/vebram-projeto-legal-v03; PR 1 permanece em rascunho.
+
+Foi acrescentado um job de desenvolvimento explícito modelreview, com script Export-ModelReview.ps1, para gerar uma cópia separada só de modelagem. Teste nativo concluído: duas plantas de modelagem e uma vista 3D, zero folhas/tabelas/cortes/fachadas, 269 elementos monitorados preservados por identidade/tipo/limites. Mantidos 30 templates de vista como recursos. Imagens e inventário gerados localmente. Origem preservada.
+
+Consulte [passagem técnica](PASSAGEM_CLAUDE.md), [como conectar](COMO_USAR_CLAUDE.md) e [prompt para copiar](PROMPT_PARA_CLAUDE.txt). RVT, imagens e inventário detalhado permanecem na pasta local de entrega, fora do GitHub.
+
+A primeira tentativa de exportação foi revertida por incluir controles internos não apagáveis entre as anotações; a rotina foi restrita a tipos de anotação e passou. A base só modelagem não mantém as referências de entregáveis legais do V02: é um insumo para revisão e preparação futura, não uma base pronta para os testes legal05/composition014.
+
+---
+
 # Atualização 0.5.14 — 14/10/2026
 
 Composição corrigida no plugin, validada nativamente e revisada visualmente. Preparar legal > Revisar composição é uma ação opcional específica para V02 A1 horizontal. LEG-01 reúne planta, Situação e quadro compacto; LEG-02 cobertura e quatro fachadas; LEG-03 implantação e cortes. A LEG-04 gerada foi retirada após ficar vazia.
