@@ -1,51 +1,44 @@
 # VEBRAM — automação arquitetônica para Revit
 
-Add-in nativo C# / .NET 8 / WPF, desenvolvido para Lucas. Revit validado: 2026.4.1. Prioridade atual: Projeto legal; Modelagem e Executivo serão ampliados após avaliação.
+Plugin nativo C# / .NET 8 / WPF / Revit 2026. Prioridade: Projeto legal. Modelagem e Executivo serão ampliados após avaliação de Lucas.
 
 ## Estado atual
 
-- Implantação: piloto funcional aprovado por Lucas; lote retangular e contorno ortogonal, cotas nativas, norte/contexto informado e marcações rastreadas.
-- Versão 0.4.2 (testes nativos concluídos na Casa Terras): preferências de estilo de cota, escala e informação adicional; Planta legal com cotas gerais/internas entre acabamentos e rótulos ajustados; Cobertura com leitura por água plana; acesso ao quadro nativo Q04.
-- Fachadas, Situação, quadro urbanístico, cotagem de posicionamento e tags de esquadrias, montagem de folhas e exportação: próximos passos.
+- Implantação, planta legal, cobertura por água plana e Q04: implementados e testados nos lotes anteriores. Rótulos internos priorizados; cotas sem espaço ou referência válida são relatadas.
+- Cortes A/B 0.4.4: testes nativos e revisão visual concluídos na Casa Terras. Níveis curtos na lateral com uma bolha, sem texto duplicado ou cruzamento sobre a casa/terreno; cota vertical separada e nota inferior reposicionada.
+- Candidato 0.5.1: código de quatro fachadas, situação esquemática, quadro urbanístico e colocação de entregáveis nas folhas LEG-01/02. Compilado sem erros/avisos; 19 testes de cálculos e retângulos passaram. Ainda não validado dentro do Revit: a sessão ficou no aviso de complemento não certificado. Não declarar o Projeto legal inteiro concluído.
 
-Consulte [estado e evidências](docs/ESTADO_ATUAL.md) antes de trabalhar. O [contexto mestre](docs/CONTEXTO_MESTRE.md) preserva o planejamento histórico; decisões recentes estão em ESTADO_ATUAL.
+Leia [continuidade atual e retomada](docs/CONTINUIDADE_014_PROJETO_LEGAL.md), [evidência de cortes](docs/TESTES_CORTES_V044.md) e [histórico](docs/ESTADO_ATUAL.md). Decisões recentes prevalecem sobre textos históricos.
+
+## Fluxo
+
+Na aba Projeto legal, abra Preparar legal, escolha a planta de modelagem e um botão ilustrado. Os módulos reutilizam as referências do template V02 e preservam a planta fonte. Preferências legais recebe estilo de cota, escala e nota adicional.
+
+Situação/urbanismo exigem lote já confirmado na Implantação. Áreas computáveis/permeáveis e limites municipais são informados pelo projetista; campos vazios ficam pendentes. Situação é um diagrama, não um levantamento. Fachadas preferem elevações nativas e recusam marcadores compartilhados ou marcações manuais ao reposicionar. Folhas preservam colocações existentes e não reduzem a escala automaticamente para encaixar uma vista.
 
 ## Estrutura
 
-- src/Vebram.Revit: código completo do produto.
-- profiles: contrato dos parâmetros compartilhados ARQ.
-- scripts: compilação e instalação local.
-- dev: rotinas locais para testes nativos em cópias de demonstração.
-- tools: fontes das rotinas pontuais de casa básica e correção de unidades.
-- docs: decisões, regras, evidências e pendências.
+- src/Vebram.Revit: fonte completo do produto e validação nativa por job explícito.
+- profiles: contrato ARQ por GUID.
+- scripts: compilação, instalação e preparo de cópia para validação.
+- tests/Arithmetic: testes sem Revit das classes de cálculo e encaixe usadas pelo produto.
+- docs: contexto, evidências e pendências.
+- dev / tools: rotinas históricas; não reexecutar automaticamente em projetos aprovados.
 
 ## Compilar e instalar
 
-1. Windows, SDK .NET 8 e Revit 2026 licenciado instalado.
-2. Executar scripts/Build.ps1, informando -Dotnet e -RevitInstallDir quando necessário.
-3. Executar scripts/Install-Local.ps1 após a compilação.
-4. Reabrir o Revit e usar um RVT criado do template V02 compatível.
+Windows, SDK .NET 8 e Revit 2026 instalado. Execute scripts/Build.ps1 e scripts/Install-Local.ps1 com Revit fechado. As DLLs da Autodesk são referências locais e não são distribuídas. Instalação fixa: current/Vebram.Revit.dll; GUID 936f6231-d0c9-47a3-83e6-65813c46c176.
 
-O pacote compilado fica em current, com DLL Vebram.Revit.dll e ID fixo. Fechar Revit antes de compilar/atualizar; o script impede substituir a DLL durante a sessão. A API Revit deve ser obtida da instalação local; suas DLLs não são redistribuídas. O projeto não usa pacotes NuGet de terceiros nem IA durante o uso dos botões.
+O aviso de segurança reapareceu após a atualização, apesar do caminho/ID fixos. Não desabilitar a segurança nem prometer ausência de novos avisos. A escolha de carregar pertence ao usuário.
 
-## Unidades e uso
+## Validar
 
-Padrão atual: comprimentos em metros; áreas em m² e volumes em m³. O botão Preferências legais permite escolher outro estilo existente de forma explícita, mostrando sua unidade. A seleção é armazenada no projeto e aplicada na próxima geração.
+1. Testes de cálculo: compilar tests/Arithmetic/Arithmetic.csproj e executar a DLL resultante. Usar MSBuild com binlog.
+2. Testes nativos: com a DLL atual instalada e Revit fechado, executar scripts/Validate-Local.ps1 informando SourceProject, OutputFolder e Mode legal05, depois abrir Revit.
+3. Ler os relatórios e abrir as vistas/folhas para revisão. O teste novo utiliza dados fictícios identificados e precisa de cópia compatível com V02 contendo Implantação preparada e planta PRE do nível 1. Não substitui a origem. Sem job, o plugin não executa validação na inicialização.
 
-RVT/RTE, famílias, bibliotecas Autodesk, binários, logs de máquina e dados de clientes ficam fora deste repositório. Os modelos de teste e o template são locais. Código disponível não significa que uma sessão cloud possa executar a API sem o Revit.
+## Limites
 
-## Distribuição
+Lote retangular e contorno ortogonal; áreas de urbanismo precisam de critérios do projetista. Não há cotagem construtiva completa, posicionamento completo de esquadrias, exportação final, cadastro municipal, suporte geral a marcadores compartilhados ou aprovação legal automática. A composição das folhas, espaços-guia e cada vista exigem revisão visual.
 
-Repositório privado. Licença comercial do produto ainda será definida por Lucas. Skills são auxiliares de desenvolvimento, não dependências redistribuídas do plugin. BIMwright/ToolBaker são ferramentas de desenvolvimento opcionais; não foram incorporadas ao produto.
-
-
-
-Detalhes da evolução de rótulos e cotas: [testes 0.3.2](docs/TESTES_V032.md). Há opções de espessura de paredes e largura de esquadrias; referências indisponíveis são relatadas. Revisão visual final pendente.
-
-
-Correção visual mais recente: [rótulos internos 0.3.5](docs/TESTES_V035.md). Nove rótulos internos sem chamadas externas no teste; cinco cotas internas pendentes para preservar sua leitura. Revisão visual da nova cópia ainda pendente.
-
-
-Cortes A/B disponíveis: posição, sentido, profundidade, níveis e cota vertical. [Testes dos cortes](docs/TESTES_CORTES_V04.md). Revisão visual pendente.
-
-
+Os RVT/RTE, famílias, materiais e DLLs permanecem locais. GitHub compartilha fontes e documentação; a API e o resultado gráfico são validados no Revit do Windows.

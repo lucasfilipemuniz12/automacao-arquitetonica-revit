@@ -1,0 +1,25 @@
+{
+  "Scope": "Aritm\u00E9tica e ret\u00E2ngulos do c\u00F3digo de produ\u00E7\u00E3o; n\u00E3o testa Revit, geometria nativa, marcadores ou viewport real.",
+  "Passed": 19,
+  "Checks": [
+    "Lote 20 \u00D7 30 m = 600 m\u00B2",
+    "Orienta\u00E7\u00E3o invertida conserva \u00E1rea",
+    "Contorno ortogonal c\u00F4ncavo = 75 m\u00B2",
+    "Coordenadas distantes sem perda por cancelamento",
+    "TO 150 / 600 = 25%",
+    "CA 900 / 600 = 1,5",
+    "TP 120 / 600 = 20%",
+    "Limite ausente n\u00E3o gera aprova\u00E7\u00E3o",
+    "M\u00E1ximo inclusivo",
+    "M\u00E1ximo excedido",
+    "M\u00EDnimo n\u00E3o atingido",
+    "\u00C1rea nula recusada",
+    "Primeira vista cabe dentro da folha",
+    "Segunda vista mant\u00E9m espa\u00E7o sem colis\u00E3o",
+    "Vista maior que folha recusada",
+    "Folha cheia recusada",
+    "Deslocamento conserva dimens\u00F5es",
+    "Arestas apenas adjacentes n\u00E3o se sobrep\u00F5em",
+    "Folga m\u00EDnima detecta arestas adjacentes"
+  ]
+}

@@ -1,0 +1,27 @@
+using System.Text.Json;
+using Vebram.Revit;
+var passed=new List<string>();
+void Check(bool condition,string title){if(!condition)throw new Exception(title);passed.Add(title);}
+bool Near(double a,double b)=>Math.Abs(a-b)<1e-7;
+Check(Near(LegalMetrics.PolygonArea(new[]{(0d,0d),(20d,0d),(20d,30d),(0d,30d)}),600),"Lote 20 × 30 m = 600 m²");
+Check(Near(LegalMetrics.PolygonArea(new[]{(0d,30d),(20d,30d),(20d,0d),(0d,0d)}),600),"Orientação invertida conserva área");
+Check(Near(LegalMetrics.PolygonArea(new[]{(0d,0d),(10d,0d),(10d,5d),(5d,5d),(5d,10d),(0d,10d)}),75),"Contorno ortogonal côncavo = 75 m²");
+Check(Near(LegalMetrics.PolygonArea(new[]{(1e9,1e9),(1e9+20,1e9),(1e9+20,1e9+30),(1e9,1e9+30)}),600),"Coordenadas distantes sem perda por cancelamento");
+Check(Near(LegalMetrics.Ratio(150,600,true),25),"TO 150 / 600 = 25%");
+Check(Near(LegalMetrics.Ratio(900,600,false),1.5),"CA 900 / 600 = 1,5");
+Check(Near(LegalMetrics.Ratio(120,600,true),20),"TP 120 / 600 = 20%");
+Check(LegalMetrics.Compare(20,null,true)=="limite não informado","Limite ausente não gera aprovação");
+Check(LegalMetrics.Compare(70,70,true)=="dentro do limite informado","Máximo inclusivo");
+Check(LegalMetrics.Compare(71,70,true)=="fora do limite informado","Máximo excedido");
+Check(LegalMetrics.Compare(19,20,false)=="fora do limite informado","Mínimo não atingido");
+bool invalid=false;try{LegalMetrics.Ratio(10,0,true);}catch(ArgumentOutOfRangeException){invalid=true;}Check(invalid,"Área nula recusada");
+var usable=new LegalPaperRect(0,0,10,8);var item=new LegalPaperRect(-2,-1,2,1);
+var first=usable.FindFree(Array.Empty<LegalPaperRect>(),item,.1,.2);Check(first.HasValue&&usable.Contains(first.Value),"Primeira vista cabe dentro da folha");
+var second=usable.FindFree(new[]{first!.Value},item,.1,.2);Check(second.HasValue&&!first.Value.Intersects(second.Value,.2),"Segunda vista mantém espaço sem colisão");
+Check(usable.FindFree(Array.Empty<LegalPaperRect>(),new(0,0,11,2),.1,.2)==null,"Vista maior que folha recusada");
+Check(usable.FindFree(new[]{usable},item,.1,.2)==null,"Folha cheia recusada");
+Check(new LegalPaperRect(0,0,1,1).Move(2,3)==new LegalPaperRect(2,3,3,4),"Deslocamento conserva dimensões");
+Check(!new LegalPaperRect(0,0,1,1).Intersects(new(1,0,2,1),0),"Arestas apenas adjacentes não se sobrepõem");
+Check(new LegalPaperRect(0,0,1,1).Intersects(new(1,0,2,1),.01),"Folga mínima detecta arestas adjacentes");
+var report=new{Scope="Aritmética e retângulos do código de produção; não testa Revit, geometria nativa, marcadores ou viewport real.",Passed=passed.Count,Checks=passed};
+var json=JsonSerializer.Serialize(report,new JsonSerializerOptions{WriteIndented=true});Console.WriteLine(json);if(args.Length>0)File.WriteAllText(args[0],json);

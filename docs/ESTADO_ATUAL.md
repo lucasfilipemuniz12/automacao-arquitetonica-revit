@@ -1,3 +1,12 @@
+# Estado atual — candidato 0.5.1
+
+Cortes 0.4.4 testados nativamente e revisados visualmente. Fachadas, Situação, quadro urbanístico e colocação em folhas implementados e compilados, com 19 testes de aritmética/encaixe passando; validação nativa dos módulos novos bloqueada pelo aviso de complemento não certificado. Não declarar que Projeto legal inteiro está concluído.
+
+Leia docs/CONTINUIDADE_014_PROJETO_LEGAL.md. DLL completa em staging-v051; current ainda contém o primeiro candidato 0.5.0, bloqueado pela sessão no aviso. O RVT teste-legais-v05 é somente cópia dos cortes, sem os módulos novos. Não há job ativo de inicialização.
+
+Notas abaixo são históricas.
+
+---
 # Estado atual — 13/10/2026
 
 ## Decisões de Lucas
@@ -57,3 +66,7 @@ Após a revisão de Lucas, removidas chamadas externas automáticas. Nove rótul
 Dois botões habilitados com piso-fonte, eixo X/Y, posição percentual, sentido e profundidade. Testes nativos passaram na Casa Terras preservando as duas ViewSection do V02: dois níveis e uma cota vertical em cada corte; repetição, posição 25%, inversão, profundidades 8/15 m e proteção de edição. Estado final centro/15 m. IDs de vistas, elevações e limites físicos preservados. Versão instalada e cópia salva; revisão visual pendente. Detalhes em TESTES_CORTES_V04.md. As pendências anteriores de cortes referem-se às versões antigas. Fachadas são a próxima fase.
 
 Instalação padronizada em current/Vebram.Revit.dll com AssemblyName fixo Vebram.Revit e GUID 936f6231-d0c9-47a3-83e6-65813c46c176. Build.ps1 exige Revit fechado. Não voltar a criar carregadores/GUIDs novos para cada ajuste: essa prática provocou os avisos repetidos que Lucas relatou. A confiança Sempre carregar depende de mesmo caminho/ID para DLL não assinada. Fonte 0.4.2 recompilado com nome estável, sem erros/avisos; testes nativos anteriores usaram o mesmo código na V042.
+
+## Correção de níveis 0.4.3
+Após print de Lucas, textos duplicados dos níveis removidos; linhas nativas curtas de 0,9 m em faixa à esquerda, um símbolo por nível; cota vertical em faixa separada e nota inferior afastada. Testes nativos passaram confirmando linhas fora da edificação e uma bolha por nível, além da bateria de cortes. DLL fixa atualizada com mesmo caminho/ID após fechamento das janelas e verificação de liberação da DLL; processo antigo sem janela não foi encerrado à força. Revit reabriu e executou validação pela própria DLL fixa, sem outro manifesto/carregador. Job explícito consumido uma vez; sem job o produto não inicia validação. Cópia salva; detalhes TESTES_CORTES_V043.md.
+

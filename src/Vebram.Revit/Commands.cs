@@ -38,6 +38,18 @@ public sealed class PrepareLegalCommand : IExternalCommand
             if (doc == null || doc.IsFamilyDocument) return Result.Cancelled;
             var form = new PrepareWindow(data.Application);
             if (form.ShowDialog() != true) return Result.Cancelled;
+            if(form.Sheet is {} sheet)
+            {
+                var prepared=LegalSheets.Apply(doc,sheet);data.Application.ActiveUIDocument!.ActiveView=(View)doc.GetElement(new ElementId(prepared.ViewId));data.Application.ActiveUIDocument.GetOpenUIViews().FirstOrDefault(v=>v.ViewId.Value==prepared.ViewId)?.ZoomToFit();TaskDialog.Show("VEBRAM — folha",prepared.Report);return Result.Succeeded;
+            }
+            if(form.Context is {} context)
+            {
+                var prepared=LegalContext.Apply(doc,context);data.Application.ActiveUIDocument!.ActiveView=(View)doc.GetElement(new ElementId(prepared.ViewId));data.Application.ActiveUIDocument.GetOpenUIViews().FirstOrDefault(v=>v.ViewId.Value==prepared.ViewId)?.ZoomToFit();TaskDialog.Show("VEBRAM — resultado",prepared.Report);return Result.Succeeded;
+            }
+            if(form.Facades is {} facades)
+            {
+                var prepared=LegalFacades.Apply(doc,facades);data.Application.ActiveUIDocument!.ActiveView=(View)doc.GetElement(new ElementId(prepared[0].ViewId));data.Application.ActiveUIDocument.GetOpenUIViews().FirstOrDefault(v=>v.ViewId.Value==prepared[0].ViewId)?.ZoomToFit();TaskDialog.Show("VEBRAM — fachadas",string.Join("\n",prepared.Select(p=>p.Report)));return Result.Succeeded;
+            }
             if(form.Section is {} section)
             {
                 var prepared=LegalSections.Apply(doc,section);

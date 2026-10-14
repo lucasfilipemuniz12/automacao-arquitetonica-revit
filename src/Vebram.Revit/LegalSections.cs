@@ -45,8 +45,11 @@ public static class LegalSections
    doc.Regenerate();ElementTransformUtils.MoveElement(doc,cropId,point-target.Origin);doc.Regenerate();
    if(target.ViewDirection.DotProduct(forward)<.999||Math.Abs(target.UpDirection.DotProduct(XYZ.BasisZ))<.999)throw new InvalidOperationException($"{request.Key}: orientação não aceita: direção {target.ViewDirection}; vertical {target.UpDirection}. Operação revertida.");
    var box=target.CropBox;var inverse=box.Transform.Inverse;var corners=new List<XYZ>();foreach(var x in new[]{x0,x1})foreach(var y in new[]{y0,y1})foreach(var z in new[]{minZ,maxZ})corners.Add(inverse.OfPoint(new XYZ(x,y,z)));
-   double left=corners.Min(p=>p.X)-Implantation.Feet(2),right=corners.Max(p=>p.X)+Implantation.Feet(1);
-   box.Min=new XYZ(left,corners.Min(p=>p.Y),-Implantation.Feet(request.DepthMeters));box.Max=new XYZ(right,corners.Max(p=>p.Y),0);target.CropBox=box;target.CropBoxActive=true;target.CropBoxVisible=false;
+   var visibleBounds=new FilteredElementCollector(doc,target.Id).WhereElementIsNotElementType().Where(e=>e is HostObject or FamilyInstance or DirectShape).Select(e=>e.get_BoundingBox(null)).Where(b=>b!=null).ToList();
+   var visibleCorners=new List<XYZ>();foreach(var b in visibleBounds)foreach(var x in new[]{b!.Min.X,b.Max.X})foreach(var y in new[]{b.Min.Y,b.Max.Y})visibleCorners.Add(inverse.OfPoint(new XYZ(x,y,source.GenLevel.Elevation)));
+   double buildingLeft=Math.Min(corners.Min(p=>p.X),visibleCorners.Count>0?visibleCorners.Min(p=>p.X):double.MaxValue),left=buildingLeft-Implantation.Feet(4),right=Math.Max(corners.Max(p=>p.X),visibleCorners.Count>0?visibleCorners.Max(p=>p.X):double.MinValue)+Implantation.Feet(1);
+   double noteElevation=Math.Min(minZ,visibleBounds.Count>0?visibleBounds.Min(b=>b!.Min.Z):minZ)-Implantation.Feet(.35);
+   box.Min=new XYZ(left,Math.Min(corners.Min(p=>p.Y)-Implantation.Feet(1.4),noteElevation-box.Transform.Origin.Z-Implantation.Feet(.7)),-Implantation.Feet(request.DepthMeters));box.Max=new XYZ(right,corners.Max(p=>p.Y),0);target.CropBox=box;target.CropBoxActive=true;target.CropBoxVisible=false;
    Set(target,BuiltInParameter.VIEWER_BOUND_FAR_CLIPPING,1);Set(target,BuiltInParameter.VIEWER_BOUND_OFFSET_FAR,Implantation.Feet(request.DepthMeters));
    doc.Regenerate();
    var textType=TextType(doc);var transform=target.CropBox.Transform;
@@ -58,20 +61,19 @@ public static class LegalSections
     try
     {
      var curve=level.GetCurvesInView(DatumExtentType.Model,target).OfType<Line>().FirstOrDefault();
-     if(curve!=null){var direction=curve.Direction;var origin=curve.GetEndPoint(0);double a=(At(left+.3,level.Elevation)-origin).DotProduct(direction),b=(At(right-.3,level.Elevation)-origin).DotProduct(direction);level.SetDatumExtentType(DatumEnds.End0,target,DatumExtentType.ViewSpecific);level.SetDatumExtentType(DatumEnds.End1,target,DatumExtentType.ViewSpecific);level.SetCurveInView(DatumExtentType.ViewSpecific,target,Line.CreateBound(origin+direction*Math.Min(a,b),origin+direction*Math.Max(a,b)));level.ShowBubbleInView(DatumEnds.End0,target);}
+     if(curve!=null){var direction=curve.Direction;var origin=curve.GetEndPoint(0);double a=(At(buildingLeft-Implantation.Feet(3.3),level.Elevation)-origin).DotProduct(direction),b=(At(buildingLeft-Implantation.Feet(2.4),level.Elevation)-origin).DotProduct(direction);level.SetDatumExtentType(DatumEnds.End0,target,DatumExtentType.ViewSpecific);level.SetDatumExtentType(DatumEnds.End1,target,DatumExtentType.ViewSpecific);level.SetCurveInView(DatumExtentType.ViewSpecific,target,Line.CreateBound(origin+direction*Math.Min(a,b),origin+direction*Math.Max(a,b)));var bubble=direction.DotProduct(target.RightDirection)>0?DatumEnds.End0:DatumEnds.End1;level.ShowBubbleInView(bubble,target);level.HideBubbleInView(bubble==DatumEnds.End0?DatumEnds.End1:DatumEnds.End0,target);}
     }
     catch(Autodesk.Revit.Exceptions.ArgumentException){pending.Add("Nível "+level.Name+": conferir extensão do símbolo nativo.");}
-    var note=TextNote.Create(doc,target.Id,At(left+.4,level.Elevation+Implantation.Feet(.15)),level.Name+" · "+((level.Elevation-source.GenLevel.Elevation)*.3048).ToString("+0.00;-0.00;0.00",Implantation.Pt)+" m (relativo ao nível fonte)",textType.Id);made.Add(note);
    }
    var lower=HorizontalFaces(floor,true).Where(f=>Contains(f.Face,point)).OrderByDescending(f=>f.Face.Origin.Z).FirstOrDefault();
    var upper=hosts.Where(h=>h.Id!=floor.Id&&h is Floor or Ceiling).SelectMany(h=>HorizontalFaces(h,false)).Where(f=>lower!=null&&f.Face.Origin.Z>lower.Face.Origin.Z+Implantation.Feet(.3)&&Contains(f.Face,point)).OrderBy(f=>f.Face.Origin.Z).FirstOrDefault();
    if(lower!=null&&upper!=null)
    {
     var refs=new ReferenceArray();refs.Append(lower.Reference);refs.Append(upper.Reference);doc.Regenerate();
-    var dimension=doc.Create.NewDimension(target,Line.CreateBound(At(left+Implantation.Feet(.7),lower.Face.Origin.Z),At(left+Implantation.Feet(.7),upper.Face.Origin.Z)),refs,LegalPreferenceStore.Dimension(doc));made.Add(dimension);
+    var dimension=doc.Create.NewDimension(target,Line.CreateBound(At(buildingLeft-Implantation.Feet(.9),lower.Face.Origin.Z),At(buildingLeft-Implantation.Feet(.9),upper.Face.Origin.Z)),refs,LegalPreferenceStore.Dimension(doc));made.Add(dimension);
    }
    else pending.Add("Não foi encontrada uma dupla de faces horizontais válidas para cotar a altura livre nesta posição.");
-   if(!string.IsNullOrWhiteSpace(prefs.AdditionalNote))made.Add(TextNote.Create(doc,target.Id,At(left+.4,minZ+Implantation.Feet(.15)),prefs.AdditionalNote,textType.Id));
+   if(!string.IsNullOrWhiteSpace(prefs.AdditionalNote))made.Add(TextNote.Create(doc,target.Id,At(buildingLeft,noteElevation),prefs.AdditionalNote,textType.Id));
    doc.Regenerate();foreach(var element in made)DrawingOwnership.MarkAnnotation(element);Write(target,new(source.UniqueId,made.Select(e=>new ElementStamp(e.UniqueId,DrawingOwnership.Fingerprint(e))).ToList(),ViewState(target)));
    if(tx.Commit()!=TransactionStatus.Committed)throw new InvalidOperationException("Operação revertida pelo Revit.");
    return new(target.Id.Value,made.OfType<Dimension>().Count(),made.Count,$"{item.Label} preparado na mesma vista do V02.\nPosição: {request.Position:0.##}%; profundidade: {request.DepthMeters:0.##} m.\n{levels.Count} níveis identificados; {made.OfType<Dimension>().Count()} cota vertical entre faces reais.\n"+string.Join("\n",pending)+"\nNão há detalhamento construtivo nem cotagem completa automática. Revise o corte antes de colocá-lo na folha.");
@@ -97,7 +99,7 @@ public static class LegalSections
   preset.SetNonControlledTemplateParameterIds(excluded.ToList());view.ViewTemplateId=preset.Id;view.Scale=scale;
   SetPhase(view,source);foreach(var pair in new[]{(LegalCatalog.StageId,LegalCatalog.Stage),(LegalCatalog.FunctionId,"CORTES")}){var p=view.get_Parameter(pair.Item1);if(p==null)throw new InvalidOperationException("Parâmetro ARQ ausente no corte.");if(!LegalCatalog.Same(p.AsString(),pair.Item2)){if(p.IsReadOnly)throw new InvalidOperationException("Classificação ARQ bloqueada.");p.Set(pair.Item2);}}
  }
- static ElementId CropElement(Document doc,View view)
+ internal static ElementId CropElement(Document doc,View view)
  {
   var matching=new FilteredElementCollector(doc).WhereElementIsNotElementType().Where(e=>e.Id!=view.Id&&e.GetTypeId()==view.GetTypeId()&&e.Name==view.Name).Select(e=>e.Id).ToList();
   if(matching.Count==1)return matching[0];
