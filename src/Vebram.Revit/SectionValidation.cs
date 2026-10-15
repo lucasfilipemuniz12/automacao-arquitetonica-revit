@@ -20,6 +20,7 @@ internal sealed class SectionValidation:IExternalApplication
   try
   {
    doc=ui.Application.OpenDocumentFile(job.Project);
+   if(job.Mode=="planner017"){SheetPlannerValidation.Run(doc,job.Output);doc.Close(false);doc=null;File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Organização automática validada na cópia do RVT.");return;}
    if(job.Mode=="review016"){Review016Validation.Run(doc,job.Output);doc.Close(false);doc=null;File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Revisão 0.5.16 validada na cópia do RVT.");return;}
    if(job.Mode=="review015"){Review015Validation.Run(doc,job.Output,job.Reference);doc.Close(false);doc=null;File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Revisão 0.5.15 validada na cópia do RVT gerado.");return;}
    if(job.Mode=="templatereview"){ModelReviewExport.Run(doc,job.Output,ui.Application,job.Template,job.Reference);doc.Close(false);doc=null;File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Base do template V02 conferida, referências preservadas e modelagem verificada.");return;}

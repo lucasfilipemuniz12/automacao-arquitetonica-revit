@@ -1,0 +1,12 @@
+using Vebram.Revit;
+int tests=0;void Check(bool ok,string name){if(!ok)throw new Exception(name);tests++;}
+var area=new LegalPaperRect(0,0,600,500);var pair=new[]{new PaperItem(1,250,180),new PaperItem(2,250,180)};
+var layout=SheetPacking.Pack(area,[],pair,12)!;Check(layout.Count==2,"pair fits");Check(layout.All(p=>area.Contains(p.Rect)),"inside");Check(!layout[0].Rect.Intersects(layout[1].Rect,12-1e-6),"gap");
+var obstacle=new LegalPaperRect(0,0,300,500);var constrained=SheetPacking.Pack(area,new[]{obstacle},pair,12)!;Check(constrained.All(p=>!p.Rect.Intersects(obstacle,12-1e-6)),"manual obstacle");
+Check(SheetPacking.Pack(area,[],new[]{new PaperItem(1,601,20)},12)==null,"oversize");Check(SheetPacking.Pack(area,[],new[]{new PaperItem(1,500,600)},12)==null,"no rotation");
+Check(SheetPacking.Pack(area,[],new[]{new PaperItem(1,600,500)},12)?.Count==1,"exact fit");Check(SheetPacking.Pack(area,[],pair,12)!.SequenceEqual(layout),"deterministic");
+Check(SheetPacking.PreferredSheet("implantacao","preferencial")==SheetPacking.PreferredSheet("situacao","preferencial"),"site pair");Check(SheetPacking.PreferredSheet("implantacao","r20")==3,"R20 site");Check(SheetPacking.PreferredSheet("planta-1","r20")==2,"R20 floor");
+Check(SheetPacking.PreferredSheet("corte-a","preferencial")==SheetPacking.PreferredSheet("corte-b","preferencial"),"cuts pair");Check(new[]{"fachada-norte","fachada-sul","fachada-leste","fachada-oeste"}.All(k=>SheetPacking.PreferredSheet(k,"preferencial")==4),"facades group");
+var rows=SheetPacking.Rows(area,new IReadOnlyList<PaperItem>[]{new[]{new PaperItem(3,500,200)},pair},12)!;Check(rows.Count==3,"rows fit");Check(rows[0].Rect.Bottom>rows[1].Rect.Top,"roof above cuts");Check(Math.Abs(rows[1].Rect.Top-rows[2].Rect.Top)<1e-6,"cuts aligned");Check(SheetPacking.Rows(area,new IReadOnlyList<PaperItem>[]{new[]{new PaperItem(1,700,100)}},12)==null,"rows oversize");
+var random=new Random(17);for(int trial=0;trial<100;trial++){var items=Enumerable.Range(0,8).Select(i=>new PaperItem(i,random.Next(30,180),random.Next(30,140))).ToList();var packed=SheetPacking.Pack(area,[],items,12);if(packed==null)continue;Check(packed.Count==items.Count&&packed.All(p=>area.Contains(p.Rect,1e-6)),"random bounds");for(int i=0;i<packed.Count;i++)for(int j=i+1;j<packed.Count;j++)Check(!packed[i].Rect.Intersects(packed[j].Rect,12-1e-6),"random collision");}
+Console.WriteLine($"{tests} verificações passaram.");

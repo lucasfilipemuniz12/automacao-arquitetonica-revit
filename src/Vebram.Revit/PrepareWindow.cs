@@ -32,6 +32,7 @@ public sealed class PrepareWindow : Window
     public FacadeSelection? Facades{get;private set;}
     public SheetSelection? Sheet{get;private set;}
     public bool ComposeSheets{get;private set;}
+    public SheetPlan? Plan{get;private set;}
     public IReadOnlyList<Request> Requests{get;}=[];
     ViewPlan? Source=>sources.SelectedItem is SourceChoice c?doc.GetElement(new ElementId(c.Id)) as ViewPlan:null;
     public PrepareWindow(UIApplication app)
@@ -77,8 +78,8 @@ public sealed class PrepareWindow : Window
         cards.Children.Add(Card("Cobertura","Inclinação e seta por água modelada","roof",true,()=>ChooseModule("cobertura")));
         cards.Children.Add(Card("Áreas dos ambientes","Quadro Q04 do template","area",true,()=>ChooseModule("areas")));
         cards.Children.Add(Card("Quadro urbanístico","Áreas e limites informados pelo projetista","area",true,()=>ChooseContext("urbanistico")));
-        cards.Children.Add(Card("Organizar folhas","Escolha um entregável e a folha LEG","area",true,ChooseSheet));
-        cards.Children.Add(Card("Revisar composição","V02: limpar guias, centralizar e aproveitar folhas","area",true,()=>{ComposeSheets=true;DialogResult=true;}));
+        cards.Children.Add(Card("Organizar folhas","Distribuição automática com prévia e preferências","area",true,ChoosePlan));
+        cards.Children.Add(Card("Colocar uma vista","Escolha uma vista e uma folha manualmente","area",true,ChooseSheet));
         body.Children.Add(new TextBlock{Text="Estilo das cotas, escala e informação adicional: Preferências legais. Situação e quadro urbanístico usam o lote confirmado na Implantação. Confira os entregáveis antes de organizar as folhas.",TextWrapping=TextWrapping.Wrap,Foreground=Brushes.SlateGray,Margin=new Thickness(0,12,0,0)});
     }
     Button Card(string title,string description,string kind,bool active=false,Action? action=null)
@@ -175,6 +176,11 @@ public sealed class PrepareWindow : Window
         var apply=new Button{Content="Preparar "+title,Padding=new Thickness(16,8,16,8),HorizontalAlignment=HorizontalAlignment.Right};body.Children.Add(apply);
         apply.Click+=(_,_)=>{if(bases.SelectedItem is not SourceChoice floor||!double.TryParse(depth.Text.Replace(',','.'),NumberStyles.Float,CultureInfo.InvariantCulture,out var meters)||!double.IsFinite(meters)||meters<=.1||meters>200){MessageBox.Show(dialog,"Escolha o piso e informe uma profundidade entre 0,1 e 200 m.");return;}Section=new(key,Source.Id.Value,floor.Id,axis.SelectedIndex==0,position.Value,reverse.IsChecked==true,meters,edited.IsChecked==true);dialog.DialogResult=true;};
         LegalGuide.Attach(dialog,body,"corte");if(dialog.ShowDialog()==true)DialogResult=true;
+    }
+    void ChoosePlan()
+    {
+        var window=new SheetPlannerWindow(SheetPlanner.Items(doc),(profile,ids)=>SheetPlanner.Preview(doc,profile,ids)){Owner=this};
+        if(window.ShowDialog()==true){Plan=window.Result;DialogResult=true;}
     }
     void ChooseSheet()
     {
