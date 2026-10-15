@@ -19,7 +19,7 @@ public static class RoofWaters
     result.Add(new(key,roof.Name,center,slope,slope>.05?new XYZ(n.X,n.Y,0).Normalize():null));
    }
   }
-  return result;
+  return result.OrderBy(w=>w.Key,StringComparer.Ordinal).ToList();
  }
  static IEnumerable<PlanarFace> Faces(GeometryElement geometry)
  {

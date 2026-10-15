@@ -55,12 +55,8 @@ public static class LegalModules
    else
    {
     var minZ=roofs.Min(r=>r.get_BoundingBox(null)!.Min.Z);var maxZ=roofs.Max(r=>r.get_BoundingBox(null)!.Max.Z);SetRange(target,minZ,maxZ);
-    int index=0;foreach(var water in waters)
-    {
-     index++;var point=new XYZ(water.Center.X,water.Center.Y,z);
-     drawing.Text(point,"ÁGUA "+index+"\nInclinação do modelo: "+water.Slope.ToString("0.0",Implantation.Pt)+"%",true);
-     if(water.Direction!=null)drawing.Arrow(point-new XYZ(0,Implantation.Feet(1),0),water.Direction);
-    }
+    var drainage=Implantation.Saved(doc);
+    RoofDrainage.Annotate(doc,target,waters,drainage?.SourceId==source.Id.Value?drainage:null,made);
    }
    if(!string.IsNullOrWhiteSpace(prefs.AdditionalNote))drawing.Text(new(x0,y0-Implantation.Feet(2),z),prefs.AdditionalNote);
    doc.Regenerate();foreach(var annotation in made){var ab=annotation.get_BoundingBox(target);if(ab!=null){x0=Math.Min(x0,ab.Min.X);x1=Math.Max(x1,ab.Max.X);y0=Math.Min(y0,ab.Min.Y);y1=Math.Max(y1,ab.Max.Y);}}

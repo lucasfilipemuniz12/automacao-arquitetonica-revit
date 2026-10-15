@@ -63,14 +63,8 @@ public static class LegalSections
     }
     catch(Autodesk.Revit.Exceptions.ArgumentException){pending.Add("Nível "+level.Name+": conferir extensão do símbolo nativo.");}
    }
-   var lower=HorizontalFaces(floor,true).Where(f=>Contains(f.Face,point)).OrderByDescending(f=>f.Face.Origin.Z).FirstOrDefault();
-   var upper=hosts.Where(h=>h.Id!=floor.Id&&h is Floor or Ceiling).SelectMany(h=>HorizontalFaces(h,false)).Where(f=>lower!=null&&f.Face.Origin.Z>lower.Face.Origin.Z+Implantation.Feet(.3)&&Contains(f.Face,point)).OrderBy(f=>f.Face.Origin.Z).FirstOrDefault();
-   if(lower!=null&&upper!=null)
-   {
-    var refs=new ReferenceArray();refs.Append(lower.Reference);refs.Append(upper.Reference);doc.Regenerate();
-    var dimension=doc.Create.NewDimension(target,Line.CreateBound(At(buildingLeft-Implantation.Feet(.35),lower.Face.Origin.Z),At(buildingLeft-Implantation.Feet(.35),upper.Face.Origin.Z)),refs,LegalPreferenceStore.Dimension(doc));made.Add(dimension);
-   }
-   else pending.Add("Não foi encontrada uma dupla de faces horizontais válidas para cotar a altura livre nesta posição.");
+   ElevationAnnotations.Total(doc,target,frame,made,pending);
+   ElevationAnnotations.Rooms(doc,target,source,frame,made,pending);
    if(!string.IsNullOrWhiteSpace(prefs.AdditionalNote))made.Add(TextNote.Create(doc,target.Id,At(buildingLeft,noteElevation),prefs.AdditionalNote,textType.Id));
    doc.Regenerate();foreach(var element in made)DrawingOwnership.MarkAnnotation(element);Write(target,new(source.UniqueId,made.Select(e=>new ElementStamp(e.UniqueId,DrawingOwnership.Fingerprint(e))).ToList(),ViewState(target)));
    if(tx.Commit()!=TransactionStatus.Committed)throw new InvalidOperationException("Operação revertida pelo Revit.");

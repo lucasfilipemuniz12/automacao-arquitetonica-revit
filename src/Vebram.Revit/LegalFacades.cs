@@ -131,6 +131,7 @@ public static class LegalFacades
       made.Add(TextNote.Create(doc,target.Id,box.Transform.OfPoint(new(left-Implantation.Feet(1.3),level.Elevation-box.Transform.Origin.Z,0)),level.Name+"\n"+Implantation.Meters(level.Elevation).ToString("0.00",Implantation.Pt)+" m",LegalContext.TextType(doc).Id));pending.Add(level.Name+": indicação textual; plano nativo indisponível nesta elevação.");
      }
     }
+    ElevationAnnotations.Total(doc,target,frame,made,pending);
     var note=LegalPreferenceStore.Read(doc).AdditionalNote;if(!string.IsNullOrWhiteSpace(note))made.Add(TextNote.Create(doc,target.Id,box.Transform.OfPoint(new(left,corners.Min(p=>p.Y)+Implantation.Feet(.12),0)),note,LegalContext.TextType(doc).Id));
     // Keep the original graphic template, excluding parameters this module has to control.
     if(savedTemplate!=ElementId.InvalidElementId)
@@ -139,7 +140,7 @@ public static class LegalFacades
      var excluded=preset.GetNonControlledTemplateParameterIds().ToHashSet();foreach(var id in preset.GetTemplateParameterIds())if(new[]{"VIS_GRAPHICS_ANNOTATION","VIEW_SCALE","VIEW_PHASE","VIEWER_CROP_REGION","VIEWER_CROP_REGION_VISIBLE","VIEWER_BOUND_FAR_CLIPPING","VIEWER_BOUND_OFFSET_FAR","VIEWER_VOLUME_OF_INTEREST_CROP"}.Contains(((BuiltInParameter)id.Value).ToString()))excluded.Add(id);preset.SetNonControlledTemplateParameterIds(excluded.ToList());target.ViewTemplateId=preset.Id;
     }
     foreach(var category in new[]{BuiltInCategory.OST_Sections,BuiltInCategory.OST_Elev}){var id=new ElementId(category);if(target.CanCategoryBeHidden(id))target.SetCategoryHidden(id,true);}
-    doc.Regenerate();foreach(var e in made)DrawingOwnership.MarkAnnotation(e);Write(target,new(source.UniqueId,made.Select(e=>new ElementStamp(e.UniqueId,DrawingOwnership.Fingerprint(e))).ToList(),Frame(target),new[]{origin.X,origin.Y,origin.Z}));results.Add(new(target.Id.Value,0,made.Count,item.Label+": elevação nativa recortada com níveis laterais. Revise materiais, esquadrias e informações adicionais antes de emitir.\n"+string.Join("\n",pending)));
+    doc.Regenerate();foreach(var e in made)DrawingOwnership.MarkAnnotation(e);Write(target,new(source.UniqueId,made.Select(e=>new ElementStamp(e.UniqueId,DrawingOwnership.Fingerprint(e))).ToList(),Frame(target),new[]{origin.X,origin.Y,origin.Z}));results.Add(new(target.Id.Value,made.OfType<Dimension>().Count(),made.Count,item.Label+": elevação nativa recortada com níveis laterais. Revise materiais, esquadrias e informações adicionais antes de emitir.\n"+string.Join("\n",pending)));
    }
    if(tx.Commit()!=TransactionStatus.Committed)throw new InvalidOperationException("Operação revertida.");return results;
   }

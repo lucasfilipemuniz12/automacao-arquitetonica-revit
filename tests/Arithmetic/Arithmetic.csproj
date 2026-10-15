@@ -1,4 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
- <ItemGroup><Compile Include="../../src/Vebram.Revit/LegalMetrics.cs" Link="LegalMetrics.cs" /><Compile Include="../../src/Vebram.Revit/LegalPaperRect.cs" Link="LegalPaperRect.cs" /><Compile Include="../../src/Vebram.Revit/RoomNameText.cs" Link="RoomNameText.cs" /></ItemGroup>
+ <ItemGroup><Compile Include="../../src/Vebram.Revit/LegalMetrics.cs" Link="LegalMetrics.cs" /><Compile Include="../../src/Vebram.Revit/LegalPaperRect.cs" Link="LegalPaperRect.cs" /><Compile Include="../../src/Vebram.Revit/RoomNameText.cs" Link="RoomNameText.cs" /><Compile Include="../../src/Vebram.Revit/RoofDrainageRules.cs" Link="RoofDrainageRules.cs" /></ItemGroup>
 </Project>

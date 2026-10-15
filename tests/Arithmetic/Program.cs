@@ -32,5 +32,10 @@ Check(usable.FindFree(new[]{usable},item,.1,.2)==null,"Folha cheia recusada");
 Check(new LegalPaperRect(0,0,1,1).Move(2,3)==new LegalPaperRect(2,3,3,4),"Deslocamento conserva dimensões");
 Check(!new LegalPaperRect(0,0,1,1).Intersects(new(1,0,2,1),0),"Arestas apenas adjacentes não se sobrepõem");
 Check(new LegalPaperRect(0,0,1,1).Intersects(new(1,0,2,1),.01),"Folga mínima detecta arestas adjacentes");
+Check(RoofDrainageRules.Resolve(0,"Modelo",null).Slope==null,"Água plana sem proposta fica pendente");
+Check(RoofDrainageRules.Resolve(12,"Modelo",new("a",5,"Direita")).Slope==12,"Inclinação modelada prevalece sobre proposta");
+Check(RoofDrainageRules.Resolve(0,"Modelo",new("a",5,"Esquerda")).Flow=="Esquerda","Proposta por água preserva direção");
+Check(RoofDrainageRules.Resolve(.049,"Modelo",null).Slope==null,"Tolerância de plano evita 0,0%");
+foreach(var bad in new[]{new RoofDrainageChoice("a",0,"Direita"),new RoofDrainageChoice("a",-2,"Direita"),new RoofDrainageChoice("a",double.NaN,"Direita"),new RoofDrainageChoice("a",101,"Direita"),new RoofDrainageChoice("a",5,"Modelo")}){bool rejected=false;try{RoofDrainageRules.Resolve(0,"Modelo",bad);}catch(ArgumentException){rejected=true;}Check(rejected,"Proposta inválida recusada: "+bad);}
 var report=new{Scope="Aritmética e retângulos do código de produção; não testa Revit, geometria nativa, marcadores ou viewport real.",Passed=passed.Count,Checks=passed};
 var json=JsonSerializer.Serialize(report,new JsonSerializerOptions{WriteIndented=true});Console.WriteLine(json);if(args.Length>0)File.WriteAllText(args[0],json);
