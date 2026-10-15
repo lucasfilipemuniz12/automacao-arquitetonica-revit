@@ -5,10 +5,10 @@ public sealed record PlannerItem(string Key,string Label,long ViewId,bool Schedu
 public sealed record PlannerZone(string Key,string Label,LegalPaperRect Rect,bool Writable=true);
 public sealed record PlannerDrawing(long ViewId,string Label,int Scale,LegalPaperRect Rect,string Zone="desenhos");
 public sealed record PlannerPage(string Number,string Name,bool IsNew,LegalPaperRect Area,List<PlannerDrawing> Drawings,List<LegalPaperRect> Obstacles,LegalPaperRect? SheetBounds=null,List<PlannerZone>? Zones=null,List<string>? Notes=null);
-public sealed record SheetPlan(string Profile,List<long> ViewIds,List<PlannerPage> Pages,List<string> Warnings);
+public sealed record SheetPlan(string Profile,List<long> ViewIds,List<PlannerPage> Pages,List<string> Warnings,bool Optimize=true,List<string>? ReservedSheets=null);
 
 /// <summary>Preview and apply run the same native measurement/layout, atomically. Preview always rolls back.</summary>
-public static class SheetPlanner
+public static partial class SheetPlanner
 {
  public static List<ViewSheet> Sheets(Document doc)=>new FilteredElementCollector(doc).OfClass(typeof(ViewSheet)).Cast<ViewSheet>().Where(LegalSheets.IsLegalSheet).OrderBy(s=>s.SheetNumber,StringComparer.Ordinal).ToList();
  public static List<PlannerItem> Items(Document doc)
@@ -25,14 +25,14 @@ public static class SheetPlanner
   }
   return result;
  }
- public static SheetPlan Preview(Document doc,string profile,IEnumerable<long> ids)=>Run(doc,profile,ids.Distinct().ToList(),null);
+ public static SheetPlan Preview(Document doc,string profile,IEnumerable<long> ids,bool optimize=true)=>Run(doc,profile,ids.Distinct().ToList(),optimize,null);
  public static ModuleResult Apply(Document doc,SheetPlan plan)
  {
-  var result=Run(doc,plan.Profile,plan.ViewIds,plan);
+  var result=Run(doc,plan.Profile,plan.ViewIds,plan.Optimize,plan);
   var first=Sheets(doc).First(s=>s.SheetNumber==result.Pages[0].Number);
-  return new(first.Id.Value,0,result.Pages.Sum(p=>p.Drawings.Count),$"{result.Pages.Count} folha(s) organizada(s); {result.Pages.Count(p=>p.IsNew)} nova(s). Escalas preservadas. Conteúdo manual mantido.\n"+string.Join("\n",result.Warnings));
+  return new(first.Id.Value,0,result.Pages.Sum(p=>p.Drawings.Count),$"{result.Pages.Count} folha(s) utilizada(s); {result.Pages.Count(p=>p.IsNew)} nova(s); {result.ReservedSheets?.Count??0} existente(s) mantida(s) como reserva. Escalas preservadas. Conteúdo manual mantido.\n"+string.Join("\n",result.Warnings));
  }
- static SheetPlan Run(Document doc,string profile,List<long> ids,SheetPlan? expected)
+ static SheetPlan Run(Document doc,string profile,List<long> ids,bool optimize,SheetPlan? expected)
  {
   if(doc.IsFamilyDocument||doc.IsReadOnly||doc.IsWorkshared||doc.PathName.EndsWith(".rte",StringComparison.OrdinalIgnoreCase))throw new InvalidOperationException("Use um RVT local editável.");
   if(profile is not ("preferencial" or "r20"))throw new ArgumentException("Padrão de folhas desconhecido.");
@@ -78,7 +78,7 @@ public static class SheetPlanner
      var mapped=SheetZones.Map(doc,target,zoneProfile);
      var obstacles=new FilteredElementCollector(doc,target.Id).WhereElementIsNotElementType().Where(e=>e.OwnerViewId==target.Id&&!e.IsHidden(target)&&!SheetNotes.IsUnedited(e)&&e.Category?.Id.Value!=(long)BuiltInCategory.OST_TitleBlocks).Select(e=>LegalSheets.Rect(e,target)).Where(r=>r!=null).Select(r=>r!.Value).ToList();
      var lateral=new List<(PlannerItem Item,PaperPlacement Placement,string Zone)>();
-     foreach(var table in remaining.Where(i=>i.Key is "urbanistico" or "areas"))
+     foreach(var table in remaining.Where(i=>i.Key is "urbanistico" or "areas" or "portas" or "janelas"))
      {
       foreach(var zone in mapped.Zones.Where(z=>z.Key is "quadros" or "legendas").OrderBy(z=>z.Key=="quadros"?0:1))
       {var candidate=SheetPacking.Pack(zone.Rect,obstacles.Concat(lateral.Select(l=>l.Placement.Rect)).ToList(),new[]{sizes[table.ViewId]},Implantation.Feet(.006));if(candidate==null)continue;lateral.Add((table,candidate[0],zone.Key));break;}
@@ -118,8 +118,10 @@ public static class SheetPlanner
     }
     if(groupPageCount>1)warnings.Add(SheetPacking.SheetName(group,profile)+": grupo dividido em "+groupPageCount+" folhas por falta de espaço, mantendo as escalas.");
    }
+   var reserved=optimize?Consolidate(doc,pages,items,sizes,types,sheets,initialNumbers,warnings):new List<string>();
+   RefreshBounds(doc,pages);
    if(scales.Any(p=>((View)doc.GetElement(new ElementId(p.Key))).Scale!=p.Value))throw new InvalidOperationException("Escala alterada; operação revertida.");
-   var result=new SheetPlan(profile,ids,pages,warnings);
+   var result=new SheetPlan(profile,ids,pages,warnings,optimize,reserved);
    if(expected==null){tx.RollBack();return result;}
    if(!Equivalent(expected,result))throw new InvalidOperationException("O projeto mudou desde a prévia. Gere uma nova prévia antes de aplicar.");
    if(tx.Commit()!=TransactionStatus.Committed)throw new InvalidOperationException("Distribuição revertida pelo Revit.");return result;

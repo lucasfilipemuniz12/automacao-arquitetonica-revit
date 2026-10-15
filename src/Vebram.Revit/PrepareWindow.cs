@@ -76,7 +76,7 @@ public sealed class PrepareWindow : Window
         cards.Children.Add(Card("Corte A","Posição, sentido e profundidade","cut",true,()=>ChooseSection("corte-a")));cards.Children.Add(Card("Corte B","Posição, sentido e profundidade","cut",true,()=>ChooseSection("corte-b")));
         cards.Children.Add(Card("Fachadas","Quatro elevações a partir do modelo","facade",true,ChooseFacades));
         cards.Children.Add(Card("Cobertura","Inclinação e seta por água modelada","roof",true,()=>ChooseModule("cobertura")));
-        cards.Children.Add(Card("Áreas dos ambientes","Quadro Q04 do template","area",true,()=>ChooseModule("areas")));
+        cards.Children.Add(Card("Quadros de esquadrias","Portas e janelas: códigos, medidas e quantidades","area",true,()=>{if(Source==null)return;Module=new("esquadrias",Source.Id.Value);DialogResult=true;})); cards.Children.Add(Card("Áreas dos ambientes","Quadro Q04 do template","area",true,()=>ChooseModule("areas")));
         cards.Children.Add(Card("Quadro urbanístico","Áreas e limites informados pelo projetista","area",true,()=>ChooseContext("urbanistico")));
         cards.Children.Add(Card("Organizar folhas","Distribuição automática com prévia e preferências","area",true,ChoosePlan));
         cards.Children.Add(Card("Colocar uma vista","Escolha uma vista e uma folha manualmente","area",true,ChooseSheet));
@@ -152,7 +152,7 @@ public sealed class PrepareWindow : Window
         var candidates=Implantation.Footprints(doc,Source);var bases=new ComboBox{ItemsSource=candidates.Select(f=>new SourceChoice(f.Id.Value,f.Name)).ToList(),MinHeight=32,Margin=new Thickness(0,10,0,10)};
         if(candidates.Count>0)bases.SelectedIndex=0;if(key!="areas"){body.Children.Add(Label("Piso base do nível escolhido"));body.Children.Add(bases);}
         var edited=new CheckBox{Content="Refazer marcas do gerador que editei manualmente",Margin=new Thickness(0,12,0,12)};if(key!="areas")body.Children.Add(edited);
-        body.Children.Add(new TextBlock{Text=key=="planta"?"Cotas gerais e internas entre acabamentos; nomes e áreas priorizados dentro dos ambientes. Espessuras e larguras de esquadrias opcionais nas preferências. Cotas sem espaço ou referência válida são relatadas.":key=="cobertura"?"Lê inclinação e sentido das águas modeladas. Nas lajes planas, usa os caimentos configurados na Implantação; sem dados, indica caimento a definir. Após alterar a Implantação, prepare a Cobertura novamente.":"Abrir o quadro Q04 existente, que acompanha as áreas do modelo.",TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,0,0,12)});
+        body.Children.Add(new TextBlock{Text=key=="planta"?"Cotas gerais e internas entre acabamentos; nomes e áreas priorizados dentro dos ambientes. Identificações de portas e janelas usam a Marca existente; execute novamente após alterar os códigos. Espessuras e larguras de esquadrias opcionais nas preferências. Cotas sem espaço ou referência válida são relatadas.":key=="cobertura"?"Lê inclinação e sentido das águas modeladas. Nas lajes planas, usa os caimentos configurados na Implantação; sem dados, indica caimento a definir. Após alterar a Implantação, prepare a Cobertura novamente.":"Abrir o quadro Q04 existente, que acompanha as áreas do modelo.",TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,0,0,12)});
         var apply=new Button{Content="Preparar "+title,Padding=new Thickness(15,8,15,8),HorizontalAlignment=HorizontalAlignment.Right};body.Children.Add(apply);apply.Click+=(_,_)=>{if(key!="areas"&&bases.SelectedItem==null){MessageBox.Show(dialog,"Este nível não possui piso base disponível.");return;}dialog.DialogResult=true;};
         LegalGuide.Attach(dialog,body,key);
         if(dialog.ShowDialog()==true){Module=new(key,Source.Id.Value,(bases.SelectedItem as SourceChoice)?.Id??0,edited.IsChecked==true);DialogResult=true;}
@@ -179,7 +179,7 @@ public sealed class PrepareWindow : Window
     }
     void ChoosePlan()
     {
-        var window=new SheetPlannerWindow(SheetPlanner.Items(doc),(profile,ids)=>SheetPlanner.Preview(doc,profile,ids)){Owner=this};
+        var window=new SheetPlannerWindow(SheetPlanner.Items(doc),(profile,ids,optimize)=>SheetPlanner.Preview(doc,profile,ids,optimize)){Owner=this};
         if(window.ShowDialog()==true){Plan=window.Result;DialogResult=true;}
     }
     void ChooseSheet()
