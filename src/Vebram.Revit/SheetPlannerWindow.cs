@@ -1,0 +1,48 @@
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Shapes;
+namespace Vebram.Revit;
+
+public sealed class SheetPlannerWindow:Window
+{
+ public SheetPlan? Result{get;private set;}
+ readonly WrapPanel previews=new(){Orientation=Orientation.Horizontal};
+ readonly TextBlock status=new(){TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,8,0,8)};
+ public SheetPlannerWindow(IReadOnlyList<PlannerItem> items,Func<string,IEnumerable<long>,SheetPlan> calculate)
+ {
+  Title="VEBRAM — Distribuição automática de folhas";Width=Math.Min(1220,SystemParameters.WorkArea.Width-40);Height=Math.Min(850,SystemParameters.WorkArea.Height-40);WindowStartupLocation=WindowStartupLocation.CenterOwner;
+  var root=new DockPanel{Margin=new Thickness(22)};Content=root;
+  var heading=new StackPanel();DockPanel.SetDock(heading,Dock.Top);root.Children.Add(heading);
+  heading.Children.Add(new TextBlock{Text="Organize o conjunto antes de aplicar",FontSize=25,FontWeight=FontWeights.SemiBold});
+  heading.Children.Add(new TextBlock{Text="O cálculo usa o tamanho real das vistas e dos títulos. Mantém as escalas e cria folhas com o mesmo carimbo quando necessário. Cinza = conteúdo existente preservado.",TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,8,0,10)});
+  var profile=new ComboBox{ItemsSource=new[]{"Preferencial — Implantação + Situação; Cortes A/B; quatro Fachadas","Referência R20 — Situação; Plantas; Implantação/Cobertura/Cortes; Fachadas"},SelectedIndex=0,MinHeight=34};heading.Children.Add(profile);
+  var footer=new DockPanel{Margin=new Thickness(0,10,0,0)};DockPanel.SetDock(footer,Dock.Bottom);root.Children.Add(footer);
+  var actions=new StackPanel{Orientation=Orientation.Horizontal,HorizontalAlignment=HorizontalAlignment.Right};DockPanel.SetDock(actions,Dock.Right);footer.Children.Add(actions);footer.Children.Add(status);
+  var preview=new Button{Content="Calcular prévia",Padding=new Thickness(14,8,14,8),Margin=new Thickness(6)};var apply=new Button{Content="Aplicar esta distribuição",Padding=new Thickness(14,8,14,8),Margin=new Thickness(6),IsEnabled=false};var cancel=new Button{Content="Cancelar",Padding=new Thickness(14,8,14,8),Margin=new Thickness(6),IsCancel=true};actions.Children.Add(preview);actions.Children.Add(apply);actions.Children.Add(cancel);
+  var body=new Grid();body.ColumnDefinitions.Add(new(){Width=new GridLength(245)});body.ColumnDefinitions.Add(new(){Width=new GridLength(1,GridUnitType.Star)});root.Children.Add(body);
+  var choices=new StackPanel{Margin=new Thickness(0,12,12,0)};body.Children.Add(new ScrollViewer{Content=choices,VerticalScrollBarVisibility=ScrollBarVisibility.Auto});
+  choices.Children.Add(new TextBlock{Text="ENTREGÁVEIS PREPARADOS",FontWeight=FontWeights.SemiBold,Margin=new Thickness(0,0,0,12)});
+  var checks=new List<(PlannerItem Item,CheckBox Check)>();SheetPlan? calculated=null;
+  void Invalidate(){calculated=null;apply.IsEnabled=false;previews.Children.Clear();status.Text="Calcule a prévia para conferir folhas e agrupamentos.";}
+  foreach(var item in items){var check=new CheckBox{Content=new TextBlock{Text=item.Label,TextWrapping=TextWrapping.Wrap},IsChecked=true,Margin=new Thickness(0,5,0,5)};checks.Add((item,check));choices.Children.Add(check);check.Checked+=(_,_)=>Invalidate();check.Unchecked+=(_,_)=>Invalidate();}
+  profile.SelectionChanged+=(_,_)=>Invalidate();var scroll=new ScrollViewer{Content=previews,VerticalScrollBarVisibility=ScrollBarVisibility.Auto};Grid.SetColumn(scroll,1);body.Children.Add(scroll);
+  preview.Click+=(_,_)=>
+  {
+   Invalidate();try{calculated=calculate(profile.SelectedIndex==1?"r20":"preferencial",checks.Where(c=>c.Check.IsChecked==true).Select(c=>c.Item.ViewId));foreach(var page in calculated.Pages)previews.Children.Add(DrawPage(page));status.Text=$"{calculated.Pages.Count} folhas · {calculated.Pages.Count(p=>p.IsNew)} novas\n"+(calculated.Warnings.Count==0?"Grupos preferenciais mantidos.":string.Join("\n",calculated.Warnings));apply.IsEnabled=true;}
+   catch(Exception ex){status.Text=ex.Message;}
+  };
+  apply.Click+=(_,_)=>{if(calculated==null)return;Result=calculated;DialogResult=true;};Invalidate();
+ }
+ public static FrameworkElement DrawPage(PlannerPage page)
+ {
+  var panel=new StackPanel{Width=430,Margin=new Thickness(8)};panel.Children.Add(new TextBlock{Text=page.Number+(page.IsNew?" · NOVA":" · existente"),FontSize=18,FontWeight=FontWeights.SemiBold});panel.Children.Add(new TextBlock{Text=page.Name,TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,3,0,8)});
+  double scale=400/(page.Area.Right-page.Area.Left),height=(page.Area.Top-page.Area.Bottom)*scale;var canvas=new Canvas{Width=400,Height=height,Background=Brushes.White,ClipToBounds=true};panel.Children.Add(new Border{Child=canvas,BorderBrush=Brushes.SlateGray,BorderThickness=new Thickness(1)});
+  void Box(LegalPaperRect r,Brush fill,string label)
+  {
+   var border=new Border{Width=Math.Max(1,(r.Right-r.Left)*scale),Height=Math.Max(1,(r.Top-r.Bottom)*scale),Background=fill,BorderBrush=Brushes.Teal,BorderThickness=new Thickness(1),Child=new TextBlock{Text=label,TextWrapping=TextWrapping.Wrap,FontSize=11,Margin=new Thickness(4),VerticalAlignment=VerticalAlignment.Center,TextAlignment=TextAlignment.Center}};Canvas.SetLeft(border,(r.Left-page.Area.Left)*scale);Canvas.SetTop(border,(page.Area.Top-r.Top)*scale);canvas.Children.Add(border);
+  }
+  foreach(var r in page.Obstacles)Box(r,Brushes.Gainsboro,"");foreach(var d in page.Drawings)Box(d.Rect,Brushes.Azure,d.Label+(d.Scale>0?"\n1:"+d.Scale:""));
+  panel.Children.Add(new TextBlock{Text="Área útil da folha; carimbo reservado fora deste quadro.",FontSize=11,Foreground=Brushes.DimGray,TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,6,0,4)});return panel;
+ }
+}

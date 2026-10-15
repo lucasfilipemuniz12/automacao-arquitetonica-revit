@@ -130,7 +130,7 @@ public static class LegalSheetComposition
  }
  static void DeleteViewport(Document doc,Viewport viewport)
  {var view=viewport.ViewId;var id=viewport.Id;if(doc.Delete(id).Any(deleted=>deleted!=id)||doc.GetElement(view)==null)throw new InvalidOperationException("Dependências da vista impedem reposicionamento seguro.");}
- static void CenterLabel(Document doc,Viewport vp)
+ internal static void CenterLabel(Document doc,Viewport vp)
  {
   var box=vp.GetBoxOutline();double width=box.MaximumPoint.X-box.MinimumPoint.X;
   vp.LabelLineLength=Math.Min(Implantation.Feet(.14),Math.Max(Implantation.Feet(.06),width-Implantation.Feet(.03)));vp.LabelOffset=new(Implantation.Feet(.015),-Implantation.Feet(.010),0);doc.Regenerate();
