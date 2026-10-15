@@ -31,6 +31,7 @@ public sealed class PrepareWindow : Window
     public ContextSelection? Context{get;private set;}
     public FacadeSelection? Facades{get;private set;}
     public SheetSelection? Sheet{get;private set;}
+    public SheetPlan? Plan{get;private set;}
     public bool ComposeSheets{get;private set;}
     public IReadOnlyList<Request> Requests{get;}=[];
     ViewPlan? Source=>sources.SelectedItem is SourceChoice c?doc.GetElement(new ElementId(c.Id)) as ViewPlan:null;
@@ -77,7 +78,8 @@ public sealed class PrepareWindow : Window
         cards.Children.Add(Card("Cobertura","Inclinação e seta por água modelada","roof",true,()=>ChooseModule("cobertura")));
         cards.Children.Add(Card("Áreas dos ambientes","Quadro Q04 do template","area",true,()=>ChooseModule("areas")));
         cards.Children.Add(Card("Quadro urbanístico","Áreas e limites informados pelo projetista","area",true,()=>ChooseContext("urbanistico")));
-        cards.Children.Add(Card("Organizar folhas","Escolha um entregável e a folha LEG","area",true,ChooseSheet));
+        cards.Children.Add(Card("Organizar folhas","Marque o que vai em cada folha LEG","area",true,ChoosePlan));
+        cards.Children.Add(Card("Colocar uma vista","Uma vista por vez, em uma folha","area",true,ChooseSheet));
         cards.Children.Add(Card("Revisar composição","V02: limpar guias, centralizar e aproveitar folhas","area",true,()=>{ComposeSheets=true;DialogResult=true;}));
         body.Children.Add(new TextBlock{Text="Estilo das cotas, escala e informação adicional: Preferências legais. Situação e quadro urbanístico usam o lote confirmado na Implantação. Confira os entregáveis antes de organizar as folhas.",TextWrapping=TextWrapping.Wrap,Foreground=Brushes.SlateGray,Margin=new Thickness(0,12,0,0)});
     }
@@ -176,11 +178,20 @@ public sealed class PrepareWindow : Window
         apply.Click+=(_,_)=>{if(bases.SelectedItem is not SourceChoice floor||!double.TryParse(depth.Text.Replace(',','.'),NumberStyles.Float,CultureInfo.InvariantCulture,out var meters)||!double.IsFinite(meters)||meters<=.1||meters>200){MessageBox.Show(dialog,"Escolha o piso e informe uma profundidade entre 0,1 e 200 m.");return;}Section=new(key,Source.Id.Value,floor.Id,axis.SelectedIndex==0,position.Value,reverse.IsChecked==true,meters,edited.IsChecked==true);dialog.DialogResult=true;};
         LegalGuide.Attach(dialog,body,"corte");if(dialog.ShowDialog()==true)DialogResult=true;
     }
+    void ChoosePlan()
+    {
+        var sheets=SheetPlanner.Sheets(doc);
+        if(sheets.Count==0){TaskDialog.Show("VEBRAM","Não há folhas LEG neste projeto. Prepare as folhas do template V02 antes de organizar.");return;}
+        var items=SheetPlanner.Items(doc);
+        if(items.Count==0){TaskDialog.Show("VEBRAM","Nenhum entregável legal preparado ainda. Prepare Implantação, plantas, cortes e fachadas primeiro.");return;}
+        var window=new SheetPlannerWindow(items,sheets.Select(s=>new PlannerSheet(s.Id.Value,s.SheetNumber,s.Name)).ToList(),SheetPlanner.Defaults(sheets)){Owner=this};
+        if(window.ShowDialog()==true&&window.Result is {} plan){Plan=plan;DialogResult=true;}
+    }
     void ChooseSheet()
     {
         var dialog=new Window{Owner=this,Title="Organizar folhas legais",Width=640,Height=490,WindowStartupLocation=WindowStartupLocation.CenterOwner};var body=new StackPanel{Margin=new Thickness(24)};dialog.Content=body;
         body.Children.Add(new TextBlock{Text="Colocar entregável na folha",FontSize=23});var sheets=new ComboBox{ItemsSource=new FilteredElementCollector(doc).OfClass(typeof(ViewSheet)).Cast<ViewSheet>().Where(LegalSheets.IsLegalSheet).OrderBy(s=>s.SheetNumber).Select(s=>new SourceChoice(s.Id.Value,s.SheetNumber+" · "+s.Name)).ToList(),SelectedIndex=0,MinHeight=32};
-        var views=new ComboBox{ItemsSource=LegalCatalog.Views(doc).Where(LegalCatalog.IsLegal).Select(v=>new SourceChoice(v.Id.Value,v.Name)).OrderBy(c=>c.Name).ToList(),SelectedIndex=0,MinHeight=32};body.Children.Add(Label("Entregável já preparado"));body.Children.Add(views);body.Children.Add(Label("Folha do template"));body.Children.Add(sheets);body.Children.Add(new TextBlock{Text="Tenta primeiro a folha selecionada e depois as demais LEG existentes, preservando colocações e a faixa do carimbo. Não altera a escala da vista. Se não couber, a operação será revertida. Revise espaços-guia e composição gráfica.",TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,15,0,15)});
+        var views=new ComboBox{ItemsSource=LegalCatalog.Views(doc).Where(LegalCatalog.IsLegal).Select(v=>new SourceChoice(v.Id.Value,v.Name)).OrderBy(c=>c.Name).ToList(),SelectedIndex=-1,MinHeight=32};body.Children.Add(Label("Entregável já preparado"));body.Children.Add(views);body.Children.Add(Label("Folha do template"));body.Children.Add(sheets);body.Children.Add(new TextBlock{Text="Tenta primeiro a folha selecionada e depois as demais LEG existentes, preservando colocações e a faixa do carimbo. Não altera a escala da vista. Se não couber, a operação será revertida. Revise espaços-guia e composição gráfica.",TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,15,0,15)});
         var newSheet=new CheckBox{Content="Permitir folha complementar se não couber nas LEG existentes",Margin=new Thickness(0,0,0,16)};body.Children.Add(newSheet);
         var apply=new Button{Content="Colocar na folha",Padding=new Thickness(15,8,15,8)};body.Children.Add(apply);apply.Click+=(_,_)=>{if(sheets.SelectedItem is not SourceChoice s||views.SelectedItem is not SourceChoice v)return;Sheet=new(s.Id,v.Id,newSheet.IsChecked==true);dialog.DialogResult=true;};LegalGuide.Attach(dialog,body,"folhas");if(dialog.ShowDialog()==true)DialogResult=true;
     }

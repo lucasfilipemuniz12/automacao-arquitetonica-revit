@@ -128,7 +128,7 @@ public static class LegalSheetComposition
   }
   catch{if(group.GetStatus()==TransactionStatus.Started)group.RollBack();throw;}
  }
- static void DeleteViewport(Document doc,Viewport viewport)
+ internal static void DeleteViewport(Document doc,Viewport viewport)
  {var view=viewport.ViewId;var id=viewport.Id;if(doc.Delete(id).Any(deleted=>deleted!=id)||doc.GetElement(view)==null)throw new InvalidOperationException("Dependências da vista impedem reposicionamento seguro.");}
  static void CenterLabel(Document doc,Viewport vp)
  {

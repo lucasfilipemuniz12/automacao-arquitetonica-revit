@@ -42,6 +42,10 @@ public sealed class PrepareLegalCommand : IExternalCommand
             {
                 var composition=LegalSheetComposition.Apply(doc);data.Application.ActiveUIDocument!.ActiveView=(View)doc.GetElement(new ElementId(composition.SheetId));data.Application.ActiveUIDocument.GetOpenUIViews().FirstOrDefault(v=>v.ViewId.Value==composition.SheetId)?.ZoomToFit();TaskDialog.Show("VEBRAM — composição",composition.Report);return Result.Succeeded;
             }
+            if(form.Plan is {} plan)
+            {
+                var organized=SheetPlanner.Apply(doc,plan);data.Application.ActiveUIDocument!.ActiveView=(View)doc.GetElement(new ElementId(organized.ViewId));data.Application.ActiveUIDocument.GetOpenUIViews().FirstOrDefault(v=>v.ViewId.Value==organized.ViewId)?.ZoomToFit();TaskDialog.Show("VEBRAM — folhas",organized.Report);return Result.Succeeded;
+            }
             if(form.Sheet is {} sheet)
             {
                 var prepared=LegalSheets.Apply(doc,sheet);data.Application.ActiveUIDocument!.ActiveView=(View)doc.GetElement(new ElementId(prepared.ViewId));data.Application.ActiveUIDocument.GetOpenUIViews().FirstOrDefault(v=>v.ViewId.Value==prepared.ViewId)?.ZoomToFit();TaskDialog.Show("VEBRAM — folha",prepared.Report);return Result.Succeeded;

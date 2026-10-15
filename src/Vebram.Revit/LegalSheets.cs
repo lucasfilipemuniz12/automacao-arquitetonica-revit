@@ -35,7 +35,7 @@ public static class LegalSheets
   if(!input.CreateNext)throw new InvalidOperationException("Não há espaço nas folhas LEG existentes sem alterar escala. Use Revisar composição ou permita uma folha complementar.\n"+string.Join("\n",failures));
   return Place(doc,input);
  }
- static ModuleResult Place(Document doc,SheetSelection input)
+ internal static ModuleResult Place(Document doc,SheetSelection input)
  {
   if(doc.IsFamilyDocument||doc.IsReadOnly||doc.IsWorkshared||doc.PathName.EndsWith(".rte",StringComparison.OrdinalIgnoreCase))throw new InvalidOperationException("Use um RVT local editável.");
   var sheet=doc.GetElement(new ElementId(input.SheetId)) as ViewSheet??throw new InvalidOperationException("Escolha a folha legal.");var view=doc.GetElement(new ElementId(input.ViewId)) as View??throw new InvalidOperationException("Escolha o entregável.");
