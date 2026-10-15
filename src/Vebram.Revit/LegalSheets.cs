@@ -68,7 +68,7 @@ public static class LegalSheets
  }
  internal static LegalPaperRect? Rect(Element e,ViewSheet sheet)
  {
-  if(e is Viewport vp){var b=vp.GetBoxOutline();var label=vp.GetLabelOutline();return new(Math.Min(b.MinimumPoint.X,label.MinimumPoint.X),Math.Min(b.MinimumPoint.Y,label.MinimumPoint.Y),Math.Max(b.MaximumPoint.X,label.MaximumPoint.X),Math.Max(b.MaximumPoint.Y,label.MaximumPoint.Y));}
+  if(e is Viewport vp){var b=vp.GetBoxOutline();if(vp.Document.GetElement(vp.GetTypeId()).get_Parameter(BuiltInParameter.VIEWPORT_ATTR_SHOW_LABEL)?.AsInteger()==0)return new(b.MinimumPoint.X,b.MinimumPoint.Y,b.MaximumPoint.X,b.MaximumPoint.Y);var label=vp.GetLabelOutline();return new(Math.Min(b.MinimumPoint.X,label.MinimumPoint.X),Math.Min(b.MinimumPoint.Y,label.MinimumPoint.Y),Math.Max(b.MaximumPoint.X,label.MaximumPoint.X),Math.Max(b.MaximumPoint.Y,label.MaximumPoint.Y));}
   var box=e.get_BoundingBox(sheet);return box==null?null:new(box.Min.X,box.Min.Y,box.Max.X,box.Max.Y);
  }
 }
