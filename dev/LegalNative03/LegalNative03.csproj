@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+ <PropertyGroup><TargetFramework>net8.0-windows</TargetFramework><UseWPF>true</UseWPF><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><AssemblyName>Vebram.LegalNative03</AssemblyName></PropertyGroup>
+ <ItemGroup>
+  <Reference Include="RevitAPI"><HintPath>D:\Autodesk\Revit2026\Revit 2026\RevitAPI.dll</HintPath><Private>false</Private><ExternallyResolved>true</ExternallyResolved></Reference>
+  <Reference Include="RevitAPIUI"><HintPath>D:\Autodesk\Revit2026\Revit 2026\RevitAPIUI.dll</HintPath><Private>false</Private><ExternallyResolved>true</ExternallyResolved></Reference>
+  <Reference Include="Vebram.Revit.Legal.V031"><HintPath>../../dist-v031/Vebram.Revit.Legal.V031.dll</HintPath><Private>false</Private></Reference>
+ </ItemGroup>
+</Project>
+

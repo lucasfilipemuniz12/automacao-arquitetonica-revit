@@ -426,3 +426,18 @@ FodyWeavers.xsd
 
 # Official VS Code C# Dev Kit Extension exclusion
 #*.lscache
+
+# Revit and local artifacts
+*.rvt
+*.rte
+*.rfa
+*.rft
+*.dll
+*.exe
+*.addin
+*.binlog
+*.zip
+work/
+outputs/
+dist*/
+**/*job*.json
