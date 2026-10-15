@@ -8,7 +8,7 @@ using Vebram.Revit;
 namespace Vebram.Revit;
 internal sealed class SectionValidation:IExternalApplication
 {
- record Job(string Project,string Output,string Mode="sections");
+ record Job(string Project,string Output,string Mode="sections",string? Template=null,string? Reference=null);
  string path="";
  public Result OnStartup(UIControlledApplication app){path=Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!,"section-validation-job.json");if(File.Exists(path)){app.Idling+=Run;}return Result.Succeeded;}
  public Result OnShutdown(UIControlledApplication app)=>Result.Succeeded;
@@ -20,7 +20,7 @@ internal sealed class SectionValidation:IExternalApplication
   try
   {
    doc=ui.Application.OpenDocumentFile(job.Project);
-   if(job.Mode=="modelreview"){ModelReviewExport.Run(doc,job.Output);doc.Close(false);doc=null;File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Cópia só de modelagem salva e verificada; origem preservada.");return;}
+   if(job.Mode=="templatereview"){ModelReviewExport.Run(doc,job.Output,ui.Application,job.Template,job.Reference);doc.Close(false);doc=null;File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Base do template V02 conferida, referências preservadas e modelagem verificada.");return;}
    if(job.Mode=="composition014"){ValidateComposition014(doc,job.Output);doc.Save();doc.Close(false);doc=null;File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Composição V02 limpa e centralizada na cópia de teste.");return;}
    if(job.Mode=="facades055"){ValidateFacades055(doc,job.Output);doc.Save();doc.Close(false);doc=null;File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Fachadas e linhas de situação validadas na cópia de teste.");return;}
    if(job.Mode=="legal05"){ValidateLegal05(doc,job.Output);doc.Save();doc.Close(false);doc=null;File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Urbanismo e folhas verificados na cópia de teste.\n"+job.Project);return;}

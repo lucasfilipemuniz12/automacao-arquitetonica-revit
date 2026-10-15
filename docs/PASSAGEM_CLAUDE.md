@@ -8,7 +8,7 @@ Atualizado em 14/10/2026. Produto VEBRAM 0.5.14 para Autodesk Revit 2026.4, C#/.
 - Branch de trabalho: **codex/vebram-projeto-legal-v03**.
 - [PR 1](https://github.com/lucasfilipemuniz12/automacao-arquitetonica-revit/pull/1), em rascunho, sem merge. Confira a branch: main é outra base.
 - Commit da composição 0.5.14 validada: d74ad7fd175c82688195f1ab2d2dc59d46ec2d26.
-- A passagem acrescenta uma rotina de desenvolvimento para gerar a cópia só de modelagem. Não muda os botões de geração legal nem a versão de produto.
+- A passagem acrescenta uma rotina de desenvolvimento para conferir a base no template original. Não muda os botões de geração legal nem a versão de produto.
 - A cópia local de fontes acompanha a entrega como alternativa à sincronização. Não contém DLLs Autodesk, binários, modelos ou segredos.
 
 ## Objetivo do produto
@@ -32,10 +32,10 @@ Revisar composição é opcional, para V02 A1 horizontal com entregáveis já co
 | LegalSheets.cs, LegalSheetComposition.cs | Colocação e revisão explícita de composição |
 | LegalPreferences.cs | Preferências legais |
 | SectionValidation.cs | Jobs nativos explícitos em cópias de teste |
-| ModelReviewExport.cs | Utilitário de desenvolvimento: cópia só modelagem e imagens/inventário |
+| ModelReviewExport.cs | Utilitário de desenvolvimento: novo RVT pelo RTE do usuário, apenas modelagem transferida, prévias temporárias revertidas |
 | scripts/Build.ps1, Install-Local.ps1 | Compilação/instalação fixa com Revit fechado |
 | scripts/Validate-Local.ps1 | Prepara cópia e job; nunca deve apontar para projeto aprovado |
-| scripts/Export-ModelReview.ps1 | Prepara cópia nomeada CASA_TERRAS_SO_MODELAGEM.rvt e job modelreview |
+| scripts/Export-ModelReview.ps1 | Job templatereview cria novo projeto do RTE e transfere apenas a casa, verifica geometria e preserva vistas originais |
 | tests/Arithmetic | Testes sem Revit de cálculos e retângulos |
 | docs/TESTES_* | Evidências e limitações por etapa |
 
@@ -50,15 +50,15 @@ Os nomes são relativos ao repositório. Confirme a existência das classes no c
 - Dados urbanísticos dos testes são fictícios. Caixas físicas preservadas e repetição são verificações específicas; não equivalem a prova completa de integridade de toda a geometria ou de conformidade legal.
 - Não há alegação de funcionamento geral em qualquer edifício/template.
 
-## RVT só de modelagem
+## RVT correto: casa no template V02, antes da automação
 
-O arquivo local CASA_TERRAS_SO_MODELAGEM.rvt é a base limpa para inspecionar a casa. Folhas, tabelas, cortes, fachadas e vistas de Projeto legal/Executivo foram retirados nessa cópia. Mantêm-se plantas de modelagem e uma vista 3D, com classificação 00 MODELAGEM no navegador.
+A entrega correta é BASE_TEMPLATE_V02/CASA_TERRAS_TEMPLATE_V02_PARA_AUTOMACAO.rvt. Ela é um projeto novo criado diretamente do ARQ_AUTOMACAO_V02.rte atual do usuário, com apenas a modelagem da Casa Terras e os ambientes transferidos. Preserva Projeto legal e Projeto executivo, suas vistas de referência, tabelas, folhas, presets, parâmetros e agrupamentos. Não representa documentação pronta: os cortes, fachadas, cotas, anotações e composição ainda deverão ser preparados pela automação.
 
-Famílias, materiais, níveis, ambientes, parâmetros compartilhados e templates de vista são recursos preservados. Uma vista-template mantida não é um entregável legal criado. Os estados de geração VEBRAM são removidos. A origem documentada continua separada.
+As vistas existentes podem mostrar automaticamente a geometria da casa. “Não preparadas” não significa “obrigatoriamente vazias”. Q04 e outros quadros nativos também podem listar os ambientes automaticamente. Preservar esse comportamento faz parte do uso do template.
 
-INVENTARIO_MODELAGEM.json informa as vistas restantes, categorias, elementos e preservação dos identificadores/tipos/caixas físicas. As imagens PNG são exportações nativas, para que o revisor veja a casa sem depender de abrir o binário RVT.
+O RTE original acompanha a base local. INVENTARIO_BASE_TEMPLATE.json compara o conjunto de vistas/presets/folhas com esse RTE e compara a modelagem com o projeto atual; também verifica ausência de estado de geração VEBRAM. As prévias PNG mostram plantas e 3D; a vista 3D temporária de exportação é revertida, sem acrescentar vistas à base entregue.
 
-Essa base limpa não contém as vistas de referência do template V02 exigidas por parte dos fluxos existentes. Não espere executar os testes legal05/composition014 diretamente nela. Avaliar como o plugin deve preparar uma base modelada sem referências é um tema relevante da revisão.
+A primeira interpretação retirava todas as vistas legais/executivas. A base antiga também apresentou estado VEBRAM na inspeção; por isso a entrega final foi criada diretamente do RTE atual. Lucas esclareceu que devem existir como referências originais. Aquela cópia foi descartada da entrega e esta é a base correta para testar a automação. O utilitário agora cria a base pelo RTE atual e transfere apenas elementos de modelo/ambientes, sem importar ou preparar documentação. Não apaga as vistas do template. A transferência gera IDs novos; compara categorias/contagens/caixas físicas e áreas dos ambientes, preservando as referências do template.
 
 ## Pontos que merecem revisão
 
@@ -69,7 +69,7 @@ Essa base limpa não contém as vistas de referência do template V02 exigidas p
 - Escopo real dos testes versus casos não cobertos: outros terrenos, casas, fases, níveis e famílias.
 - Composição em linhas predefinidas, preservação de Q04/carimbo e recusa quando não cabe.
 - Coesão e legibilidade do código; separar rotina de desenvolvimento do produto se apropriado.
-- Preparação de uma modelagem limpa para gerar documentação sem depender de vistas já presentes.
+- Preparação dos entregáveis aproveitando as vistas já existentes no template do usuário, sem tratá-las como documentação finalizada.
 
 ## Pendências de produto
 

@@ -9,7 +9,7 @@ Leia primeiro docs/PASSAGEM_CLAUDE.md, README.md, docs/TESTES_COMPOSICAO_V0514.m
 
 Analise arquitetura, transações/reversão, preservação da modelagem e de edições manuais, repetição sem duplicatas, unidades internas/papel, medição de textos/títulos, visibilidade/recorte das fachadas, dependências do template V02 e riscos de distribuir o plugin para outros projetos.
 
-Receberá também CASA_TERRAS_SO_MODELAGEM.rvt, imagens de suas plantas/3D e INVENTARIO_MODELAGEM.json. É uma cópia da casa com apenas vistas de modelagem; entregáveis legais, folhas e tabelas foram retirados. Templates de vista, famílias, materiais e parâmetros foram conservados como recursos. As referências legais do V02 não estão nessa cópia: diferencie uma base só modelada de uma base preparada para os testes existentes.
+Receberá também CASA_TERRAS_TEMPLATE_V02_PARA_AUTOMACAO.rvt, o RTE original, prévias PNG e INVENTARIO_BASE_TEMPLATE.json. A casa está modelada no template V02 do usuário. Projeto legal e Projeto executivo DEVEM permanecer, com suas vistas, folhas, tabelas e presets originais. Essas referências ainda não foram preparadas pela automação. A geometria pode aparecer automaticamente nelas; isso não significa documentação pronta. Revise como o plugin aproveita essas referências para preparar e documentar o modelo.
 
 Primeiro entregue uma revisão, sem alterar código: liste problemas por gravidade, arquivo/linha, cenário reproduzível, consequência e correção sugerida; diferencie bug comprovado de hipótese, melhoria e limitação conhecida. Avalie a qualidade visual usando as imagens e diga o que mudaria no produto. Proponha uma sequência curta de melhorias com critérios de aceitação.
 

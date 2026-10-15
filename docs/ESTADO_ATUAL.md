@@ -1,12 +1,14 @@
-# Passagem para revisão no Claude — 14/10/2026
+# Entrega ao Claude corrigida — template original preservado
 
-Produto continua na 0.5.14. Fontes e composição validadas já publicadas na branch codex/vebram-projeto-legal-v03; PR 1 permanece em rascunho.
+14/10/2026. Lucas esclareceu que Projeto legal e Projeto executivo devem existir com as vistas originais do seu template, ainda sem preparação pela automação. Essa instrução substitui a interpretação anterior que removia vistas/folhas.
 
-Foi acrescentado um job de desenvolvimento explícito modelreview, com script Export-ModelReview.ps1, para gerar uma cópia separada só de modelagem. Teste nativo concluído: duas plantas de modelagem e uma vista 3D, zero folhas/tabelas/cortes/fachadas, 269 elementos monitorados preservados por identidade/tipo/limites. Mantidos 30 templates de vista como recursos. Imagens e inventário gerados localmente. Origem preservada.
+Entrega principal: BASE_TEMPLATE_V02/CASA_TERRAS_TEMPLATE_V02_PARA_AUTOMACAO.rvt, criada diretamente do RTE atual do usuário. Apenas 106 elementos físicos e nove ambientes foram transferidos. Categorias/contagens/caixas físicas e áreas dos ambientes conferiram com a modelagem atual. A transferência gera IDs novos. As 70 entradas de vistas/presets/folhas do RTE são preservadas; não há estado de geração VEBRAM. Referências legais/executivas podem mostrar geometria ou tabelas nativas automaticamente, sem serem documentação preparada.
 
-Consulte [passagem técnica](PASSAGEM_CLAUDE.md), [como conectar](COMO_USAR_CLAUDE.md) e [prompt para copiar](PROMPT_PARA_CLAUDE.txt). RVT, imagens e inventário detalhado permanecem na pasta local de entrega, fora do GitHub.
+O teste nativo templatereview passou; imagens e INVENTARIO_BASE_TEMPLATE.json ficam locais. O 3D usado para a prévia é temporário e revertido. O RTE original acompanha a entrega local. Modelos/imagens/inventário não são publicados no GitHub.
 
-A primeira tentativa de exportação foi revertida por incluir controles internos não apagáveis entre as anotações; a rotina foi restrita a tipos de anotação e passou. A base só modelagem não mantém as referências de entregáveis legais do V02: é um insumo para revisão e preparação futura, não uma base pronta para os testes legal05/composition014.
+A base antiga de teste continha estado VEBRAM e foi descartada como entrega, motivando a criação diretamente do RTE. A cópia sem vistas também foi retirada da entrega.
+
+Produto continua na 0.5.14. Rotina de desenvolvimento e material de revisão atualizados na mesma branch, PR em rascunho. Veja [passagem](PASSAGEM_CLAUDE.md), [guia](COMO_USAR_CLAUDE.md) e [prompt](PROMPT_PARA_CLAUDE.txt).
 
 ---
 

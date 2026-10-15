@@ -13,8 +13,8 @@ Para implementar alterações, o Claude Code na web trabalha com o repositório 
 
 - Cole **PROMPT_PARA_CLAUDE.txt** no chat.
 - Peça que leia **PASSAGEM_CLAUDE.md** e confira a branch.
-- Anexe as imagens PNG e **INVENTARIO_MODELAGEM.json** para a avaliação visual/estrutural.
-- O **CASA_TERRAS_SO_MODELAGEM.rvt** é para abrir no Revit 2026. Ter o RVT não significa que o Claude conseguirá interpretá-lo ou visualizar sua geometria em um chat.
+- Anexe as imagens PNG e **INVENTARIO_BASE_TEMPLATE.json** para a avaliação visual/estrutural.
+- O **CASA_TERRAS_TEMPLATE_V02_PARA_AUTOMACAO.rvt** é para abrir no Revit 2026. Ter o RVT não significa que o Claude conseguirá interpretá-lo ou visualizar sua geometria em um chat.
 - Se a sincronização não oferecer a branch correta, extraia **VEBRAM_FONTES_PARA_REVISAO.zip** e forneça as pastas/arquivos diretamente ou abra essa pasta no Claude Code local.
 
 As fontes e docs estão no GitHub; o RVT, inventário detalhado e imagens da casa são entregues localmente. Nada desse modelo será publicado no repositório nesta passagem.
@@ -27,11 +27,11 @@ Após avaliar a revisão, peça uma alteração por vez em outra branch e valide
 
 ## Conteúdo da entrega
 
-CASA_TERRAS_SO_MODELAGEM.rvt: cópia limpa da casa, somente plantas de modelagem e 3D.
+CASA_TERRAS_TEMPLATE_V02_PARA_AUTOMACAO.rvt: casa no template V02, com Projeto legal e Executivo e suas referências originais ainda não preparadas. Está na subpasta BASE_TEMPLATE_V02, junto ao RTE original e às prévias.
 
 PNG: imagens nativas para visualização.
 
-INVENTARIO_MODELAGEM.json: vistas restantes, categorias/elementos e verificação de preservação.
+INVENTARIO_BASE_TEMPLATE.json: conferência das vistas do template e da modelagem atual.
 
 PASSAGEM_CLAUDE.md: situação do plugin, arquitetura, evidências e pendências.
 
