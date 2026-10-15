@@ -37,11 +37,9 @@ public static class PlanAnnotations
    var anchor=candidates.OrderBy(p=>p.DistanceTo(mid)).First();
    var raw=room.get_Parameter(BuiltInParameter.ROOM_NAME)?.AsString()??"Ambiente";
    // Room.Name appends the number; ROOM_NAME contains only the user-authored name.
-   string name=raw.Trim();var number=room.Number?.Trim();if(!string.IsNullOrEmpty(number)&&name.EndsWith(" "+number,StringComparison.Ordinal))name=name[..^(number.Length+1)].TrimEnd();
+   string name=RoomNameText.Display(raw);
    TextNote? note=null;Rect? labelRect=null;
-   const string compactName="ARQ - Ambientes 2 mm - VEBRAM";
-   var compact=new FilteredElementCollector(doc).OfClass(typeof(TextNoteType)).Cast<TextNoteType>().FirstOrDefault(t=>t.Name==compactName);
-   if(compact==null){compact=(TextNoteType)textType.Duplicate(compactName);compact.get_Parameter(BuiltInParameter.TEXT_SIZE).Set(Implantation.Feet(.002));}
+   var compact=LegalStyles.Text(doc,2);
    foreach(var format in new[]{(22,textType),(14,textType),(10,textType),(7,textType),(14,compact),(10,compact),(7,compact)})
    {
     string label=Wrap(name,format.Item1)+"\n"+(room.Area*.09290304).ToString("0.00",Implantation.Pt)+"m²";

@@ -334,29 +334,8 @@ public static class Implantation
         range.SetOffset(PlanViewPlane.BottomClipPlane,bottom);range.SetOffset(PlanViewPlane.ViewDepthPlane,bottom-Feet(.2));
         view.SetViewRange(range);
     }
-    private static DimensionType DimensionStyle(Document doc)
-    {
-        var name="ARQ - Implantação m 0,01 - VEBRAM";
-        var type=new FilteredElementCollector(doc).OfClass(typeof(DimensionType)).Cast<DimensionType>().FirstOrDefault(t=>t.Name==name);
-        if(type==null)
-        {
-            var original=new FilteredElementCollector(doc).OfClass(typeof(DimensionType)).Cast<DimensionType>()
-                .Where(t=>t.StyleType==DimensionStyleType.Linear).OrderBy(t=>t.Name.StartsWith("ARQ")?0:1).First();
-            type=(DimensionType)original.Duplicate(name);
-            type.SetUnitsFormatOptions(new FormatOptions(UnitTypeId.Meters){UseDefault=false,Accuracy=.01,SuppressTrailingZeros=false});
-        }
-        return type;
-    }
-    private static TextNoteType TextStyle(Document doc,bool bold)
-    {
-        var name="ARQ - Implantação 2,5 mm"+(bold?" negrito":"")+" - VEBRAM";
-        var type=new FilteredElementCollector(doc).OfClass(typeof(TextNoteType)).Cast<TextNoteType>().FirstOrDefault(t=>t.Name==name);
-        if(type!=null)return type;
-        var original=new FilteredElementCollector(doc).OfClass(typeof(TextNoteType)).Cast<TextNoteType>().OrderBy(t=>t.Name.StartsWith("ARQ")?0:1).First();
-        type=(TextNoteType)original.Duplicate(name);type.get_Parameter(BuiltInParameter.TEXT_SIZE).Set(Feet(.0025));
-        type.get_Parameter(BuiltInParameter.TEXT_STYLE_BOLD).Set(bold?1:0);type.get_Parameter(BuiltInParameter.TEXT_BACKGROUND).Set(1);
-        return type;
-    }
+    private static DimensionType DimensionStyle(Document doc)=>LegalPreferenceStore.Dimension(doc);
+    private static TextNoteType TextStyle(Document doc,bool bold)=>LegalStyles.Text(doc,2.5,bold);
     private static ElementId Dashed(Document doc)
     {
         var name="ARQ - Implantação 4-2 mm - VEBRAM";

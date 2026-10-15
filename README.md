@@ -2,9 +2,11 @@
 
 Plugin nativo C# / .NET 8 / WPF / Revit 2026. Prioridade: Projeto legal. Modelagem e Executivo serão ampliados após avaliação de Lucas.
 
-Leia a [passagem para revisão no Claude](docs/PASSAGEM_CLAUDE.md), o [guia de conexão](docs/COMO_USAR_CLAUDE.md) e o [prompt](docs/PROMPT_PARA_CLAUDE.txt). A branch da entrega é `codex/vebram-projeto-legal-v03`.
+Leia a [passagem para revisão no Claude](docs/PASSAGEM_CLAUDE.md), o [guia de conexão](docs/COMO_USAR_CLAUDE.md) e o [prompt](docs/PROMPT_PARA_CLAUDE.txt). A revisão 0.5.15 está em `codex/vebram-revisao-claude-v0515`; a base 0.5.14 está em `codex/vebram-projeto-legal-v03`.
 
 ## Estado atual
+
+- Versão 0.5.15, primeiro lote da revisão do Claude: nomes copiados por ROOM_NAME, restauração conferida na origem, estilos ARQ reutilizados, recortes locais de cortes/fachadas e reaproveitamento das LEG antes de criar outra. Testes nativos e 28 testes sem Revit passaram; três folhas na cópia revista. [Evidência e pendências](docs/TESTES_REVISAO_CLAUDE_V0515.md). Há pendências de cobertura/implantação e cotagem; não é documentação pronta para emissão.
 
 - Versão 0.5.14: composição opcional corrigida no plugin para V02 A1 horizontal. Planta em destaque, quadro compacto abaixo, cobertura e quatro fachadas na LEG-02, implantação e cortes na LEG-03. Guias ocultas e títulos/números centralizados, com escalas preservadas. Testes nativos e revisão visual concluídos. Veja [evidência e limites](docs/TESTES_COMPOSICAO_V0514.md).
 

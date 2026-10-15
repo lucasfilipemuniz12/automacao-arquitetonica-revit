@@ -1,7 +1,8 @@
 param(
  [Parameter(Mandatory=$true)][string]$SourceProject,
  [Parameter(Mandatory=$true)][string]$OutputFolder,
- [ValidateSet('sections','legal05','composition014')][string]$Mode='legal05'
+ [ValidateSet('sections','legal05','composition014','review015')][string]$Mode='legal05',
+ [string]$NameReferenceProject
 )
 $ErrorActionPreference='Stop'
 $packageRoot=Split-Path $PSScriptRoot -Parent
@@ -19,9 +20,12 @@ $targetFile=Join-Path $destinationFolder ('VALIDACAO_'+$Mode+'_'+[DateTime]::Now
 if($targetFile -eq $sourceFile -or (Test-Path -LiteralPath $targetFile)){throw 'A validação exige uma cópia nova e não substitui a origem.'}
 New-Item -ItemType Directory -Path $destinationFolder -Force | Out-Null
 Copy-Item -LiteralPath $sourceFile -Destination $targetFile
-@{Project=$targetFile;Output=$destinationFolder;Mode=$Mode} | ConvertTo-Json | Set-Content -LiteralPath $jobPath -Encoding utf8
+$jobData=@{Project=$targetFile;Output=$destinationFolder;Mode=$Mode}
+if($NameReferenceProject){$jobData.Reference=(Resolve-Path -LiteralPath $NameReferenceProject).Path}
+$jobData | ConvertTo-Json | Set-Content -LiteralPath $jobPath -Encoding utf8
 Write-Output "Job preparado: $jobPath"
 Write-Output "Abra o Revit para validar somente a cópia: $targetFile"
 if($Mode -eq 'composition014'){Write-Output 'composition014 verifica a revisão explícita de composição V02, margens, escalas, repetição e preservação da geometria numa cópia com entregáveis já preparados e colocados.'}
+elseif($Mode -eq 'review015'){Write-Output 'review015 verifica nomes, estilos ARQ, recortes, repetição, proteção manual, folhas e composição em cópia do RVT já gerado.'}
 else{Write-Output 'legal05 usa dados fictícios explicitamente identificados. Não verifica conformidade municipal.'}
 Write-Output 'Sem job explícito, o produto não executa testes na inicialização.'

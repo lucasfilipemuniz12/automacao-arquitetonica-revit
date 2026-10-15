@@ -98,7 +98,7 @@ public static class LegalContext
  static string Missing(string value)=>string.IsNullOrWhiteSpace(value)?"NÃO INFORMADO":value.Trim();
  static string Number(double value)=>value.ToString("0.00",Implantation.Pt);
  static string Optional(double? value,string suffix)=>value.HasValue?Number(value.Value)+suffix:"NÃO INFORMADO";
- internal static TextNoteType TextType(Document doc){const string name="ARQ - Legal 2,5 mm - VEBRAM";var type=new FilteredElementCollector(doc).OfClass(typeof(TextNoteType)).Cast<TextNoteType>().FirstOrDefault(t=>t.Name==name);if(type!=null)return type;type=(TextNoteType)new FilteredElementCollector(doc).OfClass(typeof(TextNoteType)).Cast<TextNoteType>().First().Duplicate(name);type.get_Parameter(BuiltInParameter.TEXT_SIZE).Set(Implantation.Feet(.0025));return type;}
+ internal static TextNoteType TextType(Document doc)=>LegalStyles.Text(doc);
  static Schema Schema(){var s=Autodesk.Revit.DB.ExtensibleStorage.Schema.Lookup(SchemaId);if(s!=null)return s;var b=new SchemaBuilder(SchemaId);b.SetSchemaName("VebramLegalContext05");b.AddSimpleField("Json",typeof(string));return b.Finish();}
  static ContextStamp? Read(View view){var s=Autodesk.Revit.DB.ExtensibleStorage.Schema.Lookup(SchemaId);if(s==null)return null;var e=view.GetEntity(s);return e.IsValid()?JsonSerializer.Deserialize<ContextStamp>(e.Get<string>(s.GetField("Json"))):null;}
  static void Write(View view,ContextStamp state){var s=Schema();var e=new Entity(s);e.Set(s.GetField("Json"),JsonSerializer.Serialize(state));view.SetEntity(e);}

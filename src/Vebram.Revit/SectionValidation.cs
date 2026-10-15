@@ -20,6 +20,7 @@ internal sealed class SectionValidation:IExternalApplication
   try
   {
    doc=ui.Application.OpenDocumentFile(job.Project);
+   if(job.Mode=="review015"){Review015Validation.Run(doc,job.Output,job.Reference);doc.Close(false);doc=null;File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Revisão 0.5.15 validada na cópia do RVT gerado.");return;}
    if(job.Mode=="templatereview"){ModelReviewExport.Run(doc,job.Output,ui.Application,job.Template,job.Reference);doc.Close(false);doc=null;File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Base do template V02 conferida, referências preservadas e modelagem verificada.");return;}
    if(job.Mode=="composition014"){ValidateComposition014(doc,job.Output);doc.Save();doc.Close(false);doc=null;File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Composição V02 limpa e centralizada na cópia de teste.");return;}
    if(job.Mode=="facades055"){ValidateFacades055(doc,job.Output);doc.Save();doc.Close(false);doc=null;File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Fachadas e linhas de situação validadas na cópia de teste.");return;}
@@ -164,7 +165,7 @@ internal sealed class SectionValidation:IExternalApplication
   File.WriteAllText(Path.Combine(output,"COMPOSICAO.json"),JsonSerializer.Serialize(new{Version=Assembly.GetExecutingAssembly().GetName().Version?.ToString(),Result=result,Repeat=true,AllTitlesInsideMargins=true,NoViewportOverlaps=true,CompactTableTextNoOverlap=true,ScalesPreserved=true,PhysicalBoundsPreserved=true,OriginalViewsPreserved=true,RoofAndSouthOnLeg02=true,Sheets=sheets.Select(s=>new{s.SheetNumber,s.Name,Area=LegalSheetComposition.Area(doc,s),Viewports=new FilteredElementCollector(doc,s.Id).OfClass(typeof(Viewport)).Cast<Viewport>().Where(v=>!v.IsHidden(s)).Select(v=>new{Id=v.Id.Value,View=doc.GetElement(v.ViewId).Name,Scale=((View)doc.GetElement(v.ViewId)).Scale,Bounds=LegalSheetComposition.Bounds(v,s),LabelOffset=new[]{v.LabelOffset.X,v.LabelOffset.Y},Detail=v.get_Parameter(BuiltInParameter.VIEWPORT_DETAIL_NUMBER)?.AsString()}),VisibleSheetNotes=new FilteredElementCollector(doc,s.Id).OfClass(typeof(TextNote)).Cast<TextNote>().Where(n=>!n.IsHidden(s)).Select(n=>n.Text).ToList()})},new JsonSerializerOptions{WriteIndented=true}));
  }
  static int Count(Document doc,long view)=>new FilteredElementCollector(doc).WhereElementIsNotElementType().Count(e=>e.OwnerViewId.Value==view);
- static List<string> Physical(Document doc)=>new FilteredElementCollector(doc).WhereElementIsNotElementType().Where(e=>e is HostObject or DirectShape||e is FamilyInstance&&e.Category?.CategoryType==CategoryType.Model).Select(e=>e.Id.Value+"/"+(e.get_BoundingBox(null) is {} b?string.Join("/",new[]{b.Min.X,b.Min.Y,b.Min.Z,b.Max.X,b.Max.Y,b.Max.Z}.Select(v=>Math.Round(v,6))):"none")).Order().ToList();
+ internal static List<string> Physical(Document doc)=>new FilteredElementCollector(doc).WhereElementIsNotElementType().Where(e=>e is HostObject or DirectShape||e is FamilyInstance&&e.Category?.CategoryType==CategoryType.Model).Select(e=>e.Id.Value+"/"+(e.get_BoundingBox(null) is {} b?string.Join("/",new[]{b.Min.X,b.Min.Y,b.Min.Z,b.Max.X,b.Max.Y,b.Max.Z}.Select(v=>Math.Round(v,6))):"none")).Order().ToList();
 }
 
 

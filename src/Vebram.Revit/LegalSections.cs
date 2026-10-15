@@ -31,8 +31,8 @@ public static class LegalSections
   var center=new XYZ((x0+x1)/2,(y0+y1)/2,source.GenLevel.Elevation);
   var point=request.AlongX?new XYZ(center.X,y0+(y1-y0)*request.Position/100,center.Z):new XYZ(x0+(x1-x0)*request.Position/100,center.Y,center.Z);
   var forward=(request.AlongX?XYZ.BasisY:XYZ.BasisX)*(request.Reverse?-1:1);
-  var hosts=new FilteredElementCollector(doc).WhereElementIsNotElementType().OfType<HostObject>().Where(e=>e.get_BoundingBox(null) is {} b&&b.Max.X>=x0&&b.Min.X<=x1&&b.Max.Y>=y0&&b.Min.Y<=y1).ToList();
-  double minZ=source.GenLevel.Elevation-Implantation.Feet(.7),maxZ=hosts.Count>0?hosts.Max(e=>e.get_BoundingBox(null)!.Max.Z)+Implantation.Feet(.7):source.GenLevel.Elevation+Implantation.Feet(4);
+  var frame=BuildingFrame.Read(doc,source,floor,LegalPreferenceStore.Read(doc).IncludeWholeTerrain);var hosts=frame.Members.OfType<HostObject>().ToList();
+  double minZ=frame.Bottom,maxZ=frame.Top;
   var made=new List<Element>();var pending=new List<string>();
   using var tx=new Transaction(doc,"VEBRAM — "+item.Label);tx.Start();
   try
@@ -44,12 +44,10 @@ public static class LegalSections
    if(Math.Abs(angle)>1e-7)ElementTransformUtils.RotateElement(doc,cropId,Line.CreateBound(target.Origin,target.Origin+XYZ.BasisZ),angle);
    doc.Regenerate();ElementTransformUtils.MoveElement(doc,cropId,point-target.Origin);doc.Regenerate();
    if(target.ViewDirection.DotProduct(forward)<.999||Math.Abs(target.UpDirection.DotProduct(XYZ.BasisZ))<.999)throw new InvalidOperationException($"{request.Key}: orientação não aceita: direção {target.ViewDirection}; vertical {target.UpDirection}. Operação revertida.");
-   var box=target.CropBox;var inverse=box.Transform.Inverse;var corners=new List<XYZ>();foreach(var x in new[]{x0,x1})foreach(var y in new[]{y0,y1})foreach(var z in new[]{minZ,maxZ})corners.Add(inverse.OfPoint(new XYZ(x,y,z)));
-   var visibleBounds=new FilteredElementCollector(doc,target.Id).WhereElementIsNotElementType().Where(e=>e is HostObject or FamilyInstance or DirectShape).Select(e=>e.get_BoundingBox(null)).Where(b=>b!=null).ToList();
-   var visibleCorners=new List<XYZ>();foreach(var b in visibleBounds)foreach(var x in new[]{b!.Min.X,b.Max.X})foreach(var y in new[]{b.Min.Y,b.Max.Y})visibleCorners.Add(inverse.OfPoint(new XYZ(x,y,source.GenLevel.Elevation)));
-   double buildingLeft=Math.Min(corners.Min(p=>p.X),visibleCorners.Count>0?visibleCorners.Min(p=>p.X):double.MaxValue),left=buildingLeft-Implantation.Feet(4),right=Math.Max(corners.Max(p=>p.X),visibleCorners.Count>0?visibleCorners.Max(p=>p.X):double.MinValue)+Implantation.Feet(1);
-   double noteElevation=Math.Min(minZ,visibleBounds.Count>0?visibleBounds.Min(b=>b!.Min.Z):minZ)-Implantation.Feet(.35);
-   box.Min=new XYZ(left,Math.Min(corners.Min(p=>p.Y)-Implantation.Feet(1.4),noteElevation-box.Transform.Origin.Z-Implantation.Feet(.7)),-Implantation.Feet(request.DepthMeters));box.Max=new XYZ(right,corners.Max(p=>p.Y),0);target.CropBox=box;target.CropBoxActive=true;target.CropBoxVisible=false;
+   var box=target.CropBox;var inverse=box.Transform.Inverse;var corners=frame.Corners.Select(inverse.OfPoint).ToList();
+   double buildingLeft=corners.Min(p=>p.X),left=buildingLeft-Implantation.Feet(1.5),right=corners.Max(p=>p.X)+Implantation.Feet(1.5);
+   double noteElevation=minZ+Implantation.Feet(.12);
+   box.Min=new XYZ(left,corners.Min(p=>p.Y),-Implantation.Feet(request.DepthMeters));box.Max=new XYZ(right,corners.Max(p=>p.Y),0);target.CropBox=box;target.CropBoxActive=true;target.CropBoxVisible=false;
    Set(target,BuiltInParameter.VIEWER_BOUND_FAR_CLIPPING,1);Set(target,BuiltInParameter.VIEWER_BOUND_OFFSET_FAR,Implantation.Feet(request.DepthMeters));
    doc.Regenerate();
    var textType=TextType(doc);var transform=target.CropBox.Transform;
@@ -61,7 +59,7 @@ public static class LegalSections
     try
     {
      var curve=level.GetCurvesInView(DatumExtentType.Model,target).OfType<Line>().FirstOrDefault();
-     if(curve!=null){var direction=curve.Direction;var origin=curve.GetEndPoint(0);double a=(At(buildingLeft-Implantation.Feet(3.3),level.Elevation)-origin).DotProduct(direction),b=(At(buildingLeft-Implantation.Feet(2.4),level.Elevation)-origin).DotProduct(direction);level.SetDatumExtentType(DatumEnds.End0,target,DatumExtentType.ViewSpecific);level.SetDatumExtentType(DatumEnds.End1,target,DatumExtentType.ViewSpecific);level.SetCurveInView(DatumExtentType.ViewSpecific,target,Line.CreateBound(origin+direction*Math.Min(a,b),origin+direction*Math.Max(a,b)));var bubble=direction.DotProduct(target.RightDirection)>0?DatumEnds.End0:DatumEnds.End1;level.ShowBubbleInView(bubble,target);level.HideBubbleInView(bubble==DatumEnds.End0?DatumEnds.End1:DatumEnds.End0,target);}
+     if(curve!=null){var direction=curve.Direction;var origin=curve.GetEndPoint(0);double a=(At(buildingLeft-Implantation.Feet(1.3),level.Elevation)-origin).DotProduct(direction),b=(At(buildingLeft-Implantation.Feet(.6),level.Elevation)-origin).DotProduct(direction);level.SetDatumExtentType(DatumEnds.End0,target,DatumExtentType.ViewSpecific);level.SetDatumExtentType(DatumEnds.End1,target,DatumExtentType.ViewSpecific);level.SetCurveInView(DatumExtentType.ViewSpecific,target,Line.CreateBound(origin+direction*Math.Min(a,b),origin+direction*Math.Max(a,b)));var bubble=direction.DotProduct(target.RightDirection)>0?DatumEnds.End0:DatumEnds.End1;level.ShowBubbleInView(bubble,target);level.HideBubbleInView(bubble==DatumEnds.End0?DatumEnds.End1:DatumEnds.End0,target);}
     }
     catch(Autodesk.Revit.Exceptions.ArgumentException){pending.Add("Nível "+level.Name+": conferir extensão do símbolo nativo.");}
    }
@@ -70,7 +68,7 @@ public static class LegalSections
    if(lower!=null&&upper!=null)
    {
     var refs=new ReferenceArray();refs.Append(lower.Reference);refs.Append(upper.Reference);doc.Regenerate();
-    var dimension=doc.Create.NewDimension(target,Line.CreateBound(At(buildingLeft-Implantation.Feet(.9),lower.Face.Origin.Z),At(buildingLeft-Implantation.Feet(.9),upper.Face.Origin.Z)),refs,LegalPreferenceStore.Dimension(doc));made.Add(dimension);
+    var dimension=doc.Create.NewDimension(target,Line.CreateBound(At(buildingLeft-Implantation.Feet(.35),lower.Face.Origin.Z),At(buildingLeft-Implantation.Feet(.35),upper.Face.Origin.Z)),refs,LegalPreferenceStore.Dimension(doc));made.Add(dimension);
    }
    else pending.Add("Não foi encontrada uma dupla de faces horizontais válidas para cotar a altura livre nesta posição.");
    if(!string.IsNullOrWhiteSpace(prefs.AdditionalNote))made.Add(TextNote.Create(doc,target.Id,At(buildingLeft,noteElevation),prefs.AdditionalNote,textType.Id));
@@ -89,7 +87,7 @@ public static class LegalSections
  static bool Contains(PlanarFace face,XYZ point){var projected=face.Project(point);return projected!=null&&face.IsInside(projected.UVPoint);}
  static void Set(Element element,BuiltInParameter id,int value){var p=element.get_Parameter(id);if(p is {IsReadOnly:false})p.Set(value);else throw new InvalidOperationException("Parâmetro do corte bloqueado: "+id);}
  static void Set(Element element,BuiltInParameter id,double value){var p=element.get_Parameter(id);if(p is {IsReadOnly:false})p.Set(value);else throw new InvalidOperationException("Parâmetro do corte bloqueado: "+id);}
- static TextNoteType TextType(Document doc){const string name="ARQ - Legal 2,5 mm - VEBRAM";var type=new FilteredElementCollector(doc).OfClass(typeof(TextNoteType)).Cast<TextNoteType>().FirstOrDefault(t=>t.Name==name);if(type!=null)return type;type=(TextNoteType)new FilteredElementCollector(doc).OfClass(typeof(TextNoteType)).Cast<TextNoteType>().First().Duplicate(name);type.get_Parameter(BuiltInParameter.TEXT_SIZE).Set(Implantation.Feet(.0025));return type;}
+ static TextNoteType TextType(Document doc)=>LegalStyles.Text(doc);
  static void Preset(Document doc,ViewSection view,ViewPlan source,int scale)
  {
   const string name="ARQ VT - CORTES - VEBRAM 04";var preset=new FilteredElementCollector(doc).OfClass(typeof(View)).Cast<View>().FirstOrDefault(v=>v.IsTemplate&&v.Name==name);
