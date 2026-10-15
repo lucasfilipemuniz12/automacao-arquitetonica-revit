@@ -9,7 +9,7 @@ public sealed class SheetPlannerWindow:Window
  public SheetPlan? Result{get;private set;}
  readonly WrapPanel previews=new(){Orientation=Orientation.Horizontal};
  readonly TextBlock status=new(){TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,8,0,8)};
- public SheetPlannerWindow(IReadOnlyList<PlannerItem> items,Func<string,IEnumerable<long>,SheetPlan> calculate)
+ public SheetPlannerWindow(IReadOnlyList<PlannerItem> items,Func<string,IEnumerable<long>,bool,SheetPlan> calculate)
  {
   Title="VEBRAM — Distribuição automática de folhas";Width=Math.Min(1220,SystemParameters.WorkArea.Width-40);Height=Math.Min(850,SystemParameters.WorkArea.Height-40);WindowStartupLocation=WindowStartupLocation.CenterOwner;
   var root=new DockPanel{Margin=new Thickness(22)};Content=root;
@@ -17,6 +17,7 @@ public sealed class SheetPlannerWindow:Window
   heading.Children.Add(new TextBlock{Text="Organize o conjunto antes de aplicar",FontSize=25,FontWeight=FontWeights.SemiBold});
   heading.Children.Add(new TextBlock{Text="Prévia da folha inteira: vistas, quadros laterais e notas. Escalas preservadas. Cinza = conteúdo existente ou identificação reservada. Novas folhas somente quando necessário.",TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,8,0,10)});
   var profile=new ComboBox{ItemsSource=new[]{"Preferencial — Implantação + Situação; Cortes A/B; quatro Fachadas","Referência R20 — Situação; Plantas; Implantação/Cobertura/Cortes; Fachadas"},SelectedIndex=0,MinHeight=34};heading.Children.Add(profile);
+  var adaptive=new CheckBox{Content="Combinar assuntos compatíveis para aproveitar espaço (mantém grupos de cortes e fachadas)",IsChecked=true,Margin=new Thickness(0,8,0,5)};heading.Children.Add(adaptive);
   var footer=new DockPanel{Margin=new Thickness(0,10,0,0)};DockPanel.SetDock(footer,Dock.Bottom);root.Children.Add(footer);
   var actions=new StackPanel{Orientation=Orientation.Horizontal,HorizontalAlignment=HorizontalAlignment.Right};DockPanel.SetDock(actions,Dock.Right);footer.Children.Add(actions);footer.Children.Add(status);
   var preview=new Button{Content="Calcular prévia",Padding=new Thickness(14,8,14,8),Margin=new Thickness(6)};var apply=new Button{Content="Aplicar esta distribuição",Padding=new Thickness(14,8,14,8),Margin=new Thickness(6),IsEnabled=false};var cancel=new Button{Content="Cancelar",Padding=new Thickness(14,8,14,8),Margin=new Thickness(6),IsCancel=true};actions.Children.Add(preview);actions.Children.Add(apply);actions.Children.Add(cancel);
@@ -26,10 +27,10 @@ public sealed class SheetPlannerWindow:Window
   var checks=new List<(PlannerItem Item,CheckBox Check)>();SheetPlan? calculated=null;
   void Invalidate(){calculated=null;apply.IsEnabled=false;previews.Children.Clear();status.Text="Calcule a prévia para conferir folhas e agrupamentos.";}
   foreach(var item in items){var check=new CheckBox{Content=new TextBlock{Text=item.Label,TextWrapping=TextWrapping.Wrap},IsChecked=true,Margin=new Thickness(0,5,0,5)};checks.Add((item,check));choices.Children.Add(check);check.Checked+=(_,_)=>Invalidate();check.Unchecked+=(_,_)=>Invalidate();}
-  profile.SelectionChanged+=(_,_)=>Invalidate();var scroll=new ScrollViewer{Content=previews,VerticalScrollBarVisibility=ScrollBarVisibility.Auto};Grid.SetColumn(scroll,1);body.Children.Add(scroll);
+  profile.SelectionChanged+=(_,_)=>Invalidate();adaptive.Checked+=(_,_)=>Invalidate();adaptive.Unchecked+=(_,_)=>Invalidate();var scroll=new ScrollViewer{Content=previews,VerticalScrollBarVisibility=ScrollBarVisibility.Auto};Grid.SetColumn(scroll,1);body.Children.Add(scroll);
   preview.Click+=(_,_)=>
   {
-   Invalidate();try{calculated=calculate(profile.SelectedIndex==1?"r20":"preferencial",checks.Where(c=>c.Check.IsChecked==true).Select(c=>c.Item.ViewId));foreach(var page in calculated.Pages)previews.Children.Add(DrawPage(page));status.Text=$"{calculated.Pages.Count} folhas · {calculated.Pages.Count(p=>p.IsNew)} novas\n"+(calculated.Warnings.Count==0?"Grupos preferenciais mantidos.":string.Join("\n",calculated.Warnings));apply.IsEnabled=true;}
+   Invalidate();try{calculated=calculate(profile.SelectedIndex==1?"r20":"preferencial",checks.Where(c=>c.Check.IsChecked==true).Select(c=>c.Item.ViewId),adaptive.IsChecked==true);foreach(var page in calculated.Pages)previews.Children.Add(DrawPage(page));status.Text=$"{calculated.Pages.Count} folhas utilizadas · {calculated.Pages.Count(p=>p.IsNew)} novas"+(calculated.ReservedSheets?.Count>0?$" · {calculated.ReservedSheets.Count} existente(s) de reserva":"")+"\n"+(calculated.Warnings.Count==0?"Grupos preferenciais mantidos.":string.Join("\n",calculated.Warnings));apply.IsEnabled=true;}
    catch(Exception ex){status.Text=ex.Message;}
   };
   apply.Click+=(_,_)=>{if(calculated==null)return;Result=calculated;DialogResult=true;};Invalidate();

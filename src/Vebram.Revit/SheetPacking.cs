@@ -2,9 +2,33 @@ namespace Vebram.Revit;
 
 public sealed record PaperItem(long Id,double Width,double Height);
 public sealed record PaperPlacement(long Id,LegalPaperRect Rect);
+public sealed record GroupedPaperItem(long Id,string Key,double Width,double Height);
 /// <summary>Deterministic paper-space packing. Never rotates a drawing or changes its scale.</summary>
 public static class SheetPacking
 {
+ /// <summary>Pack complete cuts/facade groups as blocks, so consolidation never scatters them.</summary>
+ public static List<PaperPlacement>? Grouped(LegalPaperRect area,IReadOnlyList<LegalPaperRect> obstacles,IReadOnlyList<GroupedPaperItem> items,double gap)
+ {
+  var blocks=new List<(PaperItem Size,List<PaperPlacement> Children)>();long blockId=long.MinValue;
+  var groups=items.GroupBy(i=>i.Key.StartsWith("fachada-")?"fachadas":i.Key is "corte-a" or "corte-b"?"cortes":i.Id.ToString(System.Globalization.CultureInfo.InvariantCulture));
+  foreach(var group in groups)
+  {
+   var members=group.OrderBy(i=>i.Key,StringComparer.Ordinal).Select(i=>new PaperItem(i.Id,i.Width,i.Height)).ToList();List<PaperPlacement>? children;
+   if(members.Count==1)children=new(){new(members[0].Id,new(0,0,members[0].Width,members[0].Height))};
+   else
+   {
+    var rows=group.Key=="fachadas"?members.Chunk(2).Select(r=>(IReadOnlyList<PaperItem>)r).ToList():new List<IReadOnlyList<PaperItem>>{members};
+    children=Rows(new(0,0,area.Right-area.Left,area.Top-area.Bottom),rows,gap);
+    if(children==null&&group.Key=="cortes")children=Rows(new(0,0,area.Right-area.Left,area.Top-area.Bottom),members.Select(m=>(IReadOnlyList<PaperItem>)new[]{m}).ToList(),gap);
+    if(children==null)return null;
+   }
+   double left=children.Min(c=>c.Rect.Left),bottom=children.Min(c=>c.Rect.Bottom),width=children.Max(c=>c.Rect.Right)-left,height=children.Max(c=>c.Rect.Top)-bottom;
+   blocks.Add((new(blockId++,width,height),children.Select(c=>c with{Rect=c.Rect.Move(-left,-bottom)}).ToList()));
+  }
+  var packed=obstacles.Count==0?Rows(area,blocks.Select(b=>(IReadOnlyList<PaperItem>)new[]{b.Size}).ToList(),gap):null;
+  packed??=Pack(area,obstacles,blocks.Select(b=>b.Size).ToList(),gap);if(packed==null)return null;
+  return packed.SelectMany(p=>blocks.First(b=>b.Size.Id==p.Id).Children.Select(c=>c with{Rect=c.Rect.Move(p.Rect.Left,p.Rect.Bottom)})).ToList();
+ }
  public static List<PaperPlacement>? Rows(LegalPaperRect area,IReadOnlyList<IReadOnlyList<PaperItem>> rows,double gap)
  {
   var present=rows.Where(r=>r.Count>0).ToList();if(present.Count==0)return [];
@@ -42,7 +66,7 @@ public static class SheetPacking
  {
   "situacao" or "urbanistico"=>1,
   "implantacao"=>profile=="r20"?3:1,
-  "planta-1" or "planta-2" or "areas"=>2,
+  "planta-1" or "planta-2" or "areas" or "portas" or "janelas"=>2,
   "cobertura" or "corte-a" or "corte-b"=>3,
   _=>4
  };

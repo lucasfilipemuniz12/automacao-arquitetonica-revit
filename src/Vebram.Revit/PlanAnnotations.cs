@@ -107,6 +107,34 @@ public static class PlanAnnotations
     }
    }
   }
+  foreach(var note in new FilteredElementCollector(doc,view.Id).OfClass(typeof(TextNote)).Cast<TextNote>().Where(n=>!made.Contains(n)))occupied.Add(TextBounds(note,view.Scale));
+  int openingLabels=0;
+  foreach(var opening in new FilteredElementCollector(doc,view.Id).WhereElementIsNotElementType()
+   .Where(e=>e.Category?.Id.Value is (long)BuiltInCategory.OST_Doors or (long)BuiltInCategory.OST_Windows).OrderBy(e=>e.Id.Value))
+  {
+   string code=opening.get_Parameter(BuiltInParameter.ALL_MODEL_MARK)?.AsString()?.Trim()??"";
+   if(code.Length==0){pending.Add("Esquadria "+opening.Id.Value+": preencha a Marca para identificar na planta e no quadro.");continue;}
+   // A manually placed native tag already identifies this opening; do not duplicate it.
+   if(new FilteredElementCollector(doc,view.Id).OfClass(typeof(IndependentTag)).Cast<IndependentTag>().Any(t=>t.GetTaggedLocalElementIds().Contains(opening.Id)))continue;
+   var box=opening.get_BoundingBox(view);if(box==null)continue;
+   var center=(box.Min+box.Max)/2;center=new XYZ(center.X,center.Y,z);
+   var facing=opening is FamilyInstance family? family.FacingOrientation:box.Max.X-box.Min.X>=box.Max.Y-box.Min.Y?XYZ.BasisY:XYZ.BasisX;facing=new XYZ(facing.X,facing.Y,0);if(facing.GetLength()<.001)facing=XYZ.BasisY;else facing=facing.Normalize();
+   var along=new XYZ(-facing.Y,facing.X,0);TextNote? chosen=null;
+   foreach(double distance in new[]{.0035,.005,.007})
+   {
+    foreach(var delta in new[]{facing,-facing,along,-along})
+    {
+     var note=TextNote.Create(doc,view.Id,center+delta*Implantation.Feet(distance)*view.Scale,code,new TextNoteOptions(LegalStyles.Text(doc,2).Id){HorizontalAlignment=HorizontalTextAlignment.Center,VerticalAlignment=VerticalTextAlignment.Middle});doc.Regenerate();
+     var rect=TextBounds(note,view.Scale);
+     if(occupied.Any(r=>r.Overlaps(rect,paper*.2))){doc.Delete(note.Id);continue;}
+     occupied.Add(rect);chosen=note;break;
+    }
+    if(chosen!=null)break;
+   }
+   if(chosen==null){pending.Add("Esquadria "+code+": sem espaço para identificação; ajuste a anotação na planta.");continue;}
+   made.Add(chosen);openingLabels++;
+  }
+  pending.Add(openingLabels+" identificações de esquadrias geradas com a Marca existente. Atualize a planta após alterar os códigos.");
   return new(roomDims,wallDims,openingDims,external,pending);
  }
  static Rect TextBounds(TextNote note,int scale)=>new(note.Coord.X-note.Width*scale/2,note.Coord.Y-note.Height*scale/2,note.Coord.X+note.Width*scale/2,note.Coord.Y+note.Height*scale/2);
