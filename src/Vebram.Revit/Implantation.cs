@@ -10,7 +10,7 @@ namespace Vebram.Revit;
 public sealed record ImplantationOptions(long SourceId, long FootprintId, double LotMinX, double LotMinY,
     double LotWidth, double LotDepth, int Scale, string Front, bool AddStreet, double SidewalkWidth,
     double StreetWidth, string StreetName, double NorthDegrees, bool Study, bool ReplaceEdited = false,
-    double? DesignRoofSlope = null, string RoofFlow = "Modelo");
+    double? DesignRoofSlope = null, string RoofFlow = "Modelo", List<RoofDrainageChoice>? Drainage = null);
 
 public sealed record ImplantationPlan(ViewPlan Source, Floor Footprint, ViewPlan? Target,
     ImplantationOptions Options, IReadOnlyList<XYZ> Contour, IReadOnlyList<Element> Roofs)
@@ -110,7 +110,7 @@ public static class Implantation
             {
                 var owned = previous.Elements.Select(stamp => doc.GetElement(stamp.UniqueId))
                     .Where(e => e != null && e.OwnerViewId == view.Id && DrawingOwnership.IsAnnotation(e)).Select(e => e!.Id).ToList();
-                if (owned.Count > 0) doc.Delete(owned);
+                if (owned.Count > 0){var allowed=owned.ToHashSet();if(doc.Delete(owned).Any(id=>!allowed.Contains(id)))throw new InvalidOperationException("Há elementos dependentes das marcações da Implantação. Atualização revertida para preservá-los.");}
             }
             SetClassification(view);
             PreparePreset(doc, view, plan);
@@ -168,25 +168,7 @@ public static class Implantation
             helpers.Text(northStart+northDir*Feet(1.3)+new XYZ(0,Feet(.35),0),"N",true,true);
             helpers.Text(northStart+new XYZ(Feet(1.1),Feet(.1),0),o.Study?"Norte convencional":"Norte informado",false,false);
 
-            // Cada água plana recebe inclinação e direção próprias.
-            foreach(var roof in plan.Roofs)
-            {
-                var roofBounds=roof.get_BoundingBox(null)!;
-                var waters=RoofWaters.Read(doc,new[]{roof});
-                bool main=(roofBounds.Max.X-roofBounds.Min.X)*(roofBounds.Max.Y-roofBounds.Min.Y)>=Feet(6)*Feet(6);
-                int waterIndex=0;
-                foreach(var water in waters)
-                {
-                    waterIndex++;
-                    bool design=main && waters.Count==1 && water.Slope<.05 && o.DesignRoofSlope.HasValue;
-                    var point=new XYZ(water.Center.X,water.Center.Y,z);
-                    var caption=(main?"COBERTURA":"ABRIGO")+(waters.Count>1?" · ÁGUA "+waterIndex:"")+"\n"+
-                        (design?"Caimento de projeto: "+o.DesignRoofSlope!.Value.ToString("0.0",Pt):"Inclinação do modelo: "+water.Slope.ToString("0.0",Pt))+"%";
-                    helpers.Text(point,caption,false,true);
-                    XYZ? direction=design?o.RoofFlow switch{"Direita"=>XYZ.BasisX,"Esquerda"=>-XYZ.BasisX,"Acima"=>XYZ.BasisY,"Abaixo"=>-XYZ.BasisY,_=>water.Direction}:water.Direction;
-                    if(direction!=null){var center=point-new XYZ(0,Feet(1),0);helpers.Arrow(center-direction*Feet(.5),center+direction*Feet(.5));}
-                }
-            }
+            RoofDrainage.Annotate(doc,view,RoofWaters.Read(doc,plan.Roofs),o,generated);
             foreach(var item in new[]{("piscina","PISCINA"),("deck","DECK"),("grama","ÁREA AJARDINADA"),("garagem","GARAGEM")})
             {
                 var element=new FilteredElementCollector(doc).WhereElementIsNotElementType()

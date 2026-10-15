@@ -1,7 +1,7 @@
 param(
  [Parameter(Mandatory=$true)][string]$SourceProject,
  [Parameter(Mandatory=$true)][string]$OutputFolder,
- [ValidateSet('sections','legal05','composition014','review015')][string]$Mode='legal05',
+ [ValidateSet('sections','legal05','composition014','review015','review016')][string]$Mode='legal05',
  [string]$NameReferenceProject
 )
 $ErrorActionPreference='Stop'
