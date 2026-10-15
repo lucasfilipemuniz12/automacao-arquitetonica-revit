@@ -56,8 +56,8 @@ public static class LegalFacades
   }
   var points=Implantation.GetContour(doc,floor);double z=source.GenLevel.Elevation,angle=input.RotationDegrees*Math.PI/180;
   var rotate=Transform.CreateRotation(XYZ.BasisZ,angle);var center=new XYZ((points.Min(p=>p.X)+points.Max(p=>p.X))/2,(points.Min(p=>p.Y)+points.Max(p=>p.Y))/2,z);
-  var hosts=new FilteredElementCollector(doc).WhereElementIsNotElementType().OfType<HostObject>().Where(e=>e.get_BoundingBox(null) is {} b&&b.Max.X>=points.Min(p=>p.X)&&b.Min.X<=points.Max(p=>p.X)&&b.Max.Y>=points.Min(p=>p.Y)&&b.Min.Y<=points.Max(p=>p.Y)).ToList();
-  double top=hosts.Max(e=>e.get_BoundingBox(null)!.Max.Z)+Implantation.Feet(.6),bottom=z-Implantation.Feet(.7);var results=new List<ModuleResult>();
+  var frame=BuildingFrame.Read(doc,source,floor,LegalPreferenceStore.Read(doc).IncludeWholeTerrain);
+  double top=frame.Top,bottom=frame.Bottom;var results=new List<ModuleResult>();
   using var tx=new Transaction(doc,"VEBRAM — preparar quatro fachadas");tx.Start();
   try
   {
@@ -98,17 +98,16 @@ public static class LegalFacades
     }
     else{var crop=LegalSections.CropElement(doc,target);if(Math.Abs(turn)>1e-7)ElementTransformUtils.RotateElement(doc,crop,Line.CreateBound(target.Origin,target.Origin+XYZ.BasisZ),turn);doc.Regenerate();ElementTransformUtils.MoveElement(doc,crop,origin-target.Origin);}
     doc.Regenerate();var actualCrop=LegalSections.CropElement(doc,target);ElementTransformUtils.MoveElement(doc,actualCrop,origin-outward*Implantation.Feet(.1)-target.CropBox.Transform.Origin);doc.Regenerate();if(target.ViewDirection.DotProduct(forward)<.999)throw new InvalidOperationException("Orientação nativa divergente em "+item.Label+": "+target.ViewDirection+", esperada "+forward+"; operação revertida.");
-    var box=target.CropBox;var inverse=box.Transform.Inverse;var corners=points.SelectMany(p=>new[]{inverse.OfPoint(new(p.X,p.Y,bottom)),inverse.OfPoint(new(p.X,p.Y,top))}).ToList();
-    // Include the whole physical context, so short level lines never sit over terrain or annexes.
-    foreach(var bounds in new FilteredElementCollector(doc).WhereElementIsNotElementType().Where(e=>e is HostObject or FamilyInstance or DirectShape).Select(e=>e.get_BoundingBox(null)).Where(b=>b!=null))foreach(var xx in new[]{bounds!.Min.X,bounds.Max.X})foreach(var yy in new[]{bounds.Min.Y,bounds.Max.Y})foreach(var zz in new[]{bounds.Min.Z,bounds.Max.Z})corners.Add(inverse.OfPoint(new(xx,yy,zz)));
+    var box=target.CropBox;var inverse=box.Transform.Inverse;var corners=frame.Corners.Select(inverse.OfPoint).ToList();
     double left=corners.Min(p=>p.X),right=corners.Max(p=>p.X);double depth=Implantation.Feet(input.DistanceMeters*2)+(points.Max(p=>(p-center).DotProduct(outward))-points.Min(p=>(p-center).DotProduct(outward)));
-    box.Min=new(left-Implantation.Feet(3.5),corners.Min(p=>p.Y)-Implantation.Feet(1.5),-depth);box.Max=new(right+Implantation.Feet(1),corners.Max(p=>p.Y),0);target.CropBox=box;target.CropBoxActive=true;target.CropBoxVisible=false;
+    box.Min=new(left-Implantation.Feet(1.5),corners.Min(p=>p.Y),-depth);box.Max=new(right+Implantation.Feet(1.5),corners.Max(p=>p.Y),0);target.CropBox=box;target.CropBoxActive=true;target.CropBoxVisible=false;
     target.get_Parameter(BuiltInParameter.VIEWER_BOUND_FAR_CLIPPING).Set(1);target.get_Parameter(BuiltInParameter.VIEWER_BOUND_OFFSET_FAR).Set(depth);
     var phase=target.get_Parameter(BuiltInParameter.VIEW_PHASE);if(phase is {IsReadOnly:false})phase.Set(source.get_Parameter(BuiltInParameter.VIEW_PHASE).AsElementId());
     var annotationCrop=target.get_Parameter(BuiltInParameter.VIEWER_ANNOTATION_CROP_ACTIVE);if(annotationCrop is {IsReadOnly:false})annotationCrop.Set(0);
     var made=new List<Element>();var pending=new List<string>();
     doc.Regenerate();foreach(var level in new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>().Where(l=>l.Elevation>=bottom&&l.Elevation<=top))
     {
+     if(level.IsHidden(target))target.UnhideElements(new List<ElementId>{level.Id});
      bool native=false;using(var datum=new SubTransaction(doc))
      {
       datum.Start();try
@@ -118,7 +117,7 @@ public static class LegalFacades
         var line=level.GetCurvesInView(DatumExtentType.Model,target).OfType<Line>().FirstOrDefault();
         if(line!=null)
         {
-         var dir=line.Direction;var basePoint=line.GetEndPoint(0);XYZ At(double xx)=>box.Transform.OfPoint(new(xx,level.Elevation-box.Transform.Origin.Z,0));double a=(At(left-Implantation.Feet(2.8))-basePoint).DotProduct(dir),b=(At(left-Implantation.Feet(1.9))-basePoint).DotProduct(dir);
+         var dir=line.Direction;var basePoint=line.GetEndPoint(0);XYZ At(double xx)=>box.Transform.OfPoint(new(xx,level.Elevation-box.Transform.Origin.Z,0));double a=(At(left-Implantation.Feet(1.3))-basePoint).DotProduct(dir),b=(At(left-Implantation.Feet(.6))-basePoint).DotProduct(dir);
          level.SetDatumExtentType(DatumEnds.End0,target,DatumExtentType.ViewSpecific);level.SetDatumExtentType(DatumEnds.End1,target,DatumExtentType.ViewSpecific);level.SetCurveInView(DatumExtentType.ViewSpecific,target,Line.CreateBound(basePoint+dir*Math.Min(a,b),basePoint+dir*Math.Max(a,b)));var bubble=dir.DotProduct(target.RightDirection)>0?DatumEnds.End0:DatumEnds.End1;level.ShowBubbleInView(bubble,target);level.HideBubbleInView(bubble==DatumEnds.End0?DatumEnds.End1:DatumEnds.End0,target);native=true;
         }
        }
@@ -128,10 +127,11 @@ public static class LegalFacades
      }
      if(!native)
      {
-      made.Add(TextNote.Create(doc,target.Id,box.Transform.OfPoint(new(left-Implantation.Feet(2.8),level.Elevation-box.Transform.Origin.Z,0)),level.Name+"\n"+Implantation.Meters(level.Elevation).ToString("0.00",Implantation.Pt)+" m",LegalContext.TextType(doc).Id));pending.Add(level.Name+": indicação textual; plano nativo indisponível nesta elevação.");
+      if(level.CanBeHidden(target))target.HideElements(new List<ElementId>{level.Id});
+      made.Add(TextNote.Create(doc,target.Id,box.Transform.OfPoint(new(left-Implantation.Feet(1.3),level.Elevation-box.Transform.Origin.Z,0)),level.Name+"\n"+Implantation.Meters(level.Elevation).ToString("0.00",Implantation.Pt)+" m",LegalContext.TextType(doc).Id));pending.Add(level.Name+": indicação textual; plano nativo indisponível nesta elevação.");
      }
     }
-    var note=LegalPreferenceStore.Read(doc).AdditionalNote;if(!string.IsNullOrWhiteSpace(note))made.Add(TextNote.Create(doc,target.Id,box.Transform.OfPoint(new(left,corners.Min(p=>p.Y)-Implantation.Feet(.6),0)),note,LegalContext.TextType(doc).Id));
+    var note=LegalPreferenceStore.Read(doc).AdditionalNote;if(!string.IsNullOrWhiteSpace(note))made.Add(TextNote.Create(doc,target.Id,box.Transform.OfPoint(new(left,corners.Min(p=>p.Y)+Implantation.Feet(.12),0)),note,LegalContext.TextType(doc).Id));
     // Keep the original graphic template, excluding parameters this module has to control.
     if(savedTemplate!=ElementId.InvalidElementId)
     {

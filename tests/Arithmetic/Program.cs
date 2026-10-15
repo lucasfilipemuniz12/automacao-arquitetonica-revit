@@ -3,6 +3,15 @@ using Vebram.Revit;
 var passed=new List<string>();
 void Check(bool condition,string title){if(!condition)throw new Exception(title);passed.Add(title);}
 bool Near(double a,double b)=>Math.Abs(a-b)<1e-7;
+Check(RoomNameText.Display("SUÍTE 1")=="SUÍTE 1","Número legítimo no nome preservado");
+Check(RoomNameText.Display("  SUÍTE 1 07 07  ")=="SUÍTE 1 07 07","Nome suspeito não é reescrito sem confirmação");
+Check(RoomNameText.NeedsReview("SUÍTE 1 07","07"),"Possível sufixo de transferência sinalizado");
+Check(RoomNameText.NeedsReview("SUÍTE 1","1"),"Caso ambíguo exige revisão, sem apagar número");
+Check(!RoomNameText.NeedsReview("SUÍTE 1","07"),"Nome normal não é marcado pelo número de outro ambiente");
+Check(!RoomNameText.NeedsReview("SUÍTE 107","07"),"Número parcial não é tratado como sufixo");
+Check(RoomNameText.RestoreFromReference("SUÍTE 1 07 07","07","SUÍTE 1")=="SUÍTE 1","Nome restaurado pela referência original");
+Check(RoomNameText.RestoreFromReference("SUÍTE 1 1 1","1","SUÍTE 1")=="SUÍTE 1","Número legítimo da referência mantido na restauração");
+Check(RoomNameText.RestoreFromReference("SUÍTE RENOMEADA 07","07","SUÍTE 1")=="SUÍTE RENOMEADA 07","Nome manual diferente da referência preservado");
 Check(Near(LegalMetrics.PolygonArea(new[]{(0d,0d),(20d,0d),(20d,30d),(0d,30d)}),600),"Lote 20 × 30 m = 600 m²");
 Check(Near(LegalMetrics.PolygonArea(new[]{(0d,30d),(20d,30d),(20d,0d),(0d,0d)}),600),"Orientação invertida conserva área");
 Check(Near(LegalMetrics.PolygonArea(new[]{(0d,0d),(10d,0d),(10d,5d),(5d,5d),(5d,10d),(0d,10d)}),75),"Contorno ortogonal côncavo = 75 m²");

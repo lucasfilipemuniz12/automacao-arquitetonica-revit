@@ -1,7 +1,7 @@
 using Autodesk.Revit.DB;
 namespace Vebram.Revit;
 
-public sealed record SheetCompositionResult(long SheetId,int HiddenGuides,int RemovedEmptySheets,string Report);
+public sealed record SheetCompositionResult(long SheetId,int HiddenGuides,int RemovedEmptySheets,string Report,int RemovedDuplicateSchedules=0);
 
 /// <summary>Explicit V02 composition command. Never runs as a side effect of preparing a view.</summary>
 public static class LegalSheetComposition
@@ -36,7 +36,7 @@ public static class LegalSheetComposition
   var placed=new FilteredElementCollector(doc).OfClass(typeof(Viewport)).Cast<Viewport>().ToList();
   if(views.Any(p=>!placed.Any(v=>v.ViewId==p.Value.Id)))throw new InvalidOperationException("Coloque todos os entregáveis nas folhas antes de revisar a composição.");
   if(placed.Any(v=>views.Values.Any(x=>x.Id==v.ViewId)&&v.Pinned))throw new InvalidOperationException("Desfixe as vistas que deseja recompor.");
-  var scales=views.Values.ToDictionary(v=>v.Id.Value,v=>v.Scale);int hidden=0,removed=0;
+  var scales=views.Values.ToDictionary(v=>v.Id.Value,v=>v.Scale);int hidden=0,removed=0,duplicateSchedules=0;
   using var group=new TransactionGroup(doc,"VEBRAM — revisar composição V02");group.Start();
   try
   {
@@ -51,6 +51,23 @@ public static class LegalSheetComposition
       (e is CurveElement curve&&curve.LineStyle?.Name=="ARQ Guias de composição"||e is TextNote note&&
        (doc.GetElement(note.GetTypeId()).Name=="ARQ Guia de composição 3.0"||note.Text.StartsWith("BASE DE PROJETO LEGAL")||note.Text.StartsWith("PAR-01 cerâmico 9 cm;")||note.Text.StartsWith("00 | Folha-base - preencher")||note.Text.StartsWith("Quadros complementares: inserir")))).Select(e=>e.Id).ToList();
      if(guideIds.Count>0){sheet.HideElements(guideIds);hidden+=guideIds.Count;}
+    }
+    // Legacy placement allowed the same Q04 to occupy every new complementary
+    // sheet. Only remove owned copies still at the generator's default position,
+    // and only when an original, unowned instance survives on LEG-01.
+    var q04=LegalCatalog.Reference(LegalCatalog.Views(doc),LegalCatalog.Items.First(i=>i.Key=="areas"));
+    if(q04!=null)
+    {
+     var instances=new FilteredElementCollector(doc).OfClass(typeof(ScheduleSheetInstance)).Cast<ScheduleSheetInstance>().Where(s=>s.ScheduleId==q04.Id).ToList();
+     bool original=instances.Any(s=>doc.GetElement(s.OwnerViewId) is ViewSheet sh&&sh.SheetNumber=="LEG-01"&&!DrawingOwnership.IsAnnotation(s));
+     if(original)foreach(var instance in instances.Where(s=>!s.Pinned&&DrawingOwnership.IsAnnotation(s)))
+     {
+      if(doc.GetElement(instance.OwnerViewId) is not ViewSheet sh||!LegalSheets.IsLegalSheet(sh))continue;
+      var title=new FilteredElementCollector(doc,sh.Id).OfCategory(BuiltInCategory.OST_TitleBlocks).WhereElementIsNotElementType().FirstOrDefault()?.get_BoundingBox(sh);var rect=LegalSheets.Rect(instance,sh);if(title==null||rect==null)continue;
+      double margin=Implantation.Feet(.015),tolerance=Implantation.Feet(.002);
+      if(Math.Abs(rect.Value.Left-title.Min.X-margin)>tolerance||Math.Abs(rect.Value.Top-title.Max.Y+margin)>tolerance)continue;
+      var id=instance.Id;if(doc.Delete(id).Any(deleted=>deleted!=id))throw new InvalidOperationException("Dependências da tabela impedem remover duplicata com segurança.");duplicateSchedules++;
+     }
     }
     // Remove the empty template placement, preserving its drafting view and all its notes.
     foreach(var viewport in placed.Where(v=>doc.GetElement(v.ViewId).Name=="LEGAL - Quadro urbanístico / preencher"))
@@ -107,7 +124,7 @@ public static class LegalSheetComposition
     if(tx.Commit()!=TransactionStatus.Committed)throw new InvalidOperationException("Composição revertida pelo Revit.");
    }
    if(group.Assimilate()!=TransactionStatus.Committed)throw new InvalidOperationException("Composição revertida.");
-   return new(sheets[0].Id.Value,hidden,removed,"Composição V02 revista em três folhas. Planta em destaque; quadro compacto e Situação abaixo. Cobertura e quatro fachadas na LEG-02; Implantação e Cortes A/B na LEG-03. Guias ocultas, títulos centralizados e escalas preservadas. Confira os dados técnicos e do carimbo antes de emitir.");
+   return new(sheets[0].Id.Value,hidden,removed,"Entregáveis compostos na LEG-01 a LEG-03. Planta em destaque; quadro compacto e Situação abaixo. Cobertura e quatro fachadas na LEG-02; Implantação e Cortes A/B na LEG-03. Duplicatas padrão do Q04 geradas: "+duplicateSchedules+". Conteúdo manual nas demais folhas é preservado. Confira dados técnicos e carimbo antes de emitir.",duplicateSchedules);
   }
   catch{if(group.GetStatus()==TransactionStatus.Started)group.RollBack();throw;}
  }

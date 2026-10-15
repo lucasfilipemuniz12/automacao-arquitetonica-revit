@@ -63,6 +63,9 @@ public static class Diagnostics
                          .Where(g => !string.IsNullOrWhiteSpace(g.Key) && g.Count() > 1))
                 findings.Add(new("REVISAR", "Marca repetida", $"{group.Key}: {group.Count()} ocorrências na categoria {category}. Verificar intenção de agrupamento."));
         }
+        foreach(var room in new FilteredElementCollector(doc).OfClass(typeof(SpatialElement)).OfType<Room>())
+            if(RoomNameText.NeedsReview(room.get_Parameter(BuiltInParameter.ROOM_NAME)?.AsString(),room.Number))
+                findings.Add(new("REVISAR","Nome de ambiente","O nome termina com o próprio número: "+RoomNameText.Display(room.get_Parameter(BuiltInParameter.ROOM_NAME)?.AsString())+". Pode ser legítimo ou resíduo de transferência; confira sem renomear automaticamente.",room.UniqueId));
         int roomCount = new FilteredElementCollector(doc).OfClass(typeof(SpatialElement)).Cast<SpatialElement>().OfType<Room>().Count();
         findings.Add(new(roomCount == 0 ? "PENDENTE" : "INFORMAÇÃO", "Áreas de ambientes", $"{roomCount} ambientes. Q04 não equivale a memória de áreas urbanísticas."));
         findings.Add(new("PENDENTE", "Dados legais", "Confirmar lote, levantamento, município, critérios de áreas, norte e responsáveis. Este diagnóstico não verifica legislação."));

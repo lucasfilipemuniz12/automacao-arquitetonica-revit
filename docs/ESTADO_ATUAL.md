@@ -1,3 +1,13 @@
+# Revisão 0.5.15 — 15/10/2026
+
+Primeiro lote aprovado da revisão do Claude: transferência correta de ROOM_NAME, diagnóstico/restauração por referência, estilos ARQ reutilizados, recortes pela edificação e busca nas folhas existentes. Teste nativo passou na cópia do projeto gerado; nove nomes restaurados por confronto com a origem; quatro duplicatas padrão do Q04 e quatro folhas vazias retiradas. Resultado desta casa: LEG-01 a LEG-03.
+
+28 testes sem Revit passaram; compilação final sem erros/avisos com binlog. Teste nativo confirmou repetição, proteção de edição, presença da casa, dimensões dos recortes, busca antes de criar folha e preservação física. Três folhas exportadas revistas visualmente. Ainda há caimentos/textos sobrepostos na Implantação/Cobertura, marcadores e cotagem parcial: não declarar todo o Projeto legal concluído.
+
+Fontes em codex/vebram-revisao-claude-v0515, derivada de d7a3a12042e334b2d29e35f034eb4134c1a2b9ad. PR 1 e main preservadas. Consulte [evidência e limites](TESTES_REVISAO_CLAUDE_V0515.md).
+
+---
+
 # Entrega ao Claude corrigida — template original preservado
 
 14/10/2026. Lucas esclareceu que Projeto legal e Projeto executivo devem existir com as vistas originais do seu template, ainda sem preparação pela automação. Essa instrução substitui a interpretação anterior que removia vistas/folhas.

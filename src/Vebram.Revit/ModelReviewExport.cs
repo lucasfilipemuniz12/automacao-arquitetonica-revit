@@ -54,7 +54,7 @@ internal static class ModelReviewExport
     {
      if(room.Location is not LocationPoint point)throw new InvalidOperationException("Ambiente fonte sem posição.");
      var sourceLevel=(Level)source.GetElement(room.LevelId);var level=Levels(target).OrderBy(l=>Math.Abs(l.Elevation-sourceLevel.Elevation)).First();
-     var created=target.Create.NewRoom(level,new UV(point.Point.X,point.Point.Y));created.Name=room.Name;created.Number=room.Number;
+     var created=target.Create.NewRoom(level,new UV(point.Point.X,point.Point.Y));created.Name=RoomNameText.Display(room.get_Parameter(BuiltInParameter.ROOM_NAME)?.AsString());created.Number=room.Number;
      var upper=source.GetElement(room.get_Parameter(BuiltInParameter.ROOM_UPPER_LEVEL).AsElementId()) as Level;
      if(upper!=null)created.get_Parameter(BuiltInParameter.ROOM_UPPER_LEVEL).Set(Levels(target).OrderBy(l=>Math.Abs(l.Elevation-upper.Elevation)).First().Id);
      foreach(var bp in new[]{BuiltInParameter.ROOM_UPPER_OFFSET,BuiltInParameter.ROOM_LOWER_OFFSET})created.get_Parameter(bp).Set(room.get_Parameter(bp).AsDouble());

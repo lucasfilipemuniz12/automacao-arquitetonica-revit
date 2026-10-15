@@ -87,8 +87,7 @@ public static class LegalModules
  }
  static void SetRange(ViewPlan view,double min,double max)
  {using var r=view.GetViewRange();foreach(var p in new[]{PlanViewPlane.TopClipPlane,PlanViewPlane.CutPlane,PlanViewPlane.BottomClipPlane,PlanViewPlane.ViewDepthPlane})r.SetLevelId(p,view.GenLevel.Id);r.SetOffset(PlanViewPlane.TopClipPlane,max-view.GenLevel.Elevation+Implantation.Feet(1));r.SetOffset(PlanViewPlane.CutPlane,max-view.GenLevel.Elevation+Implantation.Feet(.5));r.SetOffset(PlanViewPlane.BottomClipPlane,min-view.GenLevel.Elevation-Implantation.Feet(.1));r.SetOffset(PlanViewPlane.ViewDepthPlane,min-view.GenLevel.Elevation-Implantation.Feet(.2));view.SetViewRange(r);}
- static TextNoteType TextType(Document doc)
- {const string name="ARQ - Legal 2,5 mm - VEBRAM";var type=new FilteredElementCollector(doc).OfClass(typeof(TextNoteType)).Cast<TextNoteType>().FirstOrDefault(t=>t.Name==name);if(type!=null)return type;type=(TextNoteType)new FilteredElementCollector(doc).OfClass(typeof(TextNoteType)).Cast<TextNoteType>().First().Duplicate(name);type.get_Parameter(BuiltInParameter.TEXT_SIZE).Set(Implantation.Feet(.0025));return type;}
+ static TextNoteType TextType(Document doc)=>LegalStyles.Text(doc);
  static Schema Schema(){var s=Autodesk.Revit.DB.ExtensibleStorage.Schema.Lookup(SchemaId);if(s!=null)return s;var b=new SchemaBuilder(SchemaId);b.SetSchemaName("VebramLegalModules03");b.AddSimpleField("Json",typeof(string));return b.Finish();}
  static ModuleStamp? Read(View view){var s=Autodesk.Revit.DB.ExtensibleStorage.Schema.Lookup(SchemaId);if(s==null)return null;var e=view.GetEntity(s);return e.IsValid()?JsonSerializer.Deserialize<ModuleStamp>(e.Get<string>(s.GetField("Json"))):null;}
  static void Write(View view,ModuleStamp state){var s=Schema();var e=new Entity(s);e.Set(s.GetField("Json"),JsonSerializer.Serialize(state));view.SetEntity(e);}
