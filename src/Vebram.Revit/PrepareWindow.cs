@@ -76,10 +76,11 @@ public sealed class PrepareWindow : Window
         cards.Children.Add(Card("Corte A","Posição, sentido e profundidade","cut",true,()=>ChooseSection("corte-a")));cards.Children.Add(Card("Corte B","Posição, sentido e profundidade","cut",true,()=>ChooseSection("corte-b")));
         cards.Children.Add(Card("Fachadas","Quatro elevações a partir do modelo","facade",true,ChooseFacades));
         cards.Children.Add(Card("Cobertura","Inclinação e seta por água modelada","roof",true,()=>ChooseModule("cobertura")));
-        cards.Children.Add(Card("Quadros de esquadrias","Portas e janelas: códigos, medidas e quantidades","area",true,()=>{if(Source==null)return;Module=new("esquadrias",Source.Id.Value);DialogResult=true;})); cards.Children.Add(Card("Áreas dos ambientes","Quadro Q04 do template","area",true,()=>ChooseModule("areas")));
+        cards.Children.Add(Card("Quadros de esquadrias","Portas e janelas: códigos, medidas e quantidades","area",true,()=>{if(Source==null)return;Module=new("esquadrias",Source.Id.Value);DialogResult=true;})); cards.Children.Add(Card("Memória gráfica de áreas","Planta colorida por classe de piso, com legenda e áreas","area",true,()=>{if(Source==null)return;Module=new("memoria",Source.Id.Value);DialogResult=true;})); cards.Children.Add(Card("Áreas dos ambientes","Quadro Q04 do template","area",true,()=>ChooseModule("areas")));
         cards.Children.Add(Card("Quadro urbanístico","Áreas e limites informados pelo projetista","area",true,()=>ChooseContext("urbanistico")));
+        cards.Children.Add(Card("Notas das folhas","Notas gerais e por folha na lateral, escritas por você","area",true,ChooseNotes));
+        cards.Children.Add(Card("Dados do carimbo","Projeto, cliente, endereço e responsáveis nas folhas legais","area",true,ChooseStamp));
         cards.Children.Add(Card("Organizar folhas","Distribuição automática com prévia e preferências","area",true,ChoosePlan));
-        cards.Children.Add(Card("Colocar uma vista","Escolha uma vista e uma folha manualmente","area",true,ChooseSheet));
         body.Children.Add(new TextBlock{Text="Estilo das cotas, escala e informação adicional: Preferências legais. Situação e quadro urbanístico usam o lote confirmado na Implantação. Confira os entregáveis antes de organizar as folhas.",TextWrapping=TextWrapping.Wrap,Foreground=Brushes.SlateGray,Margin=new Thickness(0,12,0,0)});
     }
     Button Card(string title,string description,string kind,bool active=false,Action? action=null)
@@ -181,6 +182,46 @@ public sealed class PrepareWindow : Window
     {
         var window=new SheetPlannerWindow(SheetPlanner.Items(doc),(profile,ids,optimize)=>SheetPlanner.Preview(doc,profile,ids,optimize)){Owner=this};
         if(window.ShowDialog()==true){Plan=window.Result;DialogResult=true;}
+    }
+    void ChooseNotes()
+    {
+        var sheets=SheetPlanner.Sheets(doc);if(sheets.Count==0){MessageBox.Show(this,"Não há folhas legais (LEG) no projeto.");return;}
+        var saved=SheetNotes.ReadUser(doc);var perSheet=new Dictionary<string,string>(saved.Sheets);
+        var dialog=new Window{Owner=this,Title="Notas das folhas",Width=640,Height=760,WindowStartupLocation=WindowStartupLocation.CenterOwner};
+        var body=new StackPanel{Margin=new Thickness(24)};dialog.Content=new ScrollViewer{Content=body,VerticalScrollBarVisibility=ScrollBarVisibility.Auto};
+        body.Children.Add(new TextBlock{Text="Notas das folhas",FontSize=23});
+        body.Children.Add(new TextBlock{Text="Escreva uma nota por linha. Elas entram no campo de notas da lateral de cada folha legal, depois das notas automáticas. O plugin não escreve exigências nem hipóteses por você; só o que for digitado aqui.",TextWrapping=TextWrapping.Wrap,Foreground=Brushes.SlateGray,Margin=new Thickness(0,8,0,8)});
+        body.Children.Add(Label("Notas gerais (todas as folhas legais)"));
+        var general=new TextBox{Text=saved.General,AcceptsReturn=true,TextWrapping=TextWrapping.Wrap,MinHeight=110,Padding=new Thickness(6),VerticalScrollBarVisibility=ScrollBarVisibility.Auto};body.Children.Add(general);
+        body.Children.Add(Label("Notas só de uma folha"));
+        var choices=sheets.Select(s=>new SourceChoice(s.Id.Value,s.SheetNumber+" · "+s.Name)).ToList();
+        var picker=new ComboBox{ItemsSource=choices,SelectedIndex=0,MinHeight=32};body.Children.Add(picker);
+        var own=new TextBox{AcceptsReturn=true,TextWrapping=TextWrapping.Wrap,MinHeight=130,Margin=new Thickness(0,8,0,0),Padding=new Thickness(6),VerticalScrollBarVisibility=ScrollBarVisibility.Auto};body.Children.Add(own);
+        string? current=null;
+        void Remember(){if(current!=null)perSheet[current]=own.Text;}
+        string NumberOf(SourceChoice choice)=>sheets.First(s=>s.Id.Value==choice.Id).SheetNumber;
+        void Load(){var choice=(SourceChoice)picker.SelectedItem;current=NumberOf(choice);own.Text=perSheet.GetValueOrDefault(current)??"";}
+        picker.SelectionChanged+=(_,_)=>{Remember();Load();};Load();
+        body.Children.Add(new TextBlock{Text="Se faltar espaço no campo lateral, a nota não é colocada e o plugin avisa. Notas editadas à mão no desenho são preservadas.",TextWrapping=TextWrapping.Wrap,Foreground=Brushes.SlateGray,Margin=new Thickness(0,10,0,10)});
+        var apply=new Button{Content="Gravar e aplicar nas folhas",Padding=new Thickness(15,8,15,8),HorizontalAlignment=HorizontalAlignment.Right};body.Children.Add(apply);
+        apply.Click+=(_,_)=>{try{Remember();using(var tx=new Transaction(doc,"VEBRAM — gravar notas")){tx.Start();SheetNotes.SaveUser(doc,new(general.Text,perSheet.Where(p=>!string.IsNullOrWhiteSpace(p.Value)).ToDictionary(p=>p.Key,p=>p.Value)));tx.Commit();}MessageBox.Show(dialog,SheetNotes.Refresh(doc),"VEBRAM — notas das folhas");dialog.DialogResult=true;}catch(Exception ex){MessageBox.Show(dialog,ex.Message);}};
+        dialog.ShowDialog();
+    }
+    void ChooseStamp()
+    {
+        var dialog=new Window{Owner=this,Title="Dados do carimbo",Width=620,Height=760,WindowStartupLocation=WindowStartupLocation.CenterOwner};
+        var body=new StackPanel{Margin=new Thickness(24)};dialog.Content=new ScrollViewer{Content=body,VerticalScrollBarVisibility=ScrollBarVisibility.Auto};
+        body.Children.Add(new TextBlock{Text="Dados do carimbo",FontSize=23});
+        body.Children.Add(new TextBlock{Text="O carimbo das folhas legais lê estes campos. Preencha só o que for verdadeiro: campos vazios não são alterados e nada é inventado. Hoje muitos aparecem como A PREENCHER.",TextWrapping=TextWrapping.Wrap,Foreground=Brushes.SlateGray,Margin=new Thickness(0,8,0,8)});
+        var current=StampData.Read(doc);var boxes=new Dictionary<string,TextBox>();
+        foreach(var field in StampData.Fields)
+        {
+            body.Children.Add(Label(field.Label));var box=new TextBox{Text=current.GetValueOrDefault(field.Key)??"",MinHeight=32,Padding=new Thickness(6),ToolTip=field.Help};boxes[field.Key]=box;body.Children.Add(box);
+        }
+        body.Children.Add(new TextBlock{Text="Dados do projeto valem para todas as folhas. Os responsáveis valem só para as folhas legais (LEG). Os campos de revisão ficam como estão.",TextWrapping=TextWrapping.Wrap,Foreground=Brushes.SlateGray,Margin=new Thickness(0,10,0,10)});
+        var apply=new Button{Content="Gravar nos carimbos",Padding=new Thickness(15,8,15,8),HorizontalAlignment=HorizontalAlignment.Right};body.Children.Add(apply);
+        apply.Click+=(_,_)=>{try{MessageBox.Show(dialog,StampData.Apply(doc,boxes.ToDictionary(p=>p.Key,p=>p.Value.Text)),"VEBRAM — dados do carimbo");dialog.DialogResult=true;}catch(Exception ex){MessageBox.Show(dialog,ex.Message);}};
+        dialog.ShowDialog();
     }
     void ChooseSheet()
     {

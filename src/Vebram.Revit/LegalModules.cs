@@ -14,6 +14,7 @@ public static class LegalModules
   if(doc.IsFamilyDocument||doc.IsReadOnly||doc.IsWorkshared||doc.PathName.EndsWith(".rte",StringComparison.OrdinalIgnoreCase))throw new InvalidOperationException("Use um RVT local editável.");
   var source=doc.GetElement(new ElementId(request.SourceId)) as ViewPlan??throw new InvalidOperationException("Escolha a planta de modelagem.");
   if(source.IsTemplate||source.ViewType!=ViewType.FloorPlan)throw new InvalidOperationException("Fonte de planta inválida.");
+  if(request.Key=="memoria")return MemoryAreas.Apply(doc,source);
   if(request.Key=="esquadrias")return OpeningSchedules.Apply(doc,source); if(request.Key=="areas")
   {
    var schedule=LegalCatalog.Reference(LegalCatalog.Views(doc),LegalCatalog.Items.First(i=>i.Key=="areas")) as ViewSchedule??throw new InvalidOperationException("Q04 do V02 não encontrado. Use o template compatível.");
@@ -77,7 +78,12 @@ public static class LegalModules
   var excluded=preset.GetNonControlledTemplateParameterIds().ToHashSet();var controlled=preset.GetTemplateParameterIds();
   foreach(var id in controlled)if(new[]{"PLAN_VIEW_RANGE","VIEW_SCALE","VIEWER_CROP_REGION","VIEWER_CROP_REGION_VISIBLE","VIEW_PHASE"}.Contains(((BuiltInParameter)id.Value).ToString()))excluded.Add(id);
   foreach(var guid in new[]{LegalCatalog.StageId,LegalCatalog.FunctionId})if(SharedParameterElement.Lookup(doc,guid) is { } p&&controlled.Contains(p.Id))excluded.Add(p.Id);
-  preset.SetNonControlledTemplateParameterIds(excluded.ToList());target.ViewTemplateId=preset.Id;target.Scale=scale;
+  preset.SetNonControlledTemplateParameterIds(excluded.ToList());
+  // Navigation marks clutter the drawing: elevation markers and callouts are hidden in every plan; section marks only in the roof plan
+  // (on the floor plan they show where each section cuts, which the legal set needs). Applied every time, so older presets are cleaned too.
+  var hiddenMarks=item.Key=="cobertura"?new[]{BuiltInCategory.OST_Elev,BuiltInCategory.OST_Callouts,BuiltInCategory.OST_Sections}:new[]{BuiltInCategory.OST_Elev,BuiltInCategory.OST_Callouts};
+  foreach(var mark in hiddenMarks){var markId=new ElementId(mark);if(preset.CanCategoryBeHidden(markId))preset.SetCategoryHidden(markId,true);}
+  target.ViewTemplateId=preset.Id;target.Scale=scale;
   var phase=target.get_Parameter(BuiltInParameter.VIEW_PHASE);if(phase is {IsReadOnly:false})phase.Set(source.get_Parameter(BuiltInParameter.VIEW_PHASE).AsElementId());
   foreach(var pair in new[]{(LegalCatalog.StageId,LegalCatalog.Stage),(LegalCatalog.FunctionId,item.Role)}){var p=target.get_Parameter(pair.Item1);if(p==null)throw new InvalidOperationException("Parâmetro ARQ ausente.");if(!LegalCatalog.Same(p.AsString(),pair.Item2)){if(p.IsReadOnly)throw new InvalidOperationException("Classificação ARQ bloqueada.");p.Set(pair.Item2);}}
  }

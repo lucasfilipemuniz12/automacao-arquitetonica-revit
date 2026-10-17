@@ -53,6 +53,32 @@ public sealed class LegalGuide : Border
    Pin(3,105,128,"Limites permitidos","TO e TP são percentuais: digite 60 para 60%. CA é um coeficiente: digite 1,5, sem %. Consulte os critérios aplicáveis ao seu lote.");
    Pin(4,290,265,"Leitura do resultado","TO = projeção ÷ lote. CA = área computável ÷ lote. TP = área permeável ÷ lote. Sem área ou limite informado, o resultado fica pendente.");return;
   }
+  if(kind=="cobertura")
+  {
+   // Roof seen from above: two waters, a ridge, slope arrows with example percentages and north.
+   var water=new SolidColorBrush(Color.FromRgb(228,242,242));
+   R(55,45,290,190,water);L(200,45,200,235,Ink,2.5);R(55,45,290,190);
+   Arrow(128,120,128,160);T(95,168,"ÁGUA 1 · 5%*",12);Arrow(272,170,272,130);T(238,100,"ÁGUA 2 · 3%*",12);
+   T(120,245,"cumeeira / divisão das águas",11);Arrow(370,70,370,22);T(379,8,"N");
+   Pin(1,28,22,"Piso base","Escolha o piso do pavimento sob a cobertura. Ele define quais telhados e lajes pertencem a esta planta.");
+   Pin(2,150,80,"Águas e caimentos","Cada água é uma superfície da cobertura. Inclinações modeladas são lidas automaticamente. Em lajes planas, o percentual e o sentido vêm da configuração de caimentos feita na Implantação; sem dados, aparece \"caimento a definir\". Os 5% e 3% do desenho são só exemplos.");
+   Pin(3,300,200,"Atualização","Se mudar o telhado, a laje ou os caimentos na Implantação, prepare a Cobertura de novo. Marcas do gerador que você editou só são refeitas se marcar a opção.");return;
+  }
+  if(kind=="situacao")
+  {
+   // Same orientation as the generated diagram: X to the right, Y up. Left/right/rear are read on the drawing, not from the street.
+   var neighbor=new SolidColorBrush(Color.FromRgb(237,240,242));
+   R(105,95,190,105,new SolidColorBrush(Color.FromRgb(228,242,242)));T(172,140,"LOTE");T(128,112,"Quadra 12 · Lote 5",11);
+   R(15,95,85,105,neighbor);T(25,140,"ESQUERDA",11);R(300,95,85,105,neighbor);T(312,140,"DIREITA",11);R(105,30,190,60,neighbor);T(168,53,"FUNDO",11);
+   R(15,215,370,40,new SolidColorBrush(Color.FromRgb(225,232,229)));T(152,226,"FRENTE · VIA",12);
+   Arrow(355,78,355,22);T(364,8,"N");
+   Pin(1,120,70,"Identificação do lote","Informe quadra, lote ou cadastro (por exemplo: Quadra 12 · Lote 5). O texto aparece dentro do lote no diagrama de situação.");
+   Pin(2,43,70,"Confrontante esquerdo","Terreno vizinho do lado ESQUERDO do desenho. Escreva o nome do proprietário ou a identificação do lote vizinho. Vazio aparece como NÃO INFORMADO.");
+   Pin(3,330,70,"Confrontante direito","Terreno vizinho do lado DIREITO do desenho. Vazio aparece como NÃO INFORMADO.");
+   Pin(4,215,3,"Confrontante ao fundo","Terreno vizinho na parte de CIMA do desenho (os fundos do lote). Vazio aparece como NÃO INFORMADO.");
+   Pin(5,5,262,"Conferência","Esquerda, direita e fundo seguem os eixos do desenho da Implantação, não a visão de quem está na rua. Confira antes de confirmar. O diagrama não substitui mapa cadastral nem levantamento topográfico.");
+   Pin(6,320,225,"Via e norte (vêm da Implantação)","Lote, via e norte não são digitados aqui: vêm da Implantação já confirmada. Se algo estiver errado, corrija na Implantação e refaça a Situação.");return;
+  }
   if(kind=="planta")
   {
    R(55,45,290,180);R(62,52,126,80);R(195,52,143,166);R(62,139,126,79);T(88,77,"QUARTO");T(92,96,"12,00 m²");T(230,112,"SALA");T(226,132,"24,50 m²");T(82,162,"COZINHA");T(90,181,"10,20 m²");L(55,248,345,248);L(55,242,55,254);L(345,242,345,254);T(184,257,"10,00");
@@ -65,7 +91,8 @@ public sealed class LegalGuide : Border
    if(kind=="corte"){L(178,95,178,220,Ink,3);T(76,190,"SALA");T(213,190,"SUÍTE");}
    L(335,95,335,222);L(326,95,344,95);L(326,222,344,222);T(342,145,"H");T(60,243,"terreno do modelo");Arrow(175,275,175,237);
    Pin(1,45,59,"Piso e fonte","Escolha o piso do pavimento que serve de referência. A vista mostra a geometria existente no modelo.");
-   Pin(2,140,48,"Direção e posição","Corte: X percorre a largura; Y percorre a profundidade. A posição de 50% atravessa o meio do piso. Confira quais ambientes a linha realmente corta.");
+   if(kind=="corte")Pin(2,140,48,"Direção e posição","Corte: X percorre a largura; Y percorre a profundidade. A posição de 50% atravessa o meio do piso. Confira quais ambientes a linha realmente corta.");
+   else Pin(2,140,48,"Giro das fachadas","Se a casa está girada em relação aos eixos do projeto, informe o ângulo em graus. 0 usa Norte/Sul/Leste/Oeste direto dos eixos. O giro só orienta as fachadas; não muda o norte verdadeiro do modelo.");
    Pin(3,152,266,"Sentido e profundidade","Inverter troca o lado para o qual você olha. Profundidade é quanto aparece atrás da linha de corte, em metros. Nas fachadas, distância posiciona o observador fora da casa.");
    Pin(4,354,95,"Alturas","A altura total usa o topo da edificação e o terreno do modelo. O pé-direito usa faces reais de piso e teto; quando não há referência válida, o plugin informa a pendência.");return;
   }
@@ -96,6 +123,8 @@ public sealed class LegalGuide : Border
  int Match(string label)
  {
   var s=label.ToLowerInvariant();
+  if(kind=="cobertura")return s.Contains("refazer")?3:1;
+  if(kind=="situacao")return s.Contains("esquerd")?2:s.Contains("direit")?3:s.Contains("fundo")?4:s.Contains("conferi")||s.Contains("refazer")?5:1;
   if(kind=="urbanistico"||kind=="areas")return s.Contains("área computável")||s.Contains("área permeável")?2:s.Contains("máxim")||s.Contains("mínim")?3:s.Contains("confer")?4:1;
   if(kind=="corte"||kind=="fachadas")return s.Contains("direção")||s.Contains("posição")||s.Contains("giro")?2:s.Contains("sentido")||s.Contains("profundidade")||s.Contains("distância")?3:s.Contains("altura")?4:1;
   if(kind=="folhas")return s.Contains("complementar")?3:s.Contains("folha")?2:1;

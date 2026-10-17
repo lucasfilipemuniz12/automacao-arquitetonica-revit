@@ -8,7 +8,7 @@ public sealed record PlanAnnotationResult(int RoomDimensions,int WallDimensions,
 public static class PlanAnnotations
 {
  sealed record Edge(Line Line,Wall Wall);
- sealed record Rect(double X0,double Y0,double X1,double Y1)
+ internal sealed record Rect(double X0,double Y0,double X1,double Y1)
  {
   public bool Overlaps(Rect b,double gap)=>X0<b.X1+gap&&X1>b.X0-gap&&Y0<b.Y1+gap&&Y1>b.Y0-gap;
  }
@@ -76,10 +76,26 @@ public static class PlanAnnotations
      double end=horizontal?high.Line.GetEndPoint(0).X:high.Line.GetEndPoint(0).Y;
      var p0=horizontal?new XYZ(start,cross,z):new XYZ(cross,start,z);var p1=horizontal?new XYZ(end,cross,z):new XYZ(cross,end,z);
      // Offset dimension text toward one side of the room to leave its central label clear.
-     double margin=paper*1.2;double crossTarget=horizontal?box.Min.Y+margin:box.Max.X-margin; double shift=horizontal?cross-crossTarget:crossTarget-cross;
-     var offset=horizontal?new XYZ(0,-shift,0):new XYZ(shift,0,0);p0+=offset;p1+=offset;
-     var dimensionBand=horizontal?new Rect(p0.X,(p0.Y+p1.Y)/2-paper*.7,p1.X,(p0.Y+p1.Y)/2+paper*.7):new Rect((p0.X+p1.X)/2-paper*.7,p0.Y,(p0.X+p1.X)/2+paper*.7,p1.Y);
-     if(labelRect!=null&&labelRect.Overlaps(dimensionBand,0)){pending.Add("Ambiente "+room.Number+": cota "+(horizontal?"horizontal":"vertical")+" pendente para preservar leitura do rótulo.");continue;}
+     // Several lines to try (near both edges, then a quarter of the way in), so the dimension rarely has to be skipped.
+     double margin=paper*1.2;double lo=horizontal?box.Min.Y:box.Min.X,hi=horizontal?box.Max.Y:box.Max.X;
+     var targets=horizontal?new[]{lo+margin,hi-margin,lo+(hi-lo)*.25,lo+(hi-lo)*.75}:new[]{hi-margin,lo+margin,lo+(hi-lo)*.75,lo+(hi-lo)*.25};
+     var baseStart=p0;var baseEnd=p1;Rect? chosenBand=null;XYZ q0=p0,q1=p1;
+     foreach(bool strict in new[]{true,false})
+     {
+      foreach(double crossTarget in targets)
+      {
+       double shift=horizontal?cross-crossTarget:crossTarget-cross;var offset=horizontal?new XYZ(0,-shift,0):new XYZ(shift,0,0);
+       var s0=baseStart+offset;var s1=baseEnd+offset;
+       var band=horizontal?new Rect(s0.X,(s0.Y+s1.Y)/2-paper*.7,s1.X,(s0.Y+s1.Y)/2+paper*.7):new Rect((s0.X+s1.X)/2-paper*.7,s0.Y,(s0.X+s1.X)/2+paper*.7,s1.Y);
+       if(labelRect!=null&&labelRect.Overlaps(band,0))continue;
+       var middle=(s0+s1)/2;if(!room.IsPointInRoom(new(middle.X,middle.Y,z+Implantation.Feet(1))))continue;
+       if(strict&&occupied.Any(r=>r.Overlaps(band,paper*.1)))continue;
+       chosenBand=band;q0=s0;q1=s1;break;
+      }
+      if(chosenBand!=null)break;
+     }
+     if(chosenBand==null){pending.Add("Ambiente "+room.Number+": cota "+(horizontal?"horizontal":"vertical")+" pendente para preservar leitura do rótulo.");continue;}
+     p0=q0;p1=q1;var dimensionBand=chosenBand;
      if(TryDimension(doc,view,dimType,new[]{a,b},p0,p1,made,pending,"Ambiente "+room.Number))
      {roomDims++;var center=(p0+p1)/2;occupied.Add(new(center.X-paper*2,center.Y-paper,center.X+paper*2,center.Y+paper));}
     }
@@ -108,6 +124,12 @@ public static class PlanAnnotations
    }
   }
   foreach(var note in new FilteredElementCollector(doc,view.Id).OfClass(typeof(TextNote)).Cast<TextNote>().Where(n=>!made.Contains(n)))occupied.Add(TextBounds(note,view.Scale));
+  // Wall centre lines (with half thickness) and dimension lines already drawn in this view.
+  var obstacles=new List<(Line Line,double Half)>();
+  foreach(var wall in new FilteredElementCollector(doc,view.Id).OfClass(typeof(Wall)).Cast<Wall>())
+   if((wall.Location as LocationCurve)?.Curve is Line wallLine&&wallLine.IsBound)obstacles.Add((wallLine,wall.Width/2));
+  foreach(var dimension in new FilteredElementCollector(doc,view.Id).OfClass(typeof(Dimension)).Cast<Dimension>())
+   if(dimension.DimensionShape==DimensionShape.Linear&&dimension.Curve is Line dimensionLine&&dimensionLine.IsBound)obstacles.Add((dimensionLine,0));
   int openingLabels=0;
   foreach(var opening in new FilteredElementCollector(doc,view.Id).WhereElementIsNotElementType()
    .Where(e=>e.Category?.Id.Value is (long)BuiltInCategory.OST_Doors or (long)BuiltInCategory.OST_Windows).OrderBy(e=>e.Id.Value))
@@ -120,22 +142,42 @@ public static class PlanAnnotations
    var center=(box.Min+box.Max)/2;center=new XYZ(center.X,center.Y,z);
    var facing=opening is FamilyInstance family? family.FacingOrientation:box.Max.X-box.Min.X>=box.Max.Y-box.Min.Y?XYZ.BasisY:XYZ.BasisX;facing=new XYZ(facing.X,facing.Y,0);if(facing.GetLength()<.001)facing=XYZ.BasisY;else facing=facing.Normalize();
    var along=new XYZ(-facing.Y,facing.X,0);TextNote? chosen=null;
-   foreach(double distance in new[]{.0035,.005,.007})
+   // Rings of growing distance, eight directions each. Beyond 7 mm on paper the label gets a short leader to its opening.
+   // First pass also avoids walls and dimension lines; the second pass keeps the earlier behaviour so nothing becomes unplaceable.
+   var directions=new[]{facing,-facing,along,-along,(facing+along).Normalize(),(facing-along).Normalize(),(-facing+along).Normalize(),(-facing-along).Normalize()};
+   foreach(bool avoidLines in new[]{true,false})
    {
-    foreach(var delta in new[]{facing,-facing,along,-along})
+    foreach(double distance in new[]{.0035,.005,.007,.009,.011,.014})
     {
-     var note=TextNote.Create(doc,view.Id,center+delta*Implantation.Feet(distance)*view.Scale,code,new TextNoteOptions(LegalStyles.Text(doc,2).Id){HorizontalAlignment=HorizontalTextAlignment.Center,VerticalAlignment=VerticalTextAlignment.Middle});doc.Regenerate();
-     var rect=TextBounds(note,view.Scale);
-     if(occupied.Any(r=>r.Overlaps(rect,paper*.2))){doc.Delete(note.Id);continue;}
-     occupied.Add(rect);chosen=note;break;
+     foreach(var delta in directions)
+     {
+      var note=TextNote.Create(doc,view.Id,center+delta*Implantation.Feet(distance)*view.Scale,code,new TextNoteOptions(LegalStyles.Text(doc,2).Id){HorizontalAlignment=HorizontalTextAlignment.Center,VerticalAlignment=VerticalTextAlignment.Middle});doc.Regenerate();
+      var rect=TextBounds(note,view.Scale);
+      if(occupied.Any(r=>r.Overlaps(rect,paper*.2))||(avoidLines&&obstacles.Any(o=>TouchesLine(rect,o.Line,o.Half)))){doc.Delete(note.Id);continue;}
+      if(distance>.007)
+      {
+       // A label far from its opening is only acceptable with a leader; otherwise try the next position.
+       try{var leader=note.AddLeader(TextNoteLeaderTypes.TNLT_STRAIGHT_R);leader.End=center;}
+       catch(Exception ex) when(ex is Autodesk.Revit.Exceptions.ApplicationException or InvalidOperationException){doc.Delete(note.Id);continue;}
+      }
+      occupied.Add(rect);chosen=note;break;
+     }
+     if(chosen!=null)break;
     }
     if(chosen!=null)break;
    }
-   if(chosen==null){pending.Add("Esquadria "+code+": sem espaço para identificação; ajuste a anotação na planta.");continue;}
+   if(chosen==null){pending.Add("Esquadria "+code+": sem espaço para identificação mesmo com chamada; ajuste a anotação na planta.");continue;}
    made.Add(chosen);openingLabels++;
   }
   pending.Add(openingLabels+" identificações de esquadrias geradas com a Marca existente. Atualize a planta após alterar os códigos.");
   return new(roomDims,wallDims,openingDims,external,pending);
+ }
+ /// <summary>True when a line (thickened by half) passes through the rectangle; sampled every ~5 cm.</summary>
+ internal static bool TouchesLine(Rect r,Line line,double half)
+ {
+  var a=line.GetEndPoint(0);var b=line.GetEndPoint(1);int steps=Math.Max(1,(int)Math.Ceiling(a.DistanceTo(b)/.05));
+  for(int i=0;i<=steps;i++){var p=a+(b-a)*i/steps;if(p.X>r.X0-half&&p.X<r.X1+half&&p.Y>r.Y0-half&&p.Y<r.Y1+half)return true;}
+  return false;
  }
  static Rect TextBounds(TextNote note,int scale)=>new(note.Coord.X-note.Width*scale/2,note.Coord.Y-note.Height*scale/2,note.Coord.X+note.Width*scale/2,note.Coord.Y+note.Height*scale/2);
  static bool Crosses(Line line,double cross,bool horizontal){var a=line.GetEndPoint(0);var b=line.GetEndPoint(1);double low=horizontal?Math.Min(a.Y,b.Y):Math.Min(a.X,b.X),high=horizontal?Math.Max(a.Y,b.Y):Math.Max(a.X,b.X);return cross>low+.01&&cross<high-.01;}

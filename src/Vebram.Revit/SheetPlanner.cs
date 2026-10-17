@@ -148,6 +148,7 @@ public static partial class SheetPlanner
   return SheetPacking.Pack(area,obstacles,items.Select(i=>sizes[i.ViewId]).ToList(),gap);
  }
  static bool Equivalent(SheetPlan a,SheetPlan b)=>a.Pages.Count==b.Pages.Count&&a.Pages.Zip(b.Pages).All(p=>p.First.Number==p.Second.Number&&p.First.Drawings.Count==p.Second.Drawings.Count&&p.First.Drawings.Zip(p.Second.Drawings).All(d=>d.First.ViewId==d.Second.ViewId&&d.First.Scale==d.Second.Scale&&Math.Abs(d.First.Rect.Left-d.Second.Rect.Left)<1e-6&&Math.Abs(d.First.Rect.Top-d.Second.Rect.Top)<1e-6&&Math.Abs(d.First.Rect.Right-d.Second.Rect.Right)<1e-6&&Math.Abs(d.First.Rect.Bottom-d.Second.Rect.Bottom)<1e-6));
+ internal static FamilyInstance? TitleOf(Document doc,ViewSheet sheet)=>Title(doc,sheet);
  static FamilyInstance? Title(Document doc,ViewSheet sheet)=>new FilteredElementCollector(doc,sheet.Id).OfCategory(BuiltInCategory.OST_TitleBlocks).WhereElementIsNotElementType().OfType<FamilyInstance>().FirstOrDefault();
  static ViewSheet NewSheet(Document doc,ViewSheet reference,string number)
  {

@@ -144,7 +144,7 @@ public static class ReportWindow
         var close = new Button { Content = "Fechar", IsCancel = true, Margin = new Thickness(8, 0, 0, 0), Padding = new Thickness(12, 7, 12, 7) };
         close.Click += (_, _) => window.Close();
         footer.Children.Add(export); footer.Children.Add(close);
-        panel.Children.Add(new TextBox { Text = Diagnostics.Markdown(report), IsReadOnly = true,
+        panel.Children.Add(new TextBox { Text = Diagnostics.Checklist(report), IsReadOnly = true,
             TextWrapping = TextWrapping.Wrap, VerticalScrollBarVisibility = ScrollBarVisibility.Auto });
         window.ShowDialog();
     }
