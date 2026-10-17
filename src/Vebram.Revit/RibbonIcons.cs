@@ -15,7 +15,17 @@ internal static class RibbonIcons
    void Line(double x,double y,double a,double b)=>d.DrawLine(pen,new Point(x,y),new Point(a,b));
    void Rect(double x,double y,double w,double h)=>d.DrawRoundedRectangle(pale,pen,new Rect(x,y,w,h),1,1);
    void Dot(double x,double y)=>d.DrawEllipse(ink,null,new Point(x,y),1.4,1.4);
-   if(key=="Preparar")
+   if(key=="Cadastro")
+   {
+    Rect(4,4,23,25);Rect(10,2,11,5);Line(8,12,14,12);Line(8,17,14,17);Line(8,22,14,22);
+    d.DrawEllipse(Brushes.White,pen,new Point(23,19),5,5);Line(20,23,23,28);Line(23,28,26,23);Dot(23,19);
+   }
+   else if(key=="Municipios")
+   {
+    Line(2,11,16,3);Line(16,3,30,11);Line(2,11,30,11);Line(4,27,28,27);Line(2,30,30,30);
+    foreach(var x in new[]{7,16,25}){Line(x,14,x,24);Dot(x,7);}
+   }
+   else if(key=="Preparar")
    {
     Rect(3,4,23,23);Line(15,4,15,18);Line(3,18,20,18);Line(20,18,20,27);Line(15,11,26,11);
     d.DrawEllipse(Brushes.White,pen,new Point(25,25),5,5);Line(22.5,25,24.3,27);Line(24.3,27,28,23);

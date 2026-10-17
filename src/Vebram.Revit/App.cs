@@ -33,23 +33,17 @@ public sealed class App : IExternalApplication
         foreach (var old in app.GetRibbonPanels(tab).Where(p => p.Name.StartsWith("VEBRAM ·") && !p.Name.StartsWith("VEBRAM · 1") && !p.Name.StartsWith("VEBRAM · 2") && !p.Name.StartsWith("VEBRAM · Avançado")))
             old.Visible = false;
         // Ordem de uso: 1 preparar o projeto, 2 gerar os entregáveis.
-        var prepare = app.CreateRibbonPanel(tab, "VEBRAM · 1 Preparar o projeto");
-        Add(prepare, "Parametros", "1 Configurar\nparâmetros", typeof(ConfigureCommand),
-            "Passo 1. Adiciona os três parâmetros de classificação ARQ do V02 em vistas e folhas. Rode uma vez por projeto.");
-        Add(prepare, "Diagnosticar", "2 Diagnosticar\nprojeto", typeof(DiagnoseCommand),
-            "Passo 2. Confere o modelo contra o template V02 e lista o que falta. Somente leitura.");
-        Add(prepare, "Preferencias", "3 Preferências\nlegais", typeof(LegalPreferencesCommand),
-            "Passo 3. Estilo de cota, escala e informação adicional para este projeto.");
-        var deliverables = app.CreateRibbonPanel(tab, "VEBRAM · 2 Entregáveis legais");
-        Add(deliverables, "Preparar", "4 Preparar\nlegal", typeof(PrepareLegalCommand),
-            "Passo 4. Escolha uma planta de modelagem e gere cada entregável: implantação, situação, plantas, cortes, fachadas, quadros e memória gráfica. Organizar folhas fica aqui dentro.");
-        // Uso ocasional: fora do caminho principal.
-        var advanced = app.CreateRibbonPanel(tab, "VEBRAM · Avançado");
-        var menu = (PulldownButton)advanced.AddItem(new PulldownButtonData("Vebram_Avancado", "Avançado"));
-        menu.ToolTip = "Ferramentas de teste do template. Não alteram o seu projeto.";
-        menu.LargeImage = RibbonIcons.For("Demo"); menu.Image = menu.LargeImage;
-        var demo = menu.AddPushButton(new PushButtonData("Vebram_Demo_" + buttonIndex++, "Demonstração do V02", assembly, typeof(DemoCommand).FullName));
-        demo.ToolTip = "Cria um RVT novo a partir do template escolhido, para validar a base.";
+        var project = app.CreateRibbonPanel(tab, "VEBRAM · 1 Dados do projeto");
+        Add(project,"Cadastro","Cadastrar\nprojeto",typeof(RegisterProjectCommand),"Comece aqui: identifique a casa, o lote, o uso e a intervenção. Os dados ficam no RVT; o perfil municipal é escolhido na biblioteca.");
+        var municipalities=app.CreateRibbonPanel(tab,"VEBRAM · 2 Municípios e regras");
+        Add(municipalities,"Municipios","Biblioteca\nmunicipal",typeof(MunicipalProfilesCommand),"Cadastre perfis com município, zoneamento, uso, intervenção, parâmetros e fontes. Reutilize em outros projetos deste computador. Regras manuais, sem verificação legal automática.");
+        var deliverables = app.CreateRibbonPanel(tab, "VEBRAM · 3 Preparar entregáveis");
+        Add(deliverables, "Preparar", "Preparar\nentregáveis", typeof(PrepareLegalCommand),
+            "Plantas, cortes, fachadas, quadros e organização de folhas. O cadastro não bloqueia a preparação das vistas.");
+        var menu=(PulldownButton)deliverables.AddItem(new PulldownButtonData("Vebram_Ferramentas","Ferramentas"));
+        menu.LargeImage=RibbonIcons.For("Preferencias");menu.Image=menu.LargeImage;
+        void Tool(string text,Type type){var item=menu.AddPushButton(new PushButtonData("Vebram_Tool_"+buttonIndex++,text,assembly,type.FullName));item.AvailabilityClassName=typeof(ProjectAvailable).FullName;}
+        Tool("Configurar parâmetros do V02",typeof(ConfigureCommand));Tool("Diagnosticar projeto",typeof(DiagnoseCommand));Tool("Preferências legais",typeof(LegalPreferencesCommand));Tool("Demonstração do V02",typeof(DemoCommand));
     }
 
     void Add(RibbonPanel panel, string key, string label, Type command, string tooltip)

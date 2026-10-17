@@ -10,6 +10,36 @@ using TextBox = System.Windows.Controls.TextBox;
 
 namespace Vebram.Revit;
 
+[Transaction(TransactionMode.Manual)]
+public sealed class RegisterProjectCommand:IExternalCommand
+{
+ public Result Execute(ExternalCommandData data,ref string message,ElementSet elements)
+ {
+  try
+  {
+   if(data.Application.ActiveUIDocument?.Document is not {IsFamilyDocument:false})return Result.Cancelled;
+   var window=new ProjectRegistrationWindow(data.Application);
+   if(window.ShowDialog()!=true)return Result.Cancelled;
+   if(window.PrepareAfterSave)
+   {
+    var result=new PrepareLegalCommand().Execute(data,ref message,elements);
+    if(result==Result.Failed)TaskDialog.Show("VEBRAM — cadastro salvo","O cadastro foi salvo. A preparação encontrou uma pendência:\n"+message);
+    // Canceling the next dialog must not roll back the registration already saved in this command.
+    message="";
+   }
+   return Result.Succeeded;
+  }
+  catch(Exception ex){message=ex.Message;return Result.Failed;}
+ }
+}
+
+[Transaction(TransactionMode.Manual)]
+public sealed class MunicipalProfilesCommand:IExternalCommand
+{
+ public Result Execute(ExternalCommandData data,ref string message,ElementSet elements)
+ {try{new MunicipalProfilesWindow(data.Application).ShowDialog();return Result.Succeeded;}catch(Exception ex){message=ex.Message;return Result.Failed;}}
+}
+
 [Transaction(TransactionMode.ReadOnly)]
 public sealed class DiagnoseCommand : IExternalCommand
 {

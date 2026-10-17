@@ -1,0 +1,36 @@
+{
+  "Version": "0.5.23",
+  "LibraryPersisted": true,
+  "RevisionIncremented": true,
+  "StaleEditRejected": true,
+  "ProjectSnapshotPreserved": true,
+  "PhysicalPreserved": true,
+  "Project": {
+    "Name": "Casa Terras \u2014 prot\u00F3tipo de cadastro",
+    "Code": "UI-023",
+    "Client": "",
+    "Address": "Endere\u00E7o de demonstra\u00E7\u00E3o \u2014 conferir no modelo",
+    "Lot": "Lote de demonstra\u00E7\u00E3o",
+    "City": "Belo Horizonte",
+    "State": "MG",
+    "Zone": "Zona de teste \u2014 n\u00E3o usar",
+    "Use": "Residencial unifamiliar",
+    "Intervention": "Constru\u00E7\u00E3o nova",
+    "Floors": "1",
+    "Notes": "C\u00F3pia de teste; sem valida\u00E7\u00E3o municipal.",
+    "Profile": {
+      "Id": "1a57c7f1a98843d18db5ed54e98e7dbc",
+      "Title": "DEMONSTRA\u00C7\u00C3O \u2014 SEM REGRAS VALIDADAS",
+      "City": "Belo Horizonte",
+      "State": "MG",
+      "Zone": "Zona de teste \u2014 n\u00E3o usar",
+      "Use": "Residencial unifamiliar",
+      "Intervention": "Constru\u00E7\u00E3o nova",
+      "Rules": {},
+      "Conditions": "Perfil fict\u00EDcio de teste. N\u00E3o usar para aprova\u00E7\u00E3o.",
+      "Source": "Nenhuma legisla\u00E7\u00E3o cadastrada \u2014 demonstra\u00E7\u00E3o",
+      "ReferenceDate": "17/10/2026",
+      "Revision": 1
+    }
+  }
+}
