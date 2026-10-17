@@ -32,6 +32,11 @@ public static class OpeningSchedules
      (string.IsNullOrWhiteSpace(schedule.GetCellText(SectionType.Body,row,body.FirstColumnNumber+widthColumn))||string.IsNullOrWhiteSpace(schedule.GetCellText(SectionType.Body,row,body.FirstColumnNumber+heightColumn))))missing.Add(code.Length>0?code:"(sem código)");
    }
    else warnings.Add(schedule.Name+": estrutura personalizada; confira as medidas diretamente na tabela.");
+   // In-place (modelo local) or non-family elements carry no standard width/height: tell the user to use a loaded family.
+   static bool IsLocal(Element e)=>e is not FamilyInstance fi||fi.Symbol?.Family?.IsInPlace==true;
+   var local=instances.Where(e=>IsLocal(e)&&Mark(e).Length>0).Select(Mark).Where(missing.Contains).ToHashSet();
+   if(local.Count>0)warnings.Add(schedule.Name+": "+string.Join(", ",local.Order())+" são modelagem local (não são famílias de esquadria carregadas) e por isso não têm largura/altura no quadro. Substitua por famílias de porta/janela carregadas. Nenhuma medida foi deduzida.");
+   missing.ExceptWith(local);
    if(missing.Count>0)warnings.Add(schedule.Name+": largura/altura vazia no quadro: "+string.Join(", ",missing.Order())+". Confira os parâmetros das famílias; nenhuma medida foi deduzida da caixa envolvente.");
    foreach(var group in instances.Where(e=>Mark(e).Length>0).GroupBy(Mark).Where(g=>g.Count()>1))
     warnings.Add(schedule.Name+": código "+group.Key+" repetido em "+group.Count()+" elementos; confira se é intencional.");

@@ -99,5 +99,21 @@ public static class Diagnostics
             text.AppendLine($"- **{f.Severity} — {f.Subject}:** {f.Detail}" + (f.ElementId == null ? "" : $" [UniqueId: {f.ElementId}]"));
         return text.ToString();
     }
+    /// <summary>Plain checklist for the diagnostic window: what is missing first, then what is fine, then information.</summary>
+    public static string Checklist(DiagnosticReport report)
+    {
+        string[] attention = { "BLOQUEIO", "CONFLITO", "PENDENTE", "REVISAR" };
+        var todo = report.Findings.Where(f => attention.Contains(f.Severity)).OrderBy(f => Array.IndexOf(attention, f.Severity)).ToList();
+        var ok = report.Findings.Count(f => f.Severity == "ENCONTRADO");
+        var text = new StringBuilder("DIAGNÓSTICO VEBRAM (somente leitura, nada foi alterado)\n");
+        text.AppendLine(todo.Count == 0 ? "Nada pendente neste diagnóstico." : $"{todo.Count} item(ns) para resolver · {ok} item(ns) em ordem\n");
+        if (todo.Count > 0) text.AppendLine("PARA RESOLVER");
+        foreach (var f in todo)
+            text.AppendLine($"  [ ] {f.Subject}: {f.Detail}" + (f.Severity is "BLOQUEIO" or "CONFLITO" ? "  (importante)" : ""));
+        var info = report.Findings.Where(f => f.Severity == "INFORMAÇÃO").ToList();
+        if (info.Count > 0) { text.AppendLine("\nINFORMAÇÕES"); foreach (var f in info) text.AppendLine($"  • {f.Subject}: {f.Detail}"); }
+        text.AppendLine($"\nDocumento: {report.Document} · Revit {report.RevitVersion}. Use \"Salvar relatório\" para o texto completo.");
+        return text.ToString();
+    }
     public static string Json(DiagnosticReport report) => JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true });
 }
