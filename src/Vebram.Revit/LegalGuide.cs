@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
@@ -37,6 +37,14 @@ public sealed class LegalGuide : Border
  }
  void Draw()
  {
+  if(kind=="memoria")
+  {
+   R(20,45,220,175,new SolidColorBrush(Color.FromRgb(120,190,100)));R(30,55,130,155,new SolidColorBrush(Color.FromRgb(230,160,110)));R(160,55,70,95,new SolidColorBrush(Color.FromRgb(205,150,190)));R(160,150,70,60,new SolidColorBrush(Color.FromRgb(90,170,230)));
+   T(80,120,"A",22);T(184,93,"G",22);T(184,173,"P",22);T(258,55,"LEGENDA",15);T(258,90,"A - Interna");T(258,115,"G - Garagem");T(258,140,"P - Piscina");T(25,247,"Pisos medidos e saldo estimado separados",12);
+   Pin(1,18,12,"Classes físicas","A cor vem do nome do tipo de piso. Confira a classe e o ambiente de garagem no modelo. Terreno verde não é comprovação de permeabilidade e não entra na soma dos pisos.");
+   Pin(2,330,167,"Legenda e atualização","Texto, posição e regiões editados na legenda são preservados pelo bloqueio de atualização. Marque Refazer somente depois de conferir. Na primeira migração de uma memória antiga, essa autorização também é necessária.");
+   Pin(3,275,245,"Escala e folhas","Uma memória nova usa a escala das Preferências legais. Depois, a escala da vista é preservada. Organizar folhas inclui a memória preparada e cria espaço adicional quando necessário, sem reduzir a escala.");return;
+  }
   if(kind=="areas")
   {
    R(20,45,360,205);T(35,60,"Q04 · ÁREAS DOS AMBIENTES",16);L(20,98,380,98);T(35,108,"Ambiente                      Área");L(20,135,380,135);T(35,147,"Sala                                24,50 m²");T(35,177,"Quarto                            12,00 m²");T(35,207,"Cozinha                          10,20 m²");
@@ -123,6 +131,7 @@ public sealed class LegalGuide : Border
  int Match(string label)
  {
   var s=label.ToLowerInvariant();
+  if(kind=="memoria")return s.Contains("refazer")?2:s.Contains("escala")||s.Contains("folha")?3:1;
   if(kind=="cobertura")return s.Contains("refazer")?3:1;
   if(kind=="situacao")return s.Contains("esquerd")?2:s.Contains("direit")?3:s.Contains("fundo")?4:s.Contains("conferi")||s.Contains("refazer")?5:1;
   if(kind=="urbanistico"||kind=="areas")return s.Contains("área computável")||s.Contains("área permeável")?2:s.Contains("máxim")||s.Contains("mínim")?3:s.Contains("confer")?4:1;
