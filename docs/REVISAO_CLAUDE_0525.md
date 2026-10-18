@@ -30,11 +30,19 @@ Regras seguidas: nenhuma funcionalidade nova, nenhuma medida ou exigência munic
 - Suíte de distribuição de folhas (`tests/SheetPacking`): 2932 verificações passaram.
 - Suíte aritmética (`tests/Arithmetic`): passou.
 
+## Teste no Revit (18/10/2026, autorizado pela Silvana)
+- Feito numa cópia da Casa Terras (`ARQ TESTE\claude-testes-revit-0525\CASA_TERRAS_TESTE_CLAUDE_0525.rvt`), copiada do RVT de revisão 0.5.25; o original não foi aberto nem salvo.
+- Antes do teste, guardei uma cópia de segurança do plugin instalado (manifesto e DLL). Depois do teste, o manifesto original foi restaurado (arquivo idêntico) e o Revit foi fechado.
+- Rotina automática `review025` (a mesma usada pelo ChatGPT), com uma checagem nova para a memória renomeada. Resultado: **tudo passou**.
+  - Cadastro/integração: duas gerações, sugestões e campos apagados preservados (INTEGRACAO_024).
+  - Planta e cobertura regeneradas sem duplicar; marcas de corte ocultas na cobertura; rótulos de caimento sem cruzar linhas nem cotas.
+  - Memória gráfica: classificação legal, presença no organizador, legenda editada protegida, **memória renomeada recusada sem criar vista duplicada**, prévia/aplicação das folhas com escala preservada.
+  - Modelo físico preservado antes/depois.
+- Planta legal: as mesmas 11 cotas entre acabamentos da versão anterior continuaram sendo geradas (a nova checagem de ambientes irregulares não removeu nenhuma cota válida). As pendências dos ambientes 01, 02, 03, 08, 09 e 12 continuam as mesmas e precisam de cota manual.
+- Folhas: três folhas (LEG-01 implantação/situação/quadros; LEG-02 plantas, memória, Q04 e quadros de esquadrias; LEG-03 cobertura, cortes e fachadas). 17 identificações de esquadrias. Quadro de portas mostra P08, P09, P10 e P13 sem medidas (modelagem local), como esperado; nenhuma medida foi deduzida.
+
 ## Pendente (não feito nesta revisão)
-- **Teste no Revit**: não foi feito. Instalar esta versão substitui o plugin instalado que a Silvana usa; por isso depende da autorização dela e deve ser feito somente numa cópia dos RVTs (pasta de testes), nunca no original.
-  - Conferir na Planta legal da Casa Terras se as cotas dos ambientes 01, 02, 03, 08, 09 e 12 continuam corretas ou viraram pendências com a nova mensagem.
-  - Renomear a memória gráfica numa cópia e confirmar o aviso.
+- Testar em dois ou três projetos reais diferentes da Casa Terras (o teste no Revit desta revisão foi só na Casa Terras).
 - Itens já conhecidos e mantidos como pendência: histórico de revisões, referências do conjunto, coluna de abertura dos quadros, união de contornos na memória e classes que ainda dependem do nome do tipo de piso.
 - Quadros de esquadrias renomeados também são recriados com o nome padrão (mesmo comportamento das versões anteriores); não foi alterado para não bloquear cópias intencionais.
 - Esquadrias in-place continuam sem medidas no quadro até serem trocadas por famílias carregadas.
-- Testar o fluxo em dois ou três projetos reais antes de aprovar.
