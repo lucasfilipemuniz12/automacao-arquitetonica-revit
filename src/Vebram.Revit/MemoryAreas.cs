@@ -54,6 +54,12 @@ public static class MemoryAreas
    var view=new FilteredElementCollector(doc).OfClass(typeof(ViewPlan)).Cast<ViewPlan>().FirstOrDefault(v=>!v.IsTemplate&&v.Name==ViewName);
    if(view!=null&&view.get_Parameter(BuiltInParameter.VIEW_DESCRIPTION)?.AsString()!=ViewMarker&&MemoryAreaState.Read(view)==null)
     throw new InvalidOperationException("Já existe uma vista manual chamada \""+ViewName+"\". Renomeie-a antes de gerar a memória gráfica.");
+   if(view==null)
+   {
+    // A generated memory that was renamed is no longer found by name; refuse instead of creating a duplicate view.
+    var renamed=new FilteredElementCollector(doc).OfClass(typeof(ViewPlan)).Cast<ViewPlan>().FirstOrDefault(v=>!v.IsTemplate&&MemoryAreaState.Read(v)!=null);
+    if(renamed!=null)throw new InvalidOperationException("A memória gráfica já existe com outro nome: \""+renamed.Name+"\". Volte ao nome \""+ViewName+"\" para atualizá-la sem criar uma vista duplicada.");
+   }
    var previous=view==null?null:MemoryAreaState.Read(view);
    if(previous!=null&&previous.Source!=source.UniqueId)throw new InvalidOperationException("A memória usa outra planta-fonte. Preserve a vista existente antes de mudar a fonte.");
    if(previous!=null&&!replaceEdited&&previous.Edited(doc))throw new InvalidOperationException("A legenda gerada foi editada. Confira as alterações e marque a opção de refazê-la.");
@@ -140,6 +146,7 @@ public static class MemoryAreas
     else warnings.Add("Lote não confirmado na Implantação: o terreno foi pintado como gramado, mas sua área não entra na legenda.");
    }
    if(terrain.Count>0)warnings.Add("Terreno em verde apenas para orientação visual. Sua geometria não foi medida nem classificada como permeável.");
+   if(totals.Count==0)warnings.Add("Nenhum piso deste nível tem classe reconhecida pelo nome do tipo (interno, externo, deck, piscina, calçada/passeio, gramado). A legenda fica sem áreas até os tipos serem nomeados ou classificados.");
    foreach(var name in unclassified.Order())warnings.Add("Tipo de piso sem classe: \""+name+"\" (mantido sem cor). Informe a classe para incluí-lo.");
    // Legend to the right of the building: swatch + class + area (summed from the same floors painted above).
    var boxes=floors.Select(f=>f.get_BoundingBox(null)).Where(b=>b!=null).ToList();

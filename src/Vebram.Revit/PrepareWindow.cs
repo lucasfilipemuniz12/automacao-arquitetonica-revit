@@ -195,7 +195,7 @@ public sealed class PrepareWindow : Window
         body.Children.Add(Label("Notas gerais (todas as folhas legais)"));
         var general=new TextBox{Text=saved.General,AcceptsReturn=true,TextWrapping=TextWrapping.Wrap,MinHeight=110,Padding=new Thickness(6),VerticalScrollBarVisibility=ScrollBarVisibility.Auto};body.Children.Add(general);
         var insert=new Button{Content="Inserir identificação do cadastro nas notas gerais",Padding=new Thickness(12,8,12,8),Margin=new Thickness(0,10,0,0)};body.Children.Add(insert);
-        insert.Click+=(_,_)=>{var lines=general.Text.Replace("\r","").Split('\n').ToList();foreach(var line in ProjectDataIntegration.Notes(ProjectRegistrationStore.Read(doc)).Split('\n').Where(s=>!string.IsNullOrWhiteSpace(s)))if(!lines.Contains(line))lines.Add(line);general.Text=string.Join("\n",lines);};
+        insert.Click+=(_,_)=>{try{var lines=general.Text.Replace("\r","").Split('\n').ToList();foreach(var line in ProjectDataIntegration.Notes(ProjectRegistrationStore.Read(doc)).Split('\n').Where(s=>!string.IsNullOrWhiteSpace(s)))if(!lines.Contains(line))lines.Add(line);general.Text=string.Join("\n",lines);}catch(System.IO.InvalidDataException ex){MessageBox.Show(this,ex.Message,"VEBRAM — cadastro");}};
         body.Children.Add(Label("Notas só de uma folha"));
         var choices=sheets.Select(s=>new SourceChoice(s.Id.Value,s.SheetNumber+" · "+s.Name)).ToList();
         var picker=new ComboBox{ItemsSource=choices,SelectedIndex=0,MinHeight=32};body.Children.Add(picker);
