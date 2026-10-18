@@ -1,4 +1,4 @@
-using Autodesk.Revit.DB;
+﻿using Autodesk.Revit.DB;
 namespace Vebram.Revit;
 internal static class UrbanisticTable
 {
@@ -19,6 +19,7 @@ internal static class UrbanisticTable
   }
   Row(["QUADRO URBANÍSTICO"],[.18],true);
   Row(["Lote",string.IsNullOrWhiteSpace(input.Identification)?"Não informado":input.Identification],[.05,.13]);
+  if(!string.IsNullOrWhiteSpace(input.RegistrationText))Row([input.RegistrationText],[.18]);
   Row(["Área do lote",Area(lot)],[.09,.09]);Row(["Projeção do contorno base",Area(projection)],[.09,.09]);
   Row(["Área computável informada",Area(input.ComputableArea)],[.09,.09]);Row(["Área permeável informada",Area(input.PermeableArea)],[.09,.09]);
   double[] columns=[.025,.042,.042,.071];Row(["Índice","Permitido","Projeto","Situação"],columns,true);

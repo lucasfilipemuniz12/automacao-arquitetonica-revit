@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
@@ -17,7 +17,7 @@ internal static class RegistrationUi
  internal static void Initialize(Window window,UIApplication app,string title,double width=1180)
  {window.Title="VEBRAM — "+title;window.Width=Math.Min(width,SystemParameters.WorkArea.Width-35);window.Height=Math.Min(850,SystemParameters.WorkArea.Height-35);window.MinWidth=950;window.MinHeight=620;window.Background=new SolidColorBrush(Color.FromRgb(246,248,250));window.WindowStartupLocation=WindowStartupLocation.CenterOwner;new WindowInteropHelper(window).Owner=app.MainWindowHandle;}
  internal static StackPanel Header(string step,string title,string subtitle)
- {var p=new StackPanel{Margin=new Thickness(24,18,24,12)};p.Children.Add(new TextBlock{Text=step+"  ·  PROTÓTIPO 0.5.23",Foreground=Teal,FontSize=12,FontWeight=FontWeights.Bold});p.Children.Add(new TextBlock{Text=title,FontSize=27,Foreground=Ink,FontWeight=FontWeights.SemiBold,Margin=new Thickness(0,5,0,5)});p.Children.Add(new TextBlock{Text=subtitle,TextWrapping=TextWrapping.Wrap,Foreground=Brushes.SlateGray});return p;}
+ {var p=new StackPanel{Margin=new Thickness(24,18,24,12)};p.Children.Add(new TextBlock{Text=step+"  ·  PROTÓTIPO 0.5.24",Foreground=Teal,FontSize=12,FontWeight=FontWeights.Bold});p.Children.Add(new TextBlock{Text=title,FontSize=27,Foreground=Ink,FontWeight=FontWeights.SemiBold,Margin=new Thickness(0,5,0,5)});p.Children.Add(new TextBlock{Text=subtitle,TextWrapping=TextWrapping.Wrap,Foreground=Brushes.SlateGray});return p;}
  internal static TextBlock Label(string title)=>new(){Text=title,Foreground=Ink,FontWeight=FontWeights.SemiBold,Margin=new Thickness(0,9,0,5),TextWrapping=TextWrapping.Wrap};
  internal static TextBox Field(Panel panel,string label,string value="",bool multiline=false)
  {panel.Children.Add(Label(label));var box=new TextBox{Text=value,MinHeight=34,Padding=new Thickness(8,6,8,6),AcceptsReturn=multiline,TextWrapping=multiline?TextWrapping.Wrap:TextWrapping.NoWrap};if(multiline)box.MinHeight=65;AutomationProperties.SetName(box,label);panel.Children.Add(box);return box;}
@@ -39,7 +39,7 @@ internal static class RegistrationUi
   else
   {Rect(28,35,230,45,Brushes.White);Text(42,48,"MUNICÍPIO + UF",15);Rect(28,103,105,62,Pale);Rect(153,103,105,62,Pale);Text(42,113,"ZONA A\nResidencial");Text(164,113,"ZONA B\nUso misto");Line(140,80,140,94);Line(81,94,204,94);Line(81,94,81,103);Line(204,94,204,103);Text(28,188,"Regras com fonte e condições\nde aplicação — não só o nome da cidade.");}
   p.Children.Add(Label(municipal?"O que fica salvo na biblioteca?":"O que o cadastro alimenta?"));
-  p.Children.Add(new TextBlock{Text=municipal?"• Cidade, UF e nome do perfil\n• Zoneamento, uso e intervenção\n• Limites informados e sua fonte\n• Revisão do perfil para reutilização":"• Nome, cliente e endereço no carimbo\n• Identificação do lote e zoneamento no RVT\n• Cópia do perfil escolhido para este projeto",TextWrapping=TextWrapping.Wrap,Foreground=Ink,LineHeight=24});
+  p.Children.Add(new TextBlock{Text=municipal?"• Cidade, UF e nome do perfil\n• Zoneamento, uso e intervenção\n• Limites informados e sua fonte\n• Revisão do perfil para reutilização":"• Nome, cliente e endereço no carimbo\n• Lote na Implantação e na Situação\n• Perfil e limites no quadro urbanístico\n• Cópia do perfil escolhido para este projeto",TextWrapping=TextWrapping.Wrap,Foreground=Ink,LineHeight=24});
   p.Children.Add(new Border{Background=Brushes.White,Padding=new Thickness(12),Margin=new Thickness(0,18,0,0),Child=new TextBlock{Text=municipal?"Regras digitadas pelo usuário. Este protótipo não importa leis nem verifica conformidade automaticamente.":"O endereço não desenha nem posiciona o lote. Confira o contorno no modelo. Informações ausentes continuam como pendência.",TextWrapping=TextWrapping.Wrap,Foreground=Brushes.DarkSlateGray}});
   return new Border{Background=Pale,CornerRadius=new CornerRadius(8),Child=p,Margin=new Thickness(18,0,0,0)};
  }

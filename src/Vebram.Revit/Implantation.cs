@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -185,6 +185,7 @@ public static class Implantation
                 "Linha contínua: limite do lote informado\nLinha tracejada: contorno do térreo\n"+
                 "Cotas parciais: afastamentos desse contorno\nFrente: "+o.Front.ToLower(Pt)+" do desenho\n"+
                 (o.Study?"ESTUDO FICTÍCIO — NÃO PROTOCOLAR":"Dados do lote/norte informados pelo autor");
+            var registrationNotes=ProjectDataIntegration.Notes(ProjectRegistrationStore.Read(doc));if(registrationNotes.Length>0)notes+="\n"+registrationNotes;
             var extra=LegalPreferenceStore.Read(doc).AdditionalNote;if(!string.IsNullOrWhiteSpace(extra))notes+="\n"+extra;
             helpers.Text(new(x0,contextY0-Feet(3.0),z),notes,false,false,0,Feet(25));
             // Recorte inclui desenho, cadeias, seta de norte e a coluna de chamadas.
