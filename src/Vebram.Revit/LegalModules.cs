@@ -41,6 +41,15 @@ public static class LegalModules
   {
    if(previous!=null){var ids=previous.Elements.Select(s=>doc.GetElement(s.UniqueId)).Where(e=>e!=null&&e.OwnerViewId==target.Id&&DrawingOwnership.IsAnnotation(e)).Select(e=>e!.Id).ToList();if(ids.Count>0){var allowed=ids.ToHashSet();var removed=doc.Delete(ids);if(removed.Any(id=>!allowed.Contains(id)))throw new InvalidOperationException("Há elementos manuais dependentes das marcações geradas. A atualização foi revertida para preservá-los.");}}
    var prefs=LegalPreferenceStore.Read(doc);Preset(doc,target,source,item,prefs.Scale);
+   if(request.Key=="planta")
+   {
+    // Keep the legal A/B references; hide unrelated teaching/executive section symbols in this view only.
+    var legalCuts=LegalCatalog.Items.Where(i=>i.Role=="CORTES").Select(i=>LegalCatalog.Reference(LegalCatalog.Views(doc),i)?.Name).Where(n=>n!=null).ToHashSet();
+    doc.Regenerate();
+    // The annotation is a separate OST_Viewers element, not the ViewSection itself.
+    var unrelated=new FilteredElementCollector(doc,target.Id).OfCategory(BuiltInCategory.OST_Viewers).WhereElementIsNotElementType().Where(e=>e is not View&&!legalCuts.Contains(e.Name)&&e.CanBeHidden(target)&&!e.IsHidden(target)).Select(e=>e.Id).ToList();
+    if(unrelated.Count>0)target.HideElements(unrelated);
+   }
    var made=new List<Element>();var textType=TextType(doc);var dimensionType=LegalPreferenceStore.Dimension(doc);
    var z=target.GenLevel.Elevation;var drawing=new Drawing(doc,target,made,textType,dimensionType,z);
    double x0=contour.Min(p=>p.X),x1=contour.Max(p=>p.X),y0=contour.Min(p=>p.Y),y1=contour.Max(p=>p.Y);

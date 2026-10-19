@@ -40,7 +40,7 @@ public static partial class SheetPlanner
    {
     var element=Place(doc,targetSheet,item,types);
     if(element is Viewport viewport)
-    {while(new FilteredElementCollector(doc,targetSheet.Id).OfClass(typeof(Viewport)).Cast<Viewport>().Any(v=>v.Id!=viewport.Id&&v.get_Parameter(BuiltInParameter.VIEWPORT_DETAIL_NUMBER)?.AsString()==number.ToString()))number++;viewport.get_Parameter(BuiltInParameter.VIEWPORT_DETAIL_NUMBER)?.Set((number++).ToString());if(item.Key!="urbanistico")LegalSheetComposition.CenterLabel(doc,viewport);}
+    {number=AssignDetailNumber(doc,viewport,number);if(item.Key!="urbanistico")LegalSheetComposition.CenterLabel(doc,viewport);}
     doc.Regenerate();var actual=Bounds(element,targetSheet);var destination=best.Layout.First(p=>p.Id==item.ViewId).Rect;ElementTransformUtils.MoveElement(doc,element.Id,new XYZ(destination.Left-actual.Left,destination.Top-actual.Top,0));doc.Regenerate();DrawingOwnership.MarkAnnotation(element);
     merged.Drawings.Add(new(item.ViewId,item.Label,item.Schedule||item.Key=="urbanistico"?0:((View)doc.GetElement(new ElementId(item.ViewId))).Scale,Bounds(element,targetSheet),best.Zones.GetValueOrDefault(item.ViewId,"desenhos")));
    }

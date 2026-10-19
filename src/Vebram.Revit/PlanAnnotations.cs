@@ -132,7 +132,19 @@ public static class PlanAnnotations
   foreach(var wall in new FilteredElementCollector(doc,view.Id).OfClass(typeof(Wall)).Cast<Wall>())
    if((wall.Location as LocationCurve)?.Curve is Line wallLine&&wallLine.IsBound)obstacles.Add((wallLine,wall.Width/2));
   foreach(var dimension in new FilteredElementCollector(doc,view.Id).OfClass(typeof(Dimension)).Cast<Dimension>())
-   if(dimension.DimensionShape==DimensionShape.Linear&&dimension.Curve is Line dimensionLine&&dimensionLine.IsBound)obstacles.Add((dimensionLine,0));
+  {
+   if(dimension.DimensionShape!=DimensionShape.Linear||dimension.Curve is not Line dimensionLine)continue;
+   if(dimension.get_BoundingBox(view) is {} db)
+   {
+    var a=dimensionLine.Project(db.Min)?.XYZPoint;var b=dimensionLine.Project(db.Max)?.XYZPoint;
+    if(a!=null&&b!=null&&a.DistanceTo(b)>doc.Application.ShortCurveTolerance)obstacles.Add((Line.CreateBound(a,b),0));
+   }
+   // Native linear dimension curves are usually unbound; their text must also be reserved.
+   void Reserve(XYZ point,string value)
+   {double height=paper*1.5,width=Math.Max(paper*2,value.Length*paper*.65);occupied.Add(new(point.X-width/2,point.Y-height/2,point.X+width/2,point.Y+height/2));}
+   if(dimension.NumberOfSegments==0)Reserve(dimension.TextPosition,dimension.ValueString??"");
+   else foreach(DimensionSegment segment in dimension.Segments)Reserve(segment.TextPosition,segment.ValueString??"");
+  }
   int openingLabels=0;
   foreach(var opening in new FilteredElementCollector(doc,view.Id).WhereElementIsNotElementType()
    .Where(e=>e.Category?.Id.Value is (long)BuiltInCategory.OST_Doors or (long)BuiltInCategory.OST_Windows).OrderBy(e=>e.Id.Value))
@@ -142,15 +154,16 @@ public static class PlanAnnotations
    // A manually placed native tag already identifies this opening; do not duplicate it.
    if(new FilteredElementCollector(doc,view.Id).OfClass(typeof(IndependentTag)).Cast<IndependentTag>().Any(t=>t.GetTaggedLocalElementIds().Contains(opening.Id)))continue;
    var box=opening.get_BoundingBox(view);if(box==null)continue;
-   var center=(box.Min+box.Max)/2;center=new XYZ(center.X,center.Y,z);
+   // Door boxes include the leaf swing; point leaders to the actual insertion/opening instead.
+   var center=(opening.Location as LocationPoint)?.Point??(box.Min+box.Max)/2;center=new XYZ(center.X,center.Y,z);
    var facing=opening is FamilyInstance family? family.FacingOrientation:box.Max.X-box.Min.X>=box.Max.Y-box.Min.Y?XYZ.BasisY:XYZ.BasisX;facing=new XYZ(facing.X,facing.Y,0);if(facing.GetLength()<.001)facing=XYZ.BasisY;else facing=facing.Normalize();
    var along=new XYZ(-facing.Y,facing.X,0);TextNote? chosen=null;
    // Rings of growing distance, eight directions each. Beyond 7 mm on paper the label gets a short leader to its opening.
    // First pass also avoids walls and dimension lines; the second pass keeps the earlier behaviour so nothing becomes unplaceable.
    var directions=new[]{facing,-facing,along,-along,(facing+along).Normalize(),(facing-along).Normalize(),(-facing+along).Normalize(),(-facing-along).Normalize()};
-   foreach(bool avoidLines in new[]{true,false})
+   foreach(bool avoidLines in new[]{true})
    {
-    foreach(double distance in new[]{.0035,.005,.007,.009,.011,.014})
+    foreach(double distance in new[]{.0035,.005,.007,.009,.011,.014,.018,.022,.028,.036})
     {
      foreach(var delta in directions)
      {
@@ -159,8 +172,18 @@ public static class PlanAnnotations
       if(occupied.Any(r=>r.Overlaps(rect,paper*.2))||(avoidLines&&obstacles.Any(o=>TouchesLine(rect,o.Line,o.Half)))){doc.Delete(note.Id);continue;}
       if(distance>.007)
       {
+       var target=center;
+       if(opening is FamilyInstance hosted&&hosted.Host is Wall hostWall)
+        target+=facing*((note.Coord-center).DotProduct(facing)>=0?hostWall.Width/2:-hostWall.Width/2);
+       bool Clear(XYZ a,XYZ b)=>a.DistanceTo(b)<=doc.Application.ShortCurveTolerance||!occupied.Any(r=>TouchesLine(r,Line.CreateBound(a,b),paper*.1));
+       XYZ? elbow=null;
+       if(!Clear(note.Coord,target))
+       {
+        elbow=new[]{new XYZ(note.Coord.X,target.Y,z),new XYZ(target.X,note.Coord.Y,z)}.FirstOrDefault(p=>Clear(note.Coord,p)&&Clear(p,target));
+        if(elbow==null){doc.Delete(note.Id);continue;}
+       }
        // A label far from its opening is only acceptable with a leader; otherwise try the next position.
-       try{var leader=note.AddLeader(TextNoteLeaderTypes.TNLT_STRAIGHT_R);leader.End=center;}
+       try{var leader=note.AddLeader(TextNoteLeaderTypes.TNLT_STRAIGHT_R);leader.End=target;if(elbow!=null)leader.Elbow=elbow;}
        catch(Exception ex) when(ex is Autodesk.Revit.Exceptions.ApplicationException or InvalidOperationException){doc.Delete(note.Id);continue;}
       }
       occupied.Add(rect);chosen=note;break;
@@ -182,7 +205,12 @@ public static class PlanAnnotations
   for(int i=0;i<=steps;i++){var p=a+(b-a)*i/steps;if(p.X>r.X0-half&&p.X<r.X1+half&&p.Y>r.Y0-half&&p.Y<r.Y1+half)return true;}
   return false;
  }
- static Rect TextBounds(TextNote note,int scale)=>new(note.Coord.X-note.Width*scale/2,note.Coord.Y-note.Height*scale/2,note.Coord.X+note.Width*scale/2,note.Coord.Y+note.Height*scale/2);
+ static Rect TextBounds(TextNote note,int scale)
+ {
+  var view=note.Document.GetElement(note.OwnerViewId) as View;
+  var box=view==null?null:note.get_BoundingBox(view);
+  return box!=null?new(box.Min.X,box.Min.Y,box.Max.X,box.Max.Y):new(note.Coord.X-note.Width*scale/2,note.Coord.Y-note.Height*scale/2,note.Coord.X+note.Width*scale/2,note.Coord.Y+note.Height*scale/2);
+ }
  static bool Crosses(Line line,double cross,bool horizontal){var a=line.GetEndPoint(0);var b=line.GetEndPoint(1);double low=horizontal?Math.Min(a.Y,b.Y):Math.Min(a.X,b.X),high=horizontal?Math.Max(a.Y,b.Y):Math.Max(a.X,b.X);return cross>low+.01&&cross<high-.01;}
  /// <summary>True when, on the line at <paramref name="cross"/>, the nearest boundary walls on each side of <paramref name="along"/> are still <paramref name="low"/> and <paramref name="high"/>.</summary>
  static bool FacingPairAt(List<Edge> edges,Edge low,Edge high,double cross,bool horizontal,double along)

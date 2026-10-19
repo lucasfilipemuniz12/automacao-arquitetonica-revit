@@ -45,7 +45,12 @@ public static class MemoryAreas
  {
   if(doc.IsReadOnly||doc.IsFamilyDocument||doc.IsWorkshared)throw new InvalidOperationException("Use um RVT local editável.");
   var warnings=new List<string>();
-  var floors=new FilteredElementCollector(doc).OfClass(typeof(Floor)).Cast<Floor>().Where(f=>f.LevelId==source.GenLevel.Id).ToList();
+  var lot=Implantation.Saved(doc)??throw new InvalidOperationException("Prepare a Implantação para confirmar o lote da memória gráfica.");
+  if(lot.SourceId!=source.Id.Value)throw new InvalidOperationException("Use a mesma planta-fonte da Implantação para delimitar a memória.");
+  var levelFloors=new FilteredElementCollector(doc).OfClass(typeof(Floor)).Cast<Floor>().Where(f=>f.LevelId==source.GenLevel.Id).ToList();
+  var floors=levelFloors.Where(f=>f.get_BoundingBox(null) is {} b&&MemoryProjection.Within(b,lot)).ToList();
+  int excluded=levelFloors.Count-floors.Count;
+  if(excluded>0)warnings.Add(excluded+" piso(s) fora ou atravessando o lote confirmado não foram medidos. Elementos preservados no modelo.");
   if(floors.Count==0)throw new InvalidOperationException("Não há pisos modelados neste nível.");
   var byType=floors.GroupBy(f=>doc.GetElement(f.GetTypeId())?.Name??"(sem tipo)").OrderBy(g=>g.Key).ToList();
   using var tx=new Transaction(doc,"VEBRAM — memória gráfica de áreas");tx.Start();
@@ -96,9 +101,12 @@ public static class MemoryAreas
     .Where(r=>r.LevelId==source.GenLevel.Id&&r.Area>0&&Normalize(r.get_Parameter(BuiltInParameter.ROOM_NAME)?.AsString()??"").Contains("GARAGEM")).ToList();
    var anyRooms=new FilteredElementCollector(doc).OfClass(typeof(SpatialElement)).OfType<Autodesk.Revit.DB.Architecture.Room>().Where(r=>r.LevelId==source.GenLevel.Id&&r.Area>0).ToList();
    // Restore only structural floors hidden by this generator; manual hidden floors remain hidden. Reapply the generated colour scheme.
-   var previouslyHidden=(previous?.Hidden??new()).Select(id=>doc.GetElement(id)).OfType<Floor>().Where(f=>f.IsHidden(view)).Select(f=>f.Id).ToList();if(previouslyHidden.Count>0)view.UnhideElements(previouslyHidden);
+   var previouslyHidden=(previous?.Hidden??new()).Select(id=>doc.GetElement(id)).Where(e=>e!=null&&e.IsHidden(view)).Select(e=>e!.Id).ToList();if(previouslyHidden.Count>0)view.UnhideElements(previouslyHidden);
    foreach(var f in floors)view.SetElementOverrides(f.Id,new OverrideGraphicSettings());
-   var totals=new Dictionary<AreaClass,double>();var biggest=new Dictionary<AreaClass,(Floor Floor,double Area)>();var unclassified=new HashSet<string>();var hiddenIds=new List<ElementId>();var notes=new List<string>();
+   var totals=new Dictionary<AreaClass,double>();var projections=new Dictionary<AreaClass,Solid>();var biggest=new Dictionary<AreaClass,(Floor Floor,double Area)>();var unclassified=new HashSet<string>();var hiddenIds=new List<ElementId>();var notes=new List<string>();
+   // Hide only in this generated view: an adjacent teaching model must stay in the project.
+   hiddenIds.AddRange(new FilteredElementCollector(doc).WhereElementIsNotElementType().Where(e=>!e.ViewSpecific&&e is not View&&e.Category?.CategoryType==CategoryType.Model&&e.CanBeHidden(view)&&!e.IsHidden(view)&&e.get_BoundingBox(null) is {} b&&!MemoryProjection.Intersects(b,lot)).Select(e=>e.Id));
+   hiddenIds.AddRange(levelFloors.Except(floors).Where(f=>f.CanBeHidden(view)&&!f.IsHidden(view)).Select(f=>f.Id));
    foreach(var floor in floors)
    {
     string typeName=doc.GetElement(floor.GetTypeId())?.Name??"(sem tipo)";
@@ -120,15 +128,23 @@ public static class MemoryAreas
     ogs.SetSurfaceForegroundPatternId(solid.Id);ogs.SetSurfaceForegroundPatternColor(color);ogs.SetSurfaceTransparency(0);
     ogs.SetCutForegroundPatternId(solid.Id);ogs.SetCutForegroundPatternColor(color);
     view.SetElementOverrides(floor.Id,ogs);
-    totals[cls]=totals.GetValueOrDefault(cls)+SquareMeters(floor);
+    var projection=MemoryProjection.Floor(floor);
+    projections[cls]=projections.TryGetValue(cls,out var combined)?MemoryProjection.Union(combined,projection):projection;
     var floorArea=SquareMeters(floor);if(!biggest.TryGetValue(cls,out var currentBiggest)||floorArea>currentBiggest.Area)biggest[cls]=(floor,floorArea);
    }
+   foreach(var pair in projections)totals[pair.Key]=MemoryProjection.Area(pair.Value);
+   // Different classes cannot both claim the same horizontal area without an explicit classification decision.
+   double classifiedSum=totals.Values.Sum();Solid? union=null;
+   foreach(var projection in projections.Values)union=union==null?projection:MemoryProjection.Union(union,projection);
+   if(union!=null&&classifiedSum-MemoryProjection.Area(union)>.01)
+    throw new InvalidOperationException("Há pisos de classes diferentes sobrepostos na memória. Confira a classificação; nenhuma área foi escolhida ou somada duas vezes.");
+   hiddenIds=hiddenIds.Distinct().ToList();
    if(hiddenIds.Count>0)view.HideElements(hiddenIds);
    if(garageRooms.Count>0&&!totals.ContainsKey(Garagem))warnings.Add("Há ambiente de garagem, mas nenhum piso foi identificado sob ele; conferir a classe da garagem.");
    warnings.AddRange(notes);
    // The terrain (toposolid) that shows between the floors is the same grass area as the "Terreno gramado" floors: same class and colour.
    string balance="";
-   var terrain=new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_Toposolid).WhereElementIsNotElementType().ToList();
+   var terrain=new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_Toposolid).WhereElementIsNotElementType().Where(e=>e.get_BoundingBox(null) is {} b&&MemoryProjection.Intersects(b,lot)).ToList();
    if(terrain.Count>0)
    {
     var grass=new Color(Permeavel.R,Permeavel.G,Permeavel.B);var terrainOverride=new OverrideGraphicSettings();
@@ -136,12 +152,12 @@ public static class MemoryAreas
     terrainOverride.SetCutForegroundPatternId(solid.Id);terrainOverride.SetCutForegroundPatternColor(grass);
     foreach(var piece in terrain)view.SetElementOverrides(piece.Id,terrainOverride);
     // Arithmetic balance only. No geometric union or permeability measurement is inferred.
-    var lot=Implantation.Saved(doc);double painted=totals.Values.Sum();
+    double painted=totals.Values.Sum();
     if(lot!=null)
     {
      double lotArea=lot.LotWidth*lot.LotDepth,uncovered=lotArea-painted;
-     balance="Saldo aritmético lote menos pisos: "+Number(uncovered)+" m². Estimativa sem união de contornos; não é área permeável medida.";
-     warnings.Add(balance+" Pisos sobrepostos, pavimentos e áreas fora do lote exigem revisão. O saldo não entra na soma das classes.");
+     balance="Lote confirmado: "+Number(lotArea)+" m². Saldo sem piso classificado neste nível: "+Number(uncovered)+" m²; não equivale a área permeável.";
+     warnings.Add(balance+" Sobreposições da mesma classe são unidas em projeção. O saldo não entra na soma das classes.");
     }
     else warnings.Add("Lote não confirmado na Implantação: o terreno foi pintado como gramado, mas sua área não entra na legenda.");
    }
@@ -169,8 +185,8 @@ public static class MemoryAreas
     Mark(TextNote.Create(doc,view.Id,new XYZ(x0+w+Paper(.003),y,z),Implantation.Feet(.085),ClassId(pair.Key)+" · "+pair.Key.Label+" — "+Number(pair.Value)+" m²",new TextNoteOptions(LegalStyles.Text(doc,2.5).Id)));
     doc.Regenerate();y-=Math.Max(Paper(.008),legend.Last().get_BoundingBox(view) is {} lb?lb.Max.Y-lb.Min.Y+Paper(.003):0);sum+=pair.Value;items+=2;
    }
-   Mark(TextNote.Create(doc,view.Id,new XYZ(x0,y-Paper(.002),z),"Soma dos pisos classificados — "+Number(sum)+" m²",new TextNoteOptions(LegalStyles.Text(doc,2.5,true).Id)));
-   Mark(TextNote.Create(doc,view.Id,new XYZ(x0,y-Paper(.010),z),Implantation.Feet(.10),"Classes por nome de tipo; soma de áreas, sem união de contornos. Critérios municipais não avaliados. Terreno verde: orientação visual, sem área medida.\n"+balance,new TextNoteOptions(LegalStyles.Text(doc,2).Id)));
+   Mark(TextNote.Create(doc,view.Id,new XYZ(x0,y-Paper(.002),z),"Área projetada dos pisos classificados — "+Number(sum)+" m²",new TextNoteOptions(LegalStyles.Text(doc,2.5,true).Id)));
+   Mark(TextNote.Create(doc,view.Id,new XYZ(x0,y-Paper(.010),z),Implantation.Feet(.10),"Pisos dentro do lote confirmado; projeções da mesma classe unidas. Lajes e acabamentos não são somados como áreas distintas. Classes por nome de tipo; critérios municipais não avaliados.\n"+balance,new TextNoteOptions(LegalStyles.Text(doc,2).Id)));
    // Class letters on the plan itself (on the biggest floor of each class), same letters as in the legend.
    foreach(var pair in biggest)
     if(pair.Value.Floor.get_BoundingBox(null) is {} fb)

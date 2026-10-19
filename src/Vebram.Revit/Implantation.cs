@@ -185,9 +185,12 @@ public static class Implantation
                 "Linha contínua: limite do lote informado\nLinha tracejada: contorno do térreo\n"+
                 "Cotas parciais: afastamentos desse contorno\nFrente: "+o.Front.ToLower(Pt)+" do desenho\n"+
                 (o.Study?"ESTUDO FICTÍCIO — NÃO PROTOCOLAR":"Dados do lote/norte informados pelo autor");
-            var registrationNotes=ProjectDataIntegration.Notes(ProjectRegistrationStore.Read(doc));if(registrationNotes.Length>0)notes+="\n"+registrationNotes;
+            var registrationNotes=ProjectDataIntegration.CompactForDrawing(ProjectDataIntegration.Notes(ProjectRegistrationStore.Read(doc)));if(registrationNotes.Length>0)notes+="\n"+registrationNotes;
             var extra=LegalPreferenceStore.Read(doc).AdditionalNote;if(!string.IsNullOrWhiteSpace(extra))notes+="\n"+extra;
-            helpers.Text(new(x0,contextY0-Feet(3.0),z),notes,false,false,0,Feet(25));
+            doc.Regenerate();
+            var annotationBottom=generated.Select(e=>e.get_BoundingBox(view)).Where(b=>b!=null).Select(b=>b!.Min.Y).DefaultIfEmpty(contextY0).Min();
+            double notesY=Math.Min(contextY0-Feet(3.0),annotationBottom-Feet(.004)*view.Scale);
+            helpers.Text(new(x0,notesY,z),notes,false,false,0,Feet(25));
             // Recorte inclui desenho, cadeias, seta de norte e a coluna de chamadas.
             var box=view.CropBox; var inverse=box.Transform.Inverse;
             var corners=new[]{inverse.OfPoint(new XYZ(contextX0-Feet(3.6),contextY0-Feet(6.2),z)),

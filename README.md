@@ -6,6 +6,8 @@ Leia a [passagem para revisão no Claude](docs/PASSAGEM_CLAUDE.md), o [guia de c
 
 ## Estado atual
 
+- Versão 0.5.27: revisão da geração gráfica, memória delimitada pelo lote com união de projeções, proteção da referência urbanística editada e numeração incluindo vistas ocultas. A demonstração didática do usuário é preservada e não define medidas construtivas padrão. [Código, critérios e limites](docs/REVISAO_GRAFICA_0527.md).
+
 - Versão 0.5.26: corrigidas a falha ao abrir quadros de esquadrias (zoom em tabela) e a prévia com otimização (dependências internas de folhas novas). Testada numa cópia da Casa Teste 01, com 20 verificações nativas e preservação da modelagem. [Diagnóstico e limites](docs/REVISAO_CASA_TESTE_0526.md).
 
 - Versão 0.5.15, primeiro lote da revisão do Claude: nomes copiados por ROOM_NAME, restauração conferida na origem, estilos ARQ reutilizados, recortes locais de cortes/fachadas e reaproveitamento das LEG antes de criar outra. Testes nativos e 28 testes sem Revit passaram; três folhas na cópia revista. [Evidência e pendências](docs/TESTES_REVISAO_CLAUDE_V0515.md). Há pendências de cobertura/implantação e cotagem; não é documentação pronta para emissão.

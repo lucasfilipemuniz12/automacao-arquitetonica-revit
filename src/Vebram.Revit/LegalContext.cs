@@ -60,7 +60,8 @@ public static class LegalContext
     Dimension(3,1,P(x,y-gap),P(x+w,y-gap));Dimension(0,2,P(x-gap,y),P(x-gap,y+h));
     // Text wrapping widths are in paper units. Neighbor names are outside the highlighted lot.
     void Wrapped(double a,double b,double paperWidth,string value)=>made.Add(TextNote.Create(doc,view.Id,P(a,b),Implantation.Feet(paperWidth),value,new TextNoteOptions(type.Id)));
-    Wrapped(x+w*.2,y+h*.65,.055,"LOTE DO PROJETO\n"+(string.IsNullOrWhiteSpace(input.Identification)?"Identificação não informada":input.Identification)+"\n"+area.ToString("0.00",Implantation.Pt)+" m²");
+    // At 1:500 a 12 m lot is only 24 mm wide on paper. Keep long identification outside it.
+    Wrapped(x+w*.05,y+h*.60,options.LotWidth/view.Scale*.9,"LOTE\n"+area.ToString("0.00",Implantation.Pt)+" m²");
     Wrapped(x-Implantation.Feet(35),y+h*.7,.05,"CONFRONTANTE ESQUERDO\n"+Missing(input.LeftNeighbor));
     Wrapped(x+w+Implantation.Feet(5),y+h*.7,.05,"CONFRONTANTE DIREITO\n"+Missing(input.RightNeighbor));
     Wrapped(x,y+h+Implantation.Feet(10),.065,"CONFRONTANTE AO FUNDO\n"+Missing(input.RearNeighbor));
@@ -71,8 +72,9 @@ public static class LegalContext
      else{double yy=side=="Acima"?y+h+offset:y-offset;L(P(x-gap,yy),P(x+w+gap,yy));Text(x,yy+(side=="Acima"?Implantation.Feet(8):-Implantation.Feet(8)),"VIA: "+options.StreetName);}
     }
     double radians=options.NorthDegrees*Math.PI/180;var north=new XYZ(-Math.Sin(radians),Math.Cos(radians),0);var tail=P(x+w+Implantation.Feet(35),y+h);var tip=tail+north*Implantation.Feet(8);var right=new XYZ(north.Y,-north.X,0);L(tail,tip);L(tip,tip-north*Implantation.Feet(2)+right*Implantation.Feet(1));L(tip,tip-north*Implantation.Feet(2)-right*Implantation.Feet(1));Text(tip.X,tip.Y+Implantation.Feet(3),"N");
-    Text(x-Implantation.Feet(35),y-Implantation.Feet(18),(options.Study?"ESTUDO FICTÍCIO — ":"")+"SITUAÇÃO ESQUEMÁTICA · conferir levantamento e cadastro municipal");
-    if(!string.IsNullOrWhiteSpace(input.RegistrationText))Wrapped(x-Implantation.Feet(35),y-Implantation.Feet(30),.11,input.RegistrationText);
+    Wrapped(x-Implantation.Feet(35),y-Implantation.Feet(12),.13,"LOTE: "+(string.IsNullOrWhiteSpace(input.Identification)?"identificação não informada":input.Identification));
+    Wrapped(x-Implantation.Feet(35),y-Implantation.Feet(23),.13,(options.Study?"ESTUDO FICTÍCIO — ":"")+"SITUAÇÃO ESQUEMÁTICA · conferir levantamento e cadastro municipal");
+    if(!string.IsNullOrWhiteSpace(input.RegistrationText))Wrapped(x-Implantation.Feet(35),y-Implantation.Feet(37),.11,ProjectDataIntegration.CompactForDrawing(input.RegistrationText));
     doc.Regenerate();var box=view.CropBox;var inverse=box.Transform.Inverse;var boxes=made.Select(e=>e.get_BoundingBox(view)).Where(b=>b!=null).ToList();var points=boxes.SelectMany(b=>new[]{inverse.OfPoint(b!.Min),inverse.OfPoint(b.Max)}).ToList();box.Min=new(points.Min(p=>p.X)-gap,points.Min(p=>p.Y)-gap,box.Min.Z);box.Max=new(points.Max(p=>p.X)+gap,points.Max(p=>p.Y)+gap,box.Max.Z);view.CropBox=box;view.CropBoxActive=true;view.CropBoxVisible=false;
     report.Add("Diagrama com lote confirmado, confrontantes informados, via e norte. Não equivale a mapa cadastral ou levantamento georreferenciado.");
    }
