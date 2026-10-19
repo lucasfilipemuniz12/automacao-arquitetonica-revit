@@ -60,6 +60,15 @@ distribuição e 37 verificações aritméticas. Compilações com binlogs locai
 As 9 verificações novas de `GraphicRegression` passaram na cópia, incluindo
 duas gerações completas e o cenário com viewport oculto. O relatório está
 em `validation/grafica-0527/REGRESSAO_GRAFICA_0527.json`.
+As 20 verificações nativas anteriores também passaram com o código 0.5.27:
+**29 verificações nativas ao todo**, incluindo botão WPF, escalas, notas
+manuais, vistas fixadas, marcas, cadastro e biblioteca municipal.
+
+Na aplicação final aprovada pelo usuário, os comandos geraram 3 folhas e
+mantiveram uma existente como reserva, com 15 identificações de esquadrias.
+As capturas `LEG-01.png`, `LEG-02.png` e `LEG-03.png` foram conferidas após
+limpar a seleção do Revit. A classificação ainda requer revisão humana,
+e as cotas sem espaço continuam explicitamente pendentes no relatório.
 
 ## Limites mantidos explícitos
 
