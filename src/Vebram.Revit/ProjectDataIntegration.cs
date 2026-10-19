@@ -4,6 +4,13 @@ namespace Vebram.Revit;
 /// <summary>Suggestions only: saved deliverable values, including deliberately empty ones, take precedence.</summary>
 internal static class ProjectDataIntegration
 {
+ internal static string CompactForDrawing(string text)
+ {
+  var lines=text.Replace("\r","").Split('\n').Where(s=>!string.IsNullOrWhiteSpace(s)).ToList();
+  bool hasSource=lines.RemoveAll(s=>s.StartsWith("Fonte informada:",StringComparison.Ordinal))>0;
+  if(hasSource)lines.Add("Fonte e condições completas: consultar Cadastro do projeto.");
+  return string.Join("\n",lines);
+ }
  internal static bool Matches(ProjectRegistration data)
  {
   var p=data.Profile;if(p==null)return false;

@@ -45,6 +45,7 @@ public static partial class SheetPlanner
   using var tx=new Transaction(doc,expected==null?"VEBRAM — calcular prévia (revertida)":"VEBRAM — distribuir folhas automaticamente");tx.Start();
   try
   {
+   if(UrbanisticReference.RemoveUnfilledPlacement(doc)>0)warnings.Add("Colocação da referência urbanística vazia retirada da folha; vista original preservada.");
    if(!zoneProfile.Recognized)warnings.Add("Faixas laterais não reconhecidas neste carimbo; quadros mantidos na área principal.");
    // Remove only placements of the selected deliverables, never the views themselves.
    foreach(var item in items)
@@ -106,7 +107,7 @@ public static partial class SheetPlanner
      int detail=1;
      foreach(var item in batch)
      {
-      var e=Place(doc,target,item,types);if(e is Viewport vp){var parameter=vp.get_Parameter(BuiltInParameter.VIEWPORT_DETAIL_NUMBER);while(new FilteredElementCollector(doc,target.Id).OfClass(typeof(Viewport)).Cast<Viewport>().Any(v=>v.Id!=vp.Id&&v.get_Parameter(BuiltInParameter.VIEWPORT_DETAIL_NUMBER)?.AsString()==detail.ToString()))detail++;parameter?.Set((detail++).ToString());if(item.Key!="urbanistico")LegalSheetComposition.CenterLabel(doc,vp);}
+      var e=Place(doc,target,item,types);if(e is Viewport vp){detail=AssignDetailNumber(doc,vp,detail);if(item.Key!="urbanistico")LegalSheetComposition.CenterLabel(doc,vp);}
       doc.Regenerate();var actual=Bounds(e,target);var dest=layout!.First(p=>p.Id==item.ViewId).Rect;ElementTransformUtils.MoveElement(doc,e.Id,new XYZ(dest.Left-actual.Left,dest.Top-actual.Top,0));doc.Regenerate();actual=Bounds(e,target);
       string zoneKey=lateral.FirstOrDefault(l=>l.Item==item).Zone??"desenhos";var destination=mapped.Zones.First(z=>z.Key==zoneKey).Rect;
       if(!destination.Contains(actual,1e-6)||obstacles.Concat(page.Drawings.Select(d=>d.Rect)).Any(o=>actual.Intersects(o,Implantation.Feet(.006))))throw new InvalidOperationException("A posição real divergiu do cálculo em "+target.SheetNumber+". Nada foi aplicado.");
@@ -165,9 +166,18 @@ public static partial class SheetPlanner
  {
   if(item.Schedule)return ScheduleSheetInstance.Create(doc,sheet.Id,new ElementId(item.ViewId),XYZ.Zero);
   var vp=Viewport.Create(doc,sheet.Id,new ElementId(item.ViewId),XYZ.Zero);if(types.TryGetValue(item.ViewId,out var type))vp.ChangeTypeId(type);
+  if(item.Key!="urbanistico"&&doc.GetElement(new ElementId(item.ViewId)) is View placedView&&placedView.get_Parameter(BuiltInParameter.VIEW_DESCRIPTION) is {IsReadOnly:false} caption)
+   caption.Set(item.Label.Replace(" — "," · "));
   if(item.Key=="urbanistico")
   {const string name="VEBRAM — quadro sem título duplicado";var source=(ElementType)doc.GetElement(vp.GetTypeId());var style=new FilteredElementCollector(doc).OfClass(typeof(ElementType)).Cast<ElementType>().FirstOrDefault(t=>t.Name==name&&t.get_Parameter(BuiltInParameter.VIEWPORT_ATTR_SHOW_LABEL)!=null)??source.Duplicate(name);style.get_Parameter(BuiltInParameter.VIEWPORT_ATTR_SHOW_LABEL).Set(0);vp.ChangeTypeId(style.Id);}
-  vp.get_Parameter(BuiltInParameter.VIEWPORT_DETAIL_NUMBER)?.Set("99");doc.Regenerate();if(item.Key!="urbanistico")LegalSheetComposition.CenterLabel(doc,vp);return vp;
+  AssignDetailNumber(doc,vp,99);doc.Regenerate();if(item.Key!="urbanistico")LegalSheetComposition.CenterLabel(doc,vp);return vp;
+ }
+ static int AssignDetailNumber(Document doc,Viewport viewport,int first)
+ {
+  // View-scoped collectors omit hidden viewports, but their detail numbers remain reserved.
+  var used=new FilteredElementCollector(doc).OfClass(typeof(Viewport)).Cast<Viewport>().Where(v=>v.SheetId==viewport.SheetId&&v.Id!=viewport.Id).Select(v=>v.get_Parameter(BuiltInParameter.VIEWPORT_DETAIL_NUMBER)?.AsString()).ToHashSet();
+  int number=first;while(used.Contains(number.ToString()))number++;
+  viewport.get_Parameter(BuiltInParameter.VIEWPORT_DETAIL_NUMBER)?.Set(number.ToString());return number+1;
  }
  static LegalPaperRect Bounds(Element e,ViewSheet sheet)
  {var r=LegalSheets.Rect(e,sheet)??throw new InvalidOperationException("Não foi possível medir vista/título.");double p=Implantation.Feet(.002);return new(r.Left-p,r.Bottom-p,r.Right+p,r.Top+p);}

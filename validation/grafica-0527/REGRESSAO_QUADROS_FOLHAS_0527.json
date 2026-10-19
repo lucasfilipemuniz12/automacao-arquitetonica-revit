@@ -1,0 +1,485 @@
+{
+  "Checks": [
+    "Quadros repetidos reutilizam a mesma vista",
+    "Tabela cont\u00E9m esquadrias: 02 PROJETO LEGAL - VEBRAM - Portas",
+    "Tabela abre sem zoom gr\u00E1fico: 02 PROJETO LEGAL - VEBRAM - Portas",
+    "Tabela cont\u00E9m esquadrias: 02 PROJETO LEGAL - VEBRAM - Janelas",
+    "Tabela abre sem zoom gr\u00E1fico: 02 PROJETO LEGAL - VEBRAM - Janelas",
+    "Navega\u00E7\u00E3o de planta continua funcionando",
+    "Quadros aparecem no organizador",
+    "Otimiza\u00E7\u00E3o remove folha nova vazia com depend\u00EAncias nativas",
+    "Pr\u00E9via reverte vistas e folhas tempor\u00E1rias",
+    "Reaplica\u00E7\u00E3o n\u00E3o cria folhas duplicadas",
+    "Escalas preservadas",
+    "Vista fixada continua protegida",
+    "Nota manual e nome de sua folha preservados",
+    "Bot\u00E3o Calcular pr\u00E9via habilita Aplicar",
+    "Cadastro preserva op\u00E7\u00F5es j\u00E1 salvas no quadro urban\u00EDstico",
+    "Perfil compat\u00EDvel identificado nas sugest\u00F5es",
+    "Modelagem f\u00EDsica preservada",
+    "Marcas de portas e janelas preservadas",
+    "Cadastro do projeto preservado",
+    "Biblioteca municipal preservada"
+  ],
+  "SeparatePages": 4,
+  "OptimizedPages": 3,
+  "Plan": {
+    "Profile": "preferencial",
+    "ViewIds": [
+      350659,
+      350835,
+      350845,
+      350855,
+      350964,
+      350982,
+      356729,
+      356739,
+      356749,
+      356759,
+      359521,
+      359525,
+      351017,
+      356837,
+      356910
+    ],
+    "Pages": [
+      {
+        "Number": "LEG-01",
+        "Name": "Implanta\u00E7\u00E3o, situa\u00E7\u00E3o e quadros",
+        "IsNew": false,
+        "Area": {
+          "Left": 0.11482939632545933,
+          "Bottom": 0.1115485564304465,
+          "Right": 2.0062335958000683,
+          "Top": 1.8339895013123357
+        },
+        "Drawings": [
+          {
+            "ViewId": 350835,
+            "Label": "Implanta\u00E7\u00E3o",
+            "Scale": 100,
+            "Rect": {
+              "Left": 0.13631889763756677,
+              "Bottom": 0.2231176067220416,
+              "Right": 1.3130249343829736,
+              "Top": 1.7224204510207408
+            },
+            "Zone": "desenhos"
+          },
+          {
+            "ViewId": 350845,
+            "Label": "Situa\u00E7\u00E3o",
+            "Scale": 500,
+            "Rect": {
+              "Left": 1.3523950131231308,
+              "Bottom": 0.9638590765383142,
+              "Right": 1.9847440944879606,
+              "Top": 1.7224204510207408
+            },
+            "Zone": "desenhos"
+          },
+          {
+            "ViewId": 356910,
+            "Label": "Quadro urban\u00EDstico",
+            "Scale": 0,
+            "Rect": {
+              "Left": 2.0633877427821523,
+              "Bottom": 0.6098458005249346,
+              "Right": 2.687272257217847,
+              "Top": 1.08864501312336
+            },
+            "Zone": "legendas"
+          }
+        ],
+        "Obstacles": [],
+        "SheetBounds": {
+          "Left": 0,
+          "Bottom": -0.0032808398950128215,
+          "Right": 2.7608267716530865,
+          "Top": 1.9488188976377951
+        },
+        "Zones": [
+          {
+            "Key": "desenhos",
+            "Label": "DESENHOS",
+            "Rect": {
+              "Left": 0.11482939632545933,
+              "Bottom": 0.1115485564304465,
+              "Right": 2.0062335958000683,
+              "Top": 1.8339895013123357
+            },
+            "Writable": true
+          },
+          {
+            "Key": "notas",
+            "Label": "NOTAS GERAIS",
+            "Rect": {
+              "Left": 2.0406841994750655,
+              "Bottom": 1.6043307086614174,
+              "Right": 2.7099758005249344,
+              "Top": 1.8570866141732283
+            },
+            "Writable": true
+          },
+          {
+            "Key": "quadros",
+            "Label": "QUADROS / INFORMA\u00C7\u00D5ES",
+            "Rect": {
+              "Left": 2.0406841994750655,
+              "Bottom": 1.1614173228346456,
+              "Right": 2.7099758005249344,
+              "Top": 1.5344488188976377
+            },
+            "Writable": true
+          },
+          {
+            "Key": "legendas",
+            "Label": "LEGENDAS / ATEN\u00C7\u00C3O",
+            "Rect": {
+              "Left": 2.0406841994750655,
+              "Bottom": 0.6069553805774278,
+              "Right": 2.7099758005249344,
+              "Top": 1.0915354330708662
+            },
+            "Writable": true
+          },
+          {
+            "Key": "identificacao",
+            "Label": "CARIMBO / HIST\u00D3RICO",
+            "Rect": {
+              "Left": 2.0406841994750655,
+              "Bottom": 0.02952755905511841,
+              "Right": 2.7099758005249344,
+              "Top": 0.5905511811023622
+            },
+            "Writable": false
+          }
+        ],
+        "Notes": [
+          "Escalas indicadas nos t\u00EDtulos das vistas.",
+          "Conferir cotas e informa\u00E7\u00F5es antes da emiss\u00E3o.",
+          "Lote, confrontantes e \u00EDndices: dados informados no projeto.",
+          "ESTUDO FICT\u00CDCIO \u2014 N\u00C3O PROTOCOLAR."
+        ]
+      },
+      {
+        "Number": "LEG-02",
+        "Name": "Plantas legais e \u00E1reas",
+        "IsNew": false,
+        "Area": {
+          "Left": 0.11482939632545933,
+          "Bottom": 0.1115485564304465,
+          "Right": 2.0062335958000683,
+          "Top": 1.8339895013123357
+        },
+        "Drawings": [
+          {
+            "ViewId": 350659,
+            "Label": "Planta \u2014 n\u00EDvel 1",
+            "Scale": 100,
+            "Rect": {
+              "Left": 1.0850897876062828,
+              "Bottom": 0.6606120975862652,
+              "Right": 1.915658243889324,
+              "Top": 1.5388126269325837
+            },
+            "Zone": "desenhos"
+          },
+          {
+            "ViewId": 351017,
+            "Label": "Q04 \u2014 \u00E1reas dos ambientes",
+            "Scale": 0,
+            "Rect": {
+              "Left": 1.0850897876062826,
+              "Bottom": 0.4067254308101987,
+              "Right": 1.719057416652652,
+              "Top": 0.6212420188461074
+            },
+            "Zone": "desenhos"
+          },
+          {
+            "ViewId": 356837,
+            "Label": "Mem\u00F3ria gr\u00E1fica de \u00E1reas",
+            "Scale": 100,
+            "Rect": {
+              "Left": 0.20540474823620394,
+              "Bottom": 0.41864364090160083,
+              "Right": 1.0457197088661254,
+              "Top": 1.5388126269325837
+            },
+            "Zone": "desenhos"
+          },
+          {
+            "ViewId": 359521,
+            "Label": "Quadro de portas",
+            "Scale": 0,
+            "Rect": {
+              "Left": 2.220747760279965,
+              "Bottom": 1.2306918667363629,
+              "Right": 2.529912239720035,
+              "Top": 1.4651742749959205
+            },
+            "Zone": "quadros"
+          },
+          {
+            "ViewId": 359525,
+            "Label": "Quadro de janelas",
+            "Scale": 0,
+            "Rect": {
+              "Left": 2.0406841994750655,
+              "Bottom": 0.83708720458766,
+              "Right": 2.4548355555555554,
+              "Top": 1.0915354330708662
+            },
+            "Zone": "legendas"
+          }
+        ],
+        "Obstacles": [],
+        "SheetBounds": {
+          "Left": 0,
+          "Bottom": -0.0032808398950128215,
+          "Right": 2.7608267716530865,
+          "Top": 1.9488188976377951
+        },
+        "Zones": [
+          {
+            "Key": "desenhos",
+            "Label": "DESENHOS",
+            "Rect": {
+              "Left": 0.11482939632545933,
+              "Bottom": 0.1115485564304465,
+              "Right": 2.0062335958000683,
+              "Top": 1.8339895013123357
+            },
+            "Writable": true
+          },
+          {
+            "Key": "notas",
+            "Label": "NOTAS GERAIS",
+            "Rect": {
+              "Left": 2.0406841994750655,
+              "Bottom": 1.6043307086614174,
+              "Right": 2.7099758005249344,
+              "Top": 1.8570866141732283
+            },
+            "Writable": true
+          },
+          {
+            "Key": "quadros",
+            "Label": "QUADROS / INFORMA\u00C7\u00D5ES",
+            "Rect": {
+              "Left": 2.0406841994750655,
+              "Bottom": 1.1614173228346456,
+              "Right": 2.7099758005249344,
+              "Top": 1.5344488188976377
+            },
+            "Writable": true
+          },
+          {
+            "Key": "legendas",
+            "Label": "LEGENDAS / ATEN\u00C7\u00C3O",
+            "Rect": {
+              "Left": 2.0406841994750655,
+              "Bottom": 0.6069553805774278,
+              "Right": 2.7099758005249344,
+              "Top": 1.0915354330708662
+            },
+            "Writable": true
+          },
+          {
+            "Key": "identificacao",
+            "Label": "CARIMBO / HIST\u00D3RICO",
+            "Rect": {
+              "Left": 2.0406841994750655,
+              "Bottom": 0.02952755905511841,
+              "Right": 2.7099758005249344,
+              "Top": 0.5905511811023622
+            },
+            "Writable": false
+          }
+        ],
+        "Notes": [
+          "Escalas indicadas nos t\u00EDtulos das vistas.",
+          "Conferir cotas e informa\u00E7\u00F5es antes da emiss\u00E3o.",
+          "ESTUDO FICT\u00CDCIO \u2014 N\u00C3O PROTOCOLAR."
+        ]
+      },
+      {
+        "Number": "LEG-03",
+        "Name": "cobertura, cortes e fachadas",
+        "IsNew": false,
+        "Area": {
+          "Left": 0.11482939632545933,
+          "Bottom": 0.1115485564304465,
+          "Right": 2.0062335958000683,
+          "Top": 1.8339895013123357
+        },
+        "Drawings": [
+          {
+            "ViewId": 350855,
+            "Label": "Cobertura",
+            "Scale": 100,
+            "Rect": {
+              "Left": 1.4629363517058087,
+              "Bottom": 0.6395831919893017,
+              "Right": 1.99823818897615,
+              "Top": 1.4628033591226468
+            },
+            "Zone": "desenhos"
+          },
+          {
+            "ViewId": 350964,
+            "Label": "Corte A",
+            "Scale": 100,
+            "Rect": {
+              "Left": 0.12282480314937794,
+              "Bottom": 0.48273469862013546,
+              "Right": 0.6883038057740496,
+              "Top": 0.7831775329608676
+            },
+            "Zone": "desenhos"
+          },
+          {
+            "ViewId": 350982,
+            "Label": "Corte B",
+            "Scale": 100,
+            "Rect": {
+              "Left": 0.7276738845142072,
+              "Bottom": 0.48273469862013546,
+              "Right": 1.4235662729656502,
+              "Top": 0.7831775329608676
+            },
+            "Zone": "desenhos"
+          },
+          {
+            "ViewId": 356749,
+            "Label": "Fachada leste",
+            "Scale": 100,
+            "Rect": {
+              "Left": 0.12282480314937788,
+              "Bottom": 1.1623605247819147,
+              "Right": 0.8187171916008218,
+              "Top": 1.4628033591226468
+            },
+            "Zone": "desenhos"
+          },
+          {
+            "ViewId": 356729,
+            "Label": "Fachada norte",
+            "Scale": 100,
+            "Rect": {
+              "Left": 0.8580872703409793,
+              "Bottom": 1.1623605247819147,
+              "Right": 1.423566272965651,
+              "Top": 1.4628033591226468
+            },
+            "Zone": "desenhos"
+          },
+          {
+            "ViewId": 356759,
+            "Label": "Fachada oeste",
+            "Scale": 100,
+            "Rect": {
+              "Left": 0.1228248031493781,
+              "Bottom": 0.8225476117010252,
+              "Right": 0.8187171916008213,
+              "Top": 1.1229904460417575
+            },
+            "Zone": "desenhos"
+          },
+          {
+            "ViewId": 356739,
+            "Label": "Fachada sul",
+            "Scale": 100,
+            "Rect": {
+              "Left": 0.8580872703409788,
+              "Bottom": 0.8225476117010252,
+              "Right": 1.4235662729656506,
+              "Top": 1.1229904460417575
+            },
+            "Zone": "desenhos"
+          }
+        ],
+        "Obstacles": [],
+        "SheetBounds": {
+          "Left": 0,
+          "Bottom": -0.0032808398950128215,
+          "Right": 2.7608267716530865,
+          "Top": 1.9488188976377951
+        },
+        "Zones": [
+          {
+            "Key": "desenhos",
+            "Label": "DESENHOS",
+            "Rect": {
+              "Left": 0.11482939632545933,
+              "Bottom": 0.1115485564304465,
+              "Right": 2.0062335958000683,
+              "Top": 1.8339895013123357
+            },
+            "Writable": true
+          },
+          {
+            "Key": "notas",
+            "Label": "NOTAS GERAIS",
+            "Rect": {
+              "Left": 2.0406841994750655,
+              "Bottom": 1.6043307086614174,
+              "Right": 2.7099758005249344,
+              "Top": 1.8570866141732283
+            },
+            "Writable": true
+          },
+          {
+            "Key": "quadros",
+            "Label": "QUADROS / INFORMA\u00C7\u00D5ES",
+            "Rect": {
+              "Left": 2.0406841994750655,
+              "Bottom": 1.1614173228346456,
+              "Right": 2.7099758005249344,
+              "Top": 1.5344488188976377
+            },
+            "Writable": true
+          },
+          {
+            "Key": "legendas",
+            "Label": "LEGENDAS / ATEN\u00C7\u00C3O",
+            "Rect": {
+              "Left": 2.0406841994750655,
+              "Bottom": 0.6069553805774278,
+              "Right": 2.7099758005249344,
+              "Top": 1.0915354330708662
+            },
+            "Writable": true
+          },
+          {
+            "Key": "identificacao",
+            "Label": "CARIMBO / HIST\u00D3RICO",
+            "Rect": {
+              "Left": 2.0406841994750655,
+              "Bottom": 0.02952755905511841,
+              "Right": 2.7099758005249344,
+              "Top": 0.5905511811023622
+            },
+            "Writable": false
+          }
+        ],
+        "Notes": [
+          "Escalas indicadas nos t\u00EDtulos das vistas.",
+          "Conferir cotas e informa\u00E7\u00F5es antes da emiss\u00E3o.",
+          "Alturas e n\u00EDveis: conferir refer\u00EAncias indicadas nas vistas.",
+          "ESTUDO FICT\u00CDCIO \u2014 N\u00C3O PROTOCOLAR."
+        ]
+      }
+    ],
+    "Warnings": [
+      "Coloca\u00E7\u00E3o da refer\u00EAncia urban\u00EDstica vazia retirada da folha; vista original preservada.",
+      "LEG-02: Q04 \u2014 \u00E1reas dos ambientes n\u00E3o coube nas faixas laterais e foi mantido na \u00E1rea principal.",
+      "LEG-04 incorporada \u00E0 LEG-03 para aproveitar espa\u00E7o; escalas e grupos de cortes/fachadas mantidos."
+    ],
+    "Optimize": true,
+    "ReservedSheets": [
+      "LEG-04"
+    ]
+  }
+}
