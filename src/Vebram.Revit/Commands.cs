@@ -98,8 +98,7 @@ public sealed class PrepareLegalCommand : IExternalCommand
             if(form.Module is { } module)
             {
                 var prepared=LegalModules.Apply(doc,module);
-                data.Application.ActiveUIDocument!.ActiveView=(View)doc.GetElement(new ElementId(prepared.ViewId));
-                if(module.Key!="areas")data.Application.ActiveUIDocument!.GetOpenUIViews().FirstOrDefault(v=>v.ViewId.Value==prepared.ViewId)?.ZoomToFit();
+                OpenModuleResult(data.Application.ActiveUIDocument!,prepared.ViewId);
                 TaskDialog.Show("VEBRAM — resultado",prepared.Report);return Result.Succeeded;
             }
             var plan = Implantation.Plan(doc, form.Selection!);
@@ -119,6 +118,16 @@ public sealed class PrepareLegalCommand : IExternalCommand
             return Result.Succeeded;
         }
         catch (Exception e) { message = e.Message; return Result.Failed; }
+    }
+
+    internal static void OpenModuleResult(UIDocument uidoc,long viewId)
+    {
+        var view=(View)uidoc.Document.GetElement(new ElementId(viewId));
+        uidoc.ActiveView=view;
+        // Schedules can be opened, but UIView.ZoomToFit only accepts graphical views.
+        // Throwing here would make Revit roll back the successful external command.
+        if(view is not ViewSchedule)
+            uidoc.GetOpenUIViews().FirstOrDefault(v=>v.ViewId.Value==viewId)?.ZoomToFit();
     }
 }
 

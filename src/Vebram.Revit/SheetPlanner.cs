@@ -41,6 +41,7 @@ public static partial class SheetPlanner
   var zoneProfile=SheetZones.Read(doc,Title(doc,reference)!);
   var types=new Dictionary<long,ElementId>();var scales=items.Where(i=>!i.Schedule).ToDictionary(i=>i.ViewId,i=>((View)doc.GetElement(new ElementId(i.ViewId))).Scale);
   var pages=new List<PlannerPage>();var warnings=new List<string>();var initialNumbers=sheets.Select(s=>s.SheetNumber).ToHashSet();
+  var newSheetDependencies=new Dictionary<long,HashSet<ElementId>>();
   using var tx=new Transaction(doc,expected==null?"VEBRAM — calcular prévia (revertida)":"VEBRAM — distribuir folhas automaticamente");tx.Start();
   try
   {
@@ -70,7 +71,7 @@ public static partial class SheetPlanner
    foreach(var grouping in items.GroupBy(i=>SheetPacking.PreferredSheet(i.Key,profile)).OrderBy(g=>g.Key))
    {
     int group=grouping.Key;var remaining=grouping.ToList();int groupPageCount=0;
-    ViewSheet GetSheet(int n){string number="LEG-"+n.ToString("00");var s=sheets.FirstOrDefault(s=>s.SheetNumber==number);if(s==null){s=NewSheet(doc,reference,number);sheets.Add(s);}return s;}
+    ViewSheet GetSheet(int n){string number="LEG-"+n.ToString("00");var s=sheets.FirstOrDefault(s=>s.SheetNumber==number);if(s==null){s=NewSheet(doc,reference,number,newSheetDependencies);sheets.Add(s);}return s;}
     var target=GetSheet(group);
     while(remaining.Count>0)
     {
@@ -118,7 +119,7 @@ public static partial class SheetPlanner
     }
     if(groupPageCount>1)warnings.Add(SheetPacking.SheetName(group,profile)+": grupo dividido em "+groupPageCount+" folhas por falta de espaço, mantendo as escalas.");
    }
-   var reserved=optimize?Consolidate(doc,pages,items,sizes,types,sheets,initialNumbers,warnings):new List<string>();
+   var reserved=optimize?Consolidate(doc,pages,items,sizes,types,sheets,initialNumbers,newSheetDependencies,warnings):new List<string>();
    RefreshBounds(doc,pages);
    if(scales.Any(p=>((View)doc.GetElement(new ElementId(p.Key))).Scale!=p.Value))throw new InvalidOperationException("Escala alterada; operação revertida.");
    var result=new SheetPlan(profile,ids,pages,warnings,optimize,reserved);
@@ -150,10 +151,15 @@ public static partial class SheetPlanner
  static bool Equivalent(SheetPlan a,SheetPlan b)=>a.Pages.Count==b.Pages.Count&&a.Pages.Zip(b.Pages).All(p=>p.First.Number==p.Second.Number&&p.First.Drawings.Count==p.Second.Drawings.Count&&p.First.Drawings.Zip(p.Second.Drawings).All(d=>d.First.ViewId==d.Second.ViewId&&d.First.Scale==d.Second.Scale&&Math.Abs(d.First.Rect.Left-d.Second.Rect.Left)<1e-6&&Math.Abs(d.First.Rect.Top-d.Second.Rect.Top)<1e-6&&Math.Abs(d.First.Rect.Right-d.Second.Rect.Right)<1e-6&&Math.Abs(d.First.Rect.Bottom-d.Second.Rect.Bottom)<1e-6));
  internal static FamilyInstance? TitleOf(Document doc,ViewSheet sheet)=>Title(doc,sheet);
  static FamilyInstance? Title(Document doc,ViewSheet sheet)=>new FilteredElementCollector(doc,sheet.Id).OfCategory(BuiltInCategory.OST_TitleBlocks).WhereElementIsNotElementType().OfType<FamilyInstance>().FirstOrDefault();
- static ViewSheet NewSheet(Document doc,ViewSheet reference,string number)
+ static ViewSheet NewSheet(Document doc,ViewSheet reference,string number,Dictionary<long,HashSet<ElementId>>? dependencies=null)
  {
   var title=Title(doc,reference)!;var sheet=ViewSheet.Create(doc,title.GetTypeId());sheet.SheetNumber=number;sheet.Name="Projeto legal — complementos";
-  foreach(var id in new[]{LegalCatalog.StageId,LegalCatalog.FunctionId,LegalCatalog.StatusId})if(sheet.get_Parameter(id) is {IsReadOnly:false} p)p.Set(LegalCatalog.Text(reference,id));doc.Regenerate();return sheet;
+  foreach(var id in new[]{LegalCatalog.StageId,LegalCatalog.FunctionId,LegalCatalog.StatusId})if(sheet.get_Parameter(id) is {IsReadOnly:false} p)p.Set(LegalCatalog.Text(reference,id));doc.Regenerate();
+  // Revit creates internal sheet elements (including a sketch plane) that a
+  // view-scoped collector does not return. Record only this new sheet's initial
+  // dependents, so later cleanup still refuses unrelated existing dependencies.
+  if(dependencies!=null)dependencies[sheet.Id.Value]=sheet.GetDependentElements(null).Append(sheet.Id).ToHashSet();
+  return sheet;
  }
  static Element Place(Document doc,ViewSheet sheet,PlannerItem item,Dictionary<long,ElementId> types)
  {
