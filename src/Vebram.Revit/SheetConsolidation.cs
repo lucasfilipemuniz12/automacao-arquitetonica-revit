@@ -4,7 +4,7 @@ public static partial class SheetPlanner
 {
  sealed record Merge(PlannerPage Source,PlannerPage Target,List<PaperPlacement> Layout,Dictionary<long,string> Zones,double Score);
  static double RectArea(LegalPaperRect r)=>Math.Max(0,r.Right-r.Left)*Math.Max(0,r.Top-r.Bottom);
- static List<string> Consolidate(Document doc,List<PlannerPage> pages,List<PlannerItem> items,Dictionary<long,PaperItem> sizes,Dictionary<long,ElementId> types,List<ViewSheet> sheets,HashSet<string> initialNumbers,List<string> warnings)
+ static List<string> Consolidate(Document doc,List<PlannerPage> pages,List<PlannerItem> items,Dictionary<long,PaperItem> sizes,Dictionary<long,ElementId> types,List<ViewSheet> sheets,HashSet<string> initialNumbers,Dictionary<long,HashSet<ElementId>> newSheetDependencies,List<string> warnings)
  {
   var reserved=new List<string>();var byId=items.ToDictionary(i=>i.ViewId);
   while(pages.Count>1)
@@ -48,7 +48,8 @@ public static partial class SheetPlanner
    pages[pages.IndexOf(best.Target)]=merged;pages.Remove(best.Source);
    if(!initialNumbers.Contains(sourceSheet.SheetNumber))
    {
-    var permitted=new FilteredElementCollector(doc,sourceSheet.Id).WhereElementIsNotElementType().Where(e=>e.OwnerViewId==sourceSheet.Id).Select(e=>e.Id).Append(sourceSheet.Id).ToHashSet();
+    var permitted=new HashSet<ElementId>(newSheetDependencies[sourceSheet.Id.Value]);
+    permitted.UnionWith(new FilteredElementCollector(doc).WhereElementIsNotElementType().Where(e=>e.OwnerViewId==sourceSheet.Id).Select(e=>e.Id));
     if(doc.Delete(sourceSheet.Id).Any(id=>!permitted.Contains(id)))throw new InvalidOperationException("Dependências impediram retirar uma folha nova vazia.");sheets.Remove(sourceSheet);
    }
    else{sourceSheet.Name="Reserva — sem entregáveis selecionados";reserved.Add(sourceSheet.SheetNumber);}

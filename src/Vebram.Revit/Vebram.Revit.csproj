@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <PlatformTarget>x64</PlatformTarget>
     <AssemblyName>Vebram.Revit</AssemblyName>
-    <Version>0.5.25</Version>
+    <Version>0.5.26</Version>
     <RevitInstallDir Condition="'$(RevitInstallDir)' == ''">D:\Autodesk\Revit2026\Revit 2026</RevitInstallDir>
   </PropertyGroup>
   <ItemGroup>
