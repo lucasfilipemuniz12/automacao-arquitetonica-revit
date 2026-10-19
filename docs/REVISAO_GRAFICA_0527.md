@@ -81,3 +81,13 @@ e as cotas sem espaço continuam explicitamente pendentes no relatório.
 - Cotas ou rótulos sem espaço seguro continuam sendo informados como pendência.
 - A documentação gerada ainda é um estudo fictício; os dados municipais do
   projeto continuam dependendo da conferência já indicada pelo usuário.
+
+## Instalação local
+
+Release 0.5.27 em `dist0527/`, compilado sem erros ou avisos. Após o usuário
+salvar a cópia de diagnóstico, o Revit foi encerrado para instalar o pacote
+pelo script existente. A DLL 0.5.26 permaneceu intacta em `current/`.
+Backup do manifesto anterior:
+`%APPDATA%/Autodesk/Revit/Addins/2026/Vebram.Legal.addin.backup-20261019012346`.
+O Revit foi reiniciado na cópia salva; o aviso de complemento sem assinatura
+é confirmado pelo usuário no próprio aplicativo.
