@@ -17,7 +17,7 @@ internal static class RegistrationUi
  internal static void Initialize(Window window,UIApplication app,string title,double width=1180)
  {window.Title="VEBRAM — "+title;window.Width=Math.Min(width,SystemParameters.WorkArea.Width-35);window.Height=Math.Min(850,SystemParameters.WorkArea.Height-35);window.MinWidth=950;window.MinHeight=620;window.Background=new SolidColorBrush(Color.FromRgb(246,248,250));window.WindowStartupLocation=WindowStartupLocation.CenterOwner;new WindowInteropHelper(window).Owner=app.MainWindowHandle;}
  internal static StackPanel Header(string step,string title,string subtitle)
- {var p=new StackPanel{Margin=new Thickness(24,18,24,12)};p.Children.Add(new TextBlock{Text=step+"  ·  PROTÓTIPO 0.5.24",Foreground=Teal,FontSize=12,FontWeight=FontWeights.Bold});p.Children.Add(new TextBlock{Text=title,FontSize=27,Foreground=Ink,FontWeight=FontWeights.SemiBold,Margin=new Thickness(0,5,0,5)});p.Children.Add(new TextBlock{Text=subtitle,TextWrapping=TextWrapping.Wrap,Foreground=Brushes.SlateGray});return p;}
+ {var p=new StackPanel{Margin=new Thickness(24,18,24,12)};p.Children.Add(new TextBlock{Text=step+"  ·  PROTÓTIPO 0.5.25",Foreground=Teal,FontSize=12,FontWeight=FontWeights.Bold});p.Children.Add(new TextBlock{Text=title,FontSize=27,Foreground=Ink,FontWeight=FontWeights.SemiBold,Margin=new Thickness(0,5,0,5)});p.Children.Add(new TextBlock{Text=subtitle,TextWrapping=TextWrapping.Wrap,Foreground=Brushes.SlateGray});return p;}
  internal static TextBlock Label(string title)=>new(){Text=title,Foreground=Ink,FontWeight=FontWeights.SemiBold,Margin=new Thickness(0,9,0,5),TextWrapping=TextWrapping.Wrap};
  internal static TextBox Field(Panel panel,string label,string value="",bool multiline=false)
  {panel.Children.Add(Label(label));var box=new TextBox{Text=value,MinHeight=34,Padding=new Thickness(8,6,8,6),AcceptsReturn=multiline,TextWrapping=multiline?TextWrapping.Wrap:TextWrapping.NoWrap};if(multiline)box.MinHeight=65;AutomationProperties.SetName(box,label);panel.Children.Add(box);return box;}
@@ -57,7 +57,7 @@ public sealed class ProjectRegistrationWindow:Window
  bool loadingProfiles;
  public ProjectRegistrationWindow(UIApplication app)
  {
-  doc=app.ActiveUIDocument.Document;var saved=ProjectRegistrationStore.Read(doc);
+  doc=app.ActiveUIDocument.Document;var saved=ProjectRegistrationStore.ReadForEditing(doc,out var readProblem);
   RegistrationUi.Initialize(this,app,"Dados do projeto");var dock=new DockPanel();Content=dock;
   var header=RegistrationUi.Header("1 / 3","Dados do projeto","Identifique a casa, selecione um perfil municipal e confira o que será reutilizado.");DockPanel.SetDock(header,Dock.Top);dock.Children.Add(header);
   var footer=new DockPanel{Margin=new Thickness(24,15,24,20)};DockPanel.SetDock(footer,Dock.Bottom);dock.Children.Add(footer);
@@ -66,7 +66,8 @@ public sealed class ProjectRegistrationWindow:Window
   var save=RegistrationUi.Button("Salvar cadastro");save.Click+=(_,_)=>Save(false);actions.Children.Add(save);
   var go=RegistrationUi.Button("Salvar e preparar →",true);go.Click+=(_,_)=>Save(true);actions.Children.Add(go);
   var layout=new Grid{Margin=new Thickness(24,0,24,0)};layout.ColumnDefinitions.Add(new(){Width=new GridLength(1,GridUnitType.Star)});layout.ColumnDefinitions.Add(new(){Width=new GridLength(335)});dock.Children.Add(layout);
-  var form=new StackPanel{Margin=new Thickness(0,0,8,0)};layout.Children.Add(new ScrollViewer{Content=form,VerticalScrollBarVisibility=ScrollBarVisibility.Auto});var guide=RegistrationUi.Guide(false);Grid.SetColumn(guide,1);layout.Children.Add(guide);
+  var form=new StackPanel{Margin=new Thickness(0,0,8,0)};
+  if(readProblem!=null)form.Children.Add(new TextBlock{Text=readProblem,TextWrapping=TextWrapping.Wrap,Foreground=Brushes.Firebrick,Margin=new Thickness(0,0,0,10)});layout.Children.Add(new ScrollViewer{Content=form,VerticalScrollBarVisibility=ScrollBarVisibility.Auto});var guide=RegistrationUi.Guide(false);Grid.SetColumn(guide,1);layout.Children.Add(guide);
   TextBox Field(Panel panel,string key,string title,string value,bool multi=false){var b=RegistrationUi.Field(panel,title,value,multi);fields[key]=b;return b;}
   var left=new StackPanel();var right=new StackPanel();Field(left,"name","Nome do projeto *",saved.Name);Field(right,"code","Código do projeto",saved.Code);RegistrationUi.Row(form,left,right);
   Field(form,"client","Cliente / proprietário",saved.Client);Field(form,"address","Endereço — rua, número e bairro",saved.Address);

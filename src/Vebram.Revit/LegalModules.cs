@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.DB.ExtensibleStorage;
@@ -14,7 +14,7 @@ public static class LegalModules
   if(doc.IsFamilyDocument||doc.IsReadOnly||doc.IsWorkshared||doc.PathName.EndsWith(".rte",StringComparison.OrdinalIgnoreCase))throw new InvalidOperationException("Use um RVT local editável.");
   var source=doc.GetElement(new ElementId(request.SourceId)) as ViewPlan??throw new InvalidOperationException("Escolha a planta de modelagem.");
   if(source.IsTemplate||source.ViewType!=ViewType.FloorPlan)throw new InvalidOperationException("Fonte de planta inválida.");
-  if(request.Key=="memoria")return MemoryAreas.Apply(doc,source);
+  if(request.Key=="memoria")return MemoryAreas.Apply(doc,source,request.ReplaceEdited);
   if(request.Key=="esquadrias")return OpeningSchedules.Apply(doc,source); if(request.Key=="areas")
   {
    var schedule=LegalCatalog.Reference(LegalCatalog.Views(doc),LegalCatalog.Items.First(i=>i.Key=="areas")) as ViewSchedule??throw new InvalidOperationException("Q04 do V02 não encontrado. Use o template compatível.");

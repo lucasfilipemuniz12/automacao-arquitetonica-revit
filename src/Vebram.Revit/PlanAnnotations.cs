@@ -79,7 +79,7 @@ public static class PlanAnnotations
      // Several lines to try (near both edges, then a quarter of the way in), so the dimension rarely has to be skipped.
      double margin=paper*1.2;double lo=horizontal?box.Min.Y:box.Min.X,hi=horizontal?box.Max.Y:box.Max.X;
      var targets=horizontal?new[]{lo+margin,hi-margin,lo+(hi-lo)*.25,lo+(hi-lo)*.75}:new[]{hi-margin,lo+margin,lo+(hi-lo)*.75,lo+(hi-lo)*.25};
-     var baseStart=p0;var baseEnd=p1;Rect? chosenBand=null;XYZ q0=p0,q1=p1;
+     var baseStart=p0;var baseEnd=p1;Rect? chosenBand=null;XYZ q0=p0,q1=p1;bool irregular=false;
      foreach(bool strict in new[]{true,false})
      {
       foreach(double crossTarget in targets)
@@ -89,12 +89,15 @@ public static class PlanAnnotations
        var band=horizontal?new Rect(s0.X,(s0.Y+s1.Y)/2-paper*.7,s1.X,(s0.Y+s1.Y)/2+paper*.7):new Rect((s0.X+s1.X)/2-paper*.7,s0.Y,(s0.X+s1.X)/2+paper*.7,s1.Y);
        if(labelRect!=null&&labelRect.Overlaps(band,0))continue;
        var middle=(s0+s1)/2;if(!room.IsPointInRoom(new(middle.X,middle.Y,z+Implantation.Feet(1))))continue;
+       // Irregular (L/U-shaped) rooms: the shifted line must still run between the same two facing walls,
+       // with no other boundary wall in between; otherwise the dimension would cross a wall or measure a notch.
+       if(!FacingPairAt(edges,low,high,crossTarget,horizontal,horizontal?anchor.X:anchor.Y)){irregular=true;continue;}
        if(strict&&occupied.Any(r=>r.Overlaps(band,paper*.1)))continue;
        chosenBand=band;q0=s0;q1=s1;break;
       }
       if(chosenBand!=null)break;
      }
-     if(chosenBand==null){pending.Add("Ambiente "+room.Number+": cota "+(horizontal?"horizontal":"vertical")+" pendente para preservar leitura do rótulo.");continue;}
+     if(chosenBand==null){pending.Add("Ambiente "+room.Number+": cota "+(horizontal?"horizontal":"vertical")+(irregular?" pendente: ambiente pequeno ou irregular, sem faixa livre entre as mesmas duas paredes. Cote manualmente.":" pendente para preservar leitura do rótulo."));continue;}
      p0=q0;p1=q1;var dimensionBand=chosenBand;
      if(TryDimension(doc,view,dimType,new[]{a,b},p0,p1,made,pending,"Ambiente "+room.Number))
      {roomDims++;var center=(p0+p1)/2;occupied.Add(new(center.X-paper*2,center.Y-paper,center.X+paper*2,center.Y+paper));}
@@ -181,6 +184,16 @@ public static class PlanAnnotations
  }
  static Rect TextBounds(TextNote note,int scale)=>new(note.Coord.X-note.Width*scale/2,note.Coord.Y-note.Height*scale/2,note.Coord.X+note.Width*scale/2,note.Coord.Y+note.Height*scale/2);
  static bool Crosses(Line line,double cross,bool horizontal){var a=line.GetEndPoint(0);var b=line.GetEndPoint(1);double low=horizontal?Math.Min(a.Y,b.Y):Math.Min(a.X,b.X),high=horizontal?Math.Max(a.Y,b.Y):Math.Max(a.X,b.X);return cross>low+.01&&cross<high-.01;}
+ /// <summary>True when, on the line at <paramref name="cross"/>, the nearest boundary walls on each side of <paramref name="along"/> are still <paramref name="low"/> and <paramref name="high"/>.</summary>
+ static bool FacingPairAt(List<Edge> edges,Edge low,Edge high,double cross,bool horizontal,double along)
+ {
+  double Position(Edge e)=>horizontal?e.Line.GetEndPoint(0).X:e.Line.GetEndPoint(0).Y;
+  var sides=edges.Where(e=>Math.Abs(horizontal?e.Line.Direction.Y:e.Line.Direction.X)>.999&&Crosses(e.Line,cross,horizontal)).ToList();
+  var nearLow=sides.Where(e=>Position(e)<along).OrderBy(Position).LastOrDefault();
+  var nearHigh=sides.Where(e=>Position(e)>along).OrderBy(Position).FirstOrDefault();
+  // Compare positions, not segments: one wall face may be split into collinear boundary segments.
+  return nearLow!=null&&nearHigh!=null&&Math.Abs(Position(nearLow)-Position(low))<1e-3&&Math.Abs(Position(nearHigh)-Position(high))<1e-3;
+ }
  static bool Inside(Room room,Rect b,double z)=>new[]{new XYZ(b.X0,b.Y0,z),new XYZ(b.X0,b.Y1,z),new XYZ(b.X1,b.Y0,z),new XYZ(b.X1,b.Y1,z),new XYZ((b.X0+b.X1)/2,(b.Y0+b.Y1)/2,z)}.All(room.IsPointInRoom);
  static Reference? Side(Wall wall,ShellLayerType side){try{return HostObjectUtils.GetSideFaces(wall,side).FirstOrDefault();}catch(Autodesk.Revit.Exceptions.ArgumentException){return null;}}
  static Reference? Face(Document doc,Edge edge)

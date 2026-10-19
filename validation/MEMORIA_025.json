@@ -1,0 +1,11 @@
+{
+  "Version": "0.5.25",
+  "LegalClassification": true,
+  "OrganizerIncludesMemory": true,
+  "EditedLegendProtected": true,
+  "NativePreviewAndApply": true,
+  "ScalePreserved": true,
+  "TerrainExcludedFromFloorSum": true,
+  "Pages": 3,
+  "MemoryScale": 100
+}

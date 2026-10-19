@@ -57,7 +57,22 @@ public static class ProjectRegistrationStore
  public static ProjectRegistration Read(Document doc)
  {
   var schema=Autodesk.Revit.DB.ExtensibleStorage.Schema.Lookup(Id);
-  if(schema!=null){var entity=doc.ProjectInformation.GetEntity(schema);if(entity.IsValid())return JsonSerializer.Deserialize<ProjectRegistration>(entity.Get<string>(schema.GetField("Payload")))??throw new InvalidDataException("Cadastro vazio.");}
+  if(schema!=null){var entity=doc.ProjectInformation.GetEntity(schema);if(entity.IsValid())
+   {
+    try{return JsonSerializer.Deserialize<ProjectRegistration>(entity.Get<string>(schema.GetField("Payload")))??throw new InvalidDataException("Cadastro vazio.");}
+    catch(JsonException ex){throw new InvalidDataException("O cadastro gravado neste projeto não pôde ser lido. Abra Cadastro do projeto, confira os dados e salve novamente.",ex);}
+   }}
+  return FromStamp(doc);
+ }
+ /// <summary>For the registration window only: an unreadable record must not block the window that rewrites it.</summary>
+ internal static ProjectRegistration ReadForEditing(Document doc,out string? problem)
+ {
+  problem=null;
+  try{return Read(doc);}
+  catch(InvalidDataException ex){problem=ex.Message+" Os campos abaixo foram preenchidos com os dados do carimbo; os demais ficaram vazios.";return FromStamp(doc);}
+ }
+ static ProjectRegistration FromStamp(Document doc)
+ {
   var stamp=StampData.Read(doc);
   return new(stamp.GetValueOrDefault("nome")??"",stamp.GetValueOrDefault("numero")??"",stamp.GetValueOrDefault("cliente")??"",stamp.GetValueOrDefault("endereco")??"","","","","","Não definido","Não definida","","");
  }
