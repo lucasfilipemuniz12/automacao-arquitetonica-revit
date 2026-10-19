@@ -11,6 +11,7 @@ Os ensaios nativos usam uma cópia explícita do RVT salvo pelo usuário:
 `codex-testes-casa-0526/Casa_Teste_01_SALVA_DIAGNOSTICO.rvt`.
 O original e o volume de demonstração da Silvana não foram alterados.
 As execuções pelo pyRevit usam `run_modify(dry_run=true)`; não salvam o RVT.
+Após os ensaios, o SHA-256 do original e da cópia foi conferido e era idêntico.
 
 ## Falhas reproduzidas e corrigidas
 
@@ -99,3 +100,12 @@ são resolvidos pela soma atual, e não houve alteração para mascará-los.
   conforme o comportamento existente.
 - O número de folhas depende do formato, das escalas, das vistas selecionadas
   e do conteúdo manual existente.
+
+## Instalação local
+
+Pacote Release 0.5.26 compilado em `current/`, com 0 erros e 0 avisos.
+Manifesto local atualizado pelo script de instalação existente; a DLL anterior
+permaneceu em seu diretório original. Backup do manifesto:
+`%APPDATA%/Autodesk/Revit/Addins/2026/Vebram.Legal.addin.backup-20261018230801`.
+O Revit foi reiniciado na cópia de diagnóstico. A confirmação de carregamento
+de complemento sem assinatura digital é feita pelo usuário no próprio Revit.
