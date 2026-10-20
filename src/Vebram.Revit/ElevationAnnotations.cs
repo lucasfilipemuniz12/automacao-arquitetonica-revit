@@ -16,7 +16,7 @@ internal static class ElevationAnnotations
    made.Add(doc.Create.NewDimension(view,Line.CreateBound(At(x,surface),At(x,top)),refs,LegalPreferenceStore.Dimension(doc)));
    made.Add(TextNote.Create(doc,view.Id,At(right-Implantation.Feet(.2),top+Implantation.Feet(.4)),"ALTURA TOTAL",LegalStyles.Text(doc,2).Id));
   }
-  var text=frame.SurfaceMeasured?"BASE: TERRENO DO MODELO (COTA PONTUAL)":"BASE: NÍVEL FONTE · TERRENO A CONFERIR";
+  var text=!frame.SurfaceMeasured?"BASE: NÍVEL FONTE · TERRENO A CONFERIR":frame.MeasuredAtPerimeter?"BASE: TERRENO DO MODELO (COTA MAIS BAIXA JUNTO À EDIFICAÇÃO)":"BASE: TERRENO DO MODELO (COTA PONTUAL)";
   made.Add(TextNote.Create(doc,view.Id,At(left,surface-Implantation.Feet(.18)),text,LegalStyles.Text(doc,2).Id));
   if(!frame.SurfaceMeasured)pending.Add("Altura total referenciada ao nível fonte: não foi encontrada superfície de terreno válida no centro da edificação.");
  }

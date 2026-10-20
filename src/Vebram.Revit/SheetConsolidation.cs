@@ -61,7 +61,23 @@ public static partial class SheetPlanner
  {
   var names=new List<string>();void Add(bool present,string name){if(present)names.Add(name);}
   Add(items.Any(i=>i.Key.StartsWith("planta-")),"Plantas");Add(items.Any(i=>i.Key=="implantacao"),"implantação");Add(items.Any(i=>i.Key=="situacao"),"situação");Add(items.Any(i=>i.Key=="cobertura"),"cobertura");Add(items.Any(i=>i.Key.StartsWith("corte-")),"cortes");Add(items.Any(i=>i.Key.StartsWith("fachada-")),"fachadas");
-  return names.Count==0?"Quadros":names.Count==1?names[0]:string.Join(", ",names.Take(names.Count-1))+" e "+names[^1];
+  var text=names.Count==0?"Quadros":names.Count==1?names[0]:string.Join(", ",names.Take(names.Count-1))+" e "+names[^1];
+  // Sheet names always start with a capital letter ("Fachadas", not "fachadas").
+  return char.ToUpperInvariant(text[0])+text[1..];
+ }
+ static void Compact(List<PlannerPage> pages,List<ViewSheet> sheets,List<string> reserved,List<string> warnings)
+ {
+  // A new sheet numbered after an existing sheet that ended empty takes the lower number.
+  // The existing sheet is not deleted: it only swaps numbers and stays as reserve.
+  foreach(var low in reserved.OrderBy(n=>n,StringComparer.Ordinal).ToList())
+  {
+   var page=pages.Where(p=>p.IsNew&&StringComparer.Ordinal.Compare(p.Number,low)>0).OrderBy(p=>p.Number,StringComparer.Ordinal).FirstOrDefault();if(page==null)continue;
+   var fresh=sheets.First(s=>s.SheetNumber==page.Number);var spare=sheets.First(s=>s.SheetNumber==low);string high=page.Number;
+   spare.SheetNumber="VEBRAM-TEMP-"+Guid.NewGuid().ToString("N");fresh.SheetNumber=low;spare.SheetNumber=high;
+   pages[pages.IndexOf(page)]=page with{Number=low};reserved[reserved.IndexOf(low)]=high;
+   warnings.Add(high+" renumerada para "+low+", que tinha ficado vazia; a folha vazia passou a "+high+" e continua como reserva.");
+  }
+  pages.Sort((a,b)=>StringComparer.Ordinal.Compare(a.Number,b.Number));
  }
  static void RefreshBounds(Document doc,List<PlannerPage> pages)
  {
