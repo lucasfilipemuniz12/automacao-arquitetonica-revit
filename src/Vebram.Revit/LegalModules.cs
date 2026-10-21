@@ -69,14 +69,19 @@ public static class LegalModules
     RoofDrainage.Annotate(doc,target,waters,drainage?.SourceId==source.Id.Value?drainage:null,made);
    }
    if(!string.IsNullOrWhiteSpace(prefs.AdditionalNote))drawing.Text(new(x0,y0-Implantation.Feet(2),z),prefs.AdditionalNote);
-   doc.Regenerate();foreach(var annotation in made){var ab=annotation.get_BoundingBox(target);if(ab!=null){x0=Math.Min(x0,ab.Min.X);x1=Math.Max(x1,ab.Max.X);y0=Math.Min(y0,ab.Min.Y);y1=Math.Max(y1,ab.Max.Y);}}
+   // The crop follows the building plus its own annotations. Annotations that land more than
+   // 3 m away from the building (labels of yard/terrain rooms, stray notes) no longer stretch the
+   // crop to the whole lot; they stay in the view, outside the crop, and are reported below.
+   double reach=Implantation.Feet(3),bx0=x0-reach,bx1=x1+reach,by0=y0-reach,by1=y1+reach;int outside=0;
+   doc.Regenerate();foreach(var annotation in made){var ab=annotation.get_BoundingBox(target);if(ab==null)continue;if(ab.Max.X<bx0||ab.Min.X>bx1||ab.Max.Y<by0||ab.Min.Y>by1){outside++;continue;}x0=Math.Max(bx0,Math.Min(x0,ab.Min.X));x1=Math.Min(bx1,Math.Max(x1,ab.Max.X));y0=Math.Max(by0,Math.Min(y0,ab.Min.Y));y1=Math.Min(by1,Math.Max(y1,ab.Max.Y));}
    var box=target.CropBox;var inverse=box.Transform.Inverse;
-   var corners=new[]{inverse.OfPoint(new XYZ(x0-Implantation.Feet(3),y0-Implantation.Feet(4),z)),inverse.OfPoint(new XYZ(x1+Implantation.Feet(3),y1+Implantation.Feet(3),z))};
+   // 2 m of air around building and annotations (was 3 m / 4 m): leaves room for the A/B section heads without showing the whole lot.
+   var corners=new[]{inverse.OfPoint(new XYZ(x0-Implantation.Feet(2),y0-Implantation.Feet(2),z)),inverse.OfPoint(new XYZ(x1+Implantation.Feet(2),y1+Implantation.Feet(2),z))};
    box.Min=new XYZ(corners.Min(p=>p.X),corners.Min(p=>p.Y),box.Min.Z);box.Max=new XYZ(corners.Max(p=>p.X),corners.Max(p=>p.Y),box.Max.Z);target.CropBox=box;
    doc.Regenerate();foreach(var e in made)DrawingOwnership.MarkAnnotation(e);Write(target,new(source.UniqueId,made.Select(e=>new ElementStamp(e.UniqueId,DrawingOwnership.Fingerprint(e))).ToList()));
    if(tx.Commit()!=TransactionStatus.Committed)throw new InvalidOperationException("Operação revertida pelo Revit.");
    return new(target.Id.Value,made.OfType<Dimension>().Count(),made.Count,item.Label+" preparada na vista do V02.\n"+made.OfType<Dimension>().Count()+" cotas e "+made.Count+" marcações geradas.\n"+
-    (planResult!=null?$"Cotas entre acabamentos: {planResult.RoomDimensions}; espessuras: {planResult.WallDimensions}; larguras de esquadrias: {planResult.OpeningDimensions}.\nRótulos com chamada externa: {planResult.ExternalLabels}.\n"+string.Join("\n",planResult.Pending):waters.Count+" águas planas reconhecidas; inclinações lidas da geometria, sem alterar o telhado.")+"\nExecute novamente após mudanças de modelo. Revise antes de colocar na folha.");
+    (planResult!=null?$"Cotas entre acabamentos: {planResult.RoomDimensions}; espessuras: {planResult.WallDimensions}; larguras de esquadrias: {planResult.OpeningDimensions}.\nRótulos com chamada externa: {planResult.ExternalLabels}.\n"+string.Join("\n",planResult.Pending):waters.Count+" águas planas reconhecidas; inclinações lidas da geometria, sem alterar o telhado.")+(outside>0?$"\n{outside} marcação(ões) a mais de 3 m da edificação ficaram fora do recorte; confira se são necessárias.":"")+"\nExecute novamente após mudanças de modelo. Revise antes de colocar na folha.");
   }
   catch{if(tx.GetStatus()==TransactionStatus.Started)tx.RollBack();throw;}
  }

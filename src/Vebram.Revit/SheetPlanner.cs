@@ -25,6 +25,21 @@ public static partial class SheetPlanner
   }
   return result;
  }
+ /// <summary>Legal views that exist but were not prepared yet, with the step that prepares them. They are left out of the distribution.</summary>
+ public static List<string> Unprepared(Document doc)
+ {
+  var views=LegalCatalog.Views(doc);var seen=new HashSet<long>();var result=new List<string>();bool facades=false;
+  foreach(var entry in LegalCatalog.Items)
+  {
+   var view=LegalCatalog.Reference(views,entry);if(view==null||!LegalCatalog.IsLegal(view)||view is ViewSchedule||!seen.Add(view.Id.Value))continue;
+   bool prepared=new FilteredElementCollector(doc,view.Id).WhereElementIsNotElementType().Any(e=>e.OwnerViewId==view.Id&&DrawingOwnership.IsAnnotation(e));
+   if(prepared)continue;
+   string label=entry.Label.Replace(" — preencher","");
+   if(entry.Key.StartsWith("fachada-")){if(!facades)result.Add("Fachadas — rode Preparar fachadas (prepara as quatro)");facades=true;}
+   else result.Add(label+" — rode Preparar legal > "+label);
+  }
+  return result;
+ }
  public static SheetPlan Preview(Document doc,string profile,IEnumerable<long> ids,bool optimize=true)=>Run(doc,profile,ids.Distinct().ToList(),optimize,null);
  public static ModuleResult Apply(Document doc,SheetPlan plan)
  {
@@ -120,7 +135,7 @@ public static partial class SheetPlanner
     }
     if(groupPageCount>1)warnings.Add(SheetPacking.SheetName(group,profile)+": grupo dividido em "+groupPageCount+" folhas por falta de espaço, mantendo as escalas.");
    }
-   var reserved=optimize?Consolidate(doc,pages,items,sizes,types,sheets,initialNumbers,newSheetDependencies,warnings):new List<string>();
+   var reserved=optimize?Consolidate(doc,pages,items,sizes,types,sheets,initialNumbers,newSheetDependencies,warnings):new List<string>();if(reserved.Count>0)Compact(pages,sheets,reserved,warnings);
    RefreshBounds(doc,pages);
    if(scales.Any(p=>((View)doc.GetElement(new ElementId(p.Key))).Scale!=p.Value))throw new InvalidOperationException("Escala alterada; operação revertida.");
    var result=new SheetPlan(profile,ids,pages,warnings,optimize,reserved);
@@ -155,12 +170,27 @@ public static partial class SheetPlanner
  static ViewSheet NewSheet(Document doc,ViewSheet reference,string number,Dictionary<long,HashSet<ElementId>>? dependencies=null)
  {
   var title=Title(doc,reference)!;var sheet=ViewSheet.Create(doc,title.GetTypeId());sheet.SheetNumber=number;sheet.Name="Projeto legal — complementos";
-  foreach(var id in new[]{LegalCatalog.StageId,LegalCatalog.FunctionId,LegalCatalog.StatusId})if(sheet.get_Parameter(id) is {IsReadOnly:false} p)p.Set(LegalCatalog.Text(reference,id));doc.Regenerate();
+  foreach(var id in new[]{LegalCatalog.StageId,LegalCatalog.FunctionId,LegalCatalog.StatusId})if(sheet.get_Parameter(id) is {IsReadOnly:false} p)p.Set(LegalCatalog.Text(reference,id));
+  CopySheetCount(reference,sheet);var newTitle=new FilteredElementCollector(doc,sheet.Id).OfCategory(BuiltInCategory.OST_TitleBlocks).WhereElementIsNotElementType().FirstOrDefault();if(newTitle!=null)CopySheetCount(title,newTitle);doc.Regenerate();
   // Revit creates internal sheet elements (including a sketch plane) that a
   // view-scoped collector does not return. Record only this new sheet's initial
   // dependents, so later cleanup still refuses unrelated existing dependencies.
   if(dependencies!=null)dependencies[sheet.Id.Value]=sheet.GetDependentElements(null).Append(sheet.Id).ToHashSet();
   return sheet;
+ }
+ // Title blocks that print "number/total" read the total from a sheet or title block text parameter.
+ // New sheets start with it empty and the stamp shows "LEG-04/"; copy it from the reference sheet.
+ static void CopySheetCount(Element from,Element to)
+ {
+  foreach(Parameter source in from.Parameters)
+  {
+   if(source.StorageType is not (StorageType.String or StorageType.Integer)||!source.HasValue)continue;
+   string name=source.Definition?.Name??"";string lower=name.ToLowerInvariant();
+   if(!(lower.Contains("total")||lower.Contains("folhas")||lower.Contains("n° de folhas")||lower.Contains("nº de folhas")))continue;
+   var target=to.LookupParameter(name);if(target==null||target.IsReadOnly||target.StorageType!=source.StorageType)continue;
+   if(target.StorageType==StorageType.String){if(string.IsNullOrWhiteSpace(target.AsString()))target.Set(source.AsString());}
+   else if(target.AsInteger()==0)target.Set(source.AsInteger());
+  }
  }
  static Element Place(Document doc,ViewSheet sheet,PlannerItem item,Dictionary<long,ElementId> types)
  {

@@ -9,7 +9,7 @@ public sealed class SheetPlannerWindow:Window
  public SheetPlan? Result{get;private set;}
  readonly WrapPanel previews=new(){Orientation=Orientation.Horizontal};
  readonly TextBlock status=new(){TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,8,0,8)};
- public SheetPlannerWindow(IReadOnlyList<PlannerItem> items,Func<string,IEnumerable<long>,bool,SheetPlan> calculate)
+ public SheetPlannerWindow(IReadOnlyList<PlannerItem> items,Func<string,IEnumerable<long>,bool,SheetPlan> calculate,IReadOnlyList<string>? unprepared=null)
  {
   Title="VEBRAM — Distribuição automática de folhas";Width=Math.Min(1220,SystemParameters.WorkArea.Width-40);Height=Math.Min(850,SystemParameters.WorkArea.Height-40);WindowStartupLocation=WindowStartupLocation.CenterOwner;
   var root=new DockPanel{Margin=new Thickness(22)};Content=root;
@@ -27,10 +27,16 @@ public sealed class SheetPlannerWindow:Window
   var checks=new List<(PlannerItem Item,CheckBox Check)>();SheetPlan? calculated=null;
   void Invalidate(){calculated=null;apply.IsEnabled=false;previews.Children.Clear();status.Text="Calcule a prévia para conferir folhas e agrupamentos.";}
   foreach(var item in items){var check=new CheckBox{Content=new TextBlock{Text=item.Label,TextWrapping=TextWrapping.Wrap},IsChecked=true,Margin=new Thickness(0,5,0,5)};checks.Add((item,check));choices.Children.Add(check);check.Checked+=(_,_)=>Invalidate();check.Unchecked+=(_,_)=>Invalidate();}
+  // Views skipped because they were never prepared are listed, so nothing disappears silently.
+  if(unprepared?.Count>0)
+  {
+   choices.Children.Add(new TextBlock{Text="AINDA NÃO PREPARADOS (ficam fora)",FontWeight=FontWeights.SemiBold,Foreground=Brushes.DarkOrange,Margin=new Thickness(0,16,0,6)});
+   foreach(var text in unprepared)choices.Children.Add(new TextBlock{Text=text,TextWrapping=TextWrapping.Wrap,Foreground=Brushes.DimGray,Margin=new Thickness(0,3,0,3)});
+  }
   profile.SelectionChanged+=(_,_)=>Invalidate();adaptive.Checked+=(_,_)=>Invalidate();adaptive.Unchecked+=(_,_)=>Invalidate();var scroll=new ScrollViewer{Content=previews,VerticalScrollBarVisibility=ScrollBarVisibility.Auto};Grid.SetColumn(scroll,1);body.Children.Add(scroll);
   preview.Click+=(_,_)=>
   {
-   Invalidate();try{calculated=calculate(profile.SelectedIndex==1?"r20":"preferencial",checks.Where(c=>c.Check.IsChecked==true).Select(c=>c.Item.ViewId),adaptive.IsChecked==true);foreach(var page in calculated.Pages)previews.Children.Add(DrawPage(page));status.Text=$"{calculated.Pages.Count} folhas utilizadas · {calculated.Pages.Count(p=>p.IsNew)} novas"+(calculated.ReservedSheets?.Count>0?$" · {calculated.ReservedSheets.Count} existente(s) de reserva":"")+"\n"+(calculated.Warnings.Count==0?"Grupos preferenciais mantidos.":string.Join("\n",calculated.Warnings));apply.IsEnabled=true;}
+   Invalidate();try{calculated=calculate(profile.SelectedIndex==1?"r20":"preferencial",checks.Where(c=>c.Check.IsChecked==true).Select(c=>c.Item.ViewId),adaptive.IsChecked==true);foreach(var page in calculated.Pages)previews.Children.Add(DrawPage(page));status.Text=$"{calculated.Pages.Count} folhas utilizadas · {calculated.Pages.Count(p=>p.IsNew)} novas"+(calculated.ReservedSheets?.Count>0?$" · {calculated.ReservedSheets.Count} existente(s) de reserva":"")+"\n"+(calculated.Warnings.Count==0?"Grupos preferenciais mantidos.":string.Join("\n",calculated.Warnings))+(unprepared?.Count>0?$"\nFora da distribuição (não preparados): {unprepared.Count}. Veja a lista à esquerda.":"");apply.IsEnabled=true;}
    catch(Exception ex){status.Text=ex.Message;}
   };
   apply.Click+=(_,_)=>{if(calculated==null)return;Result=calculated;DialogResult=true;};Invalidate();
