@@ -23,6 +23,13 @@ public static partial class SheetPlanner
    var current=placements.FirstOrDefault(p=>p.ViewId==view.Id)?.SheetId??schedules.FirstOrDefault(s=>s.ScheduleId==view.Id)?.OwnerViewId;
    result.Add(new(entry.Key,entry.Label.Replace(" — preencher",""),view.Id.Value,view is ViewSchedule,current?.Value));
   }
+  // Area memories of the other floors (one view per floor) go with the ground memory on the plans sheet.
+  foreach(var view in MemoryAreas.FloorViews(doc))
+  {
+   if(!LegalCatalog.IsLegal(view)||result.Any(i=>i.ViewId==view.Id.Value))continue;
+   var current=placements.FirstOrDefault(p=>p.ViewId==view.Id)?.SheetId;
+   result.Add(new("memoria","Memória de áreas — "+view.GenLevel?.Name,view.Id.Value,false,current?.Value));
+  }
   return result;
  }
  /// <summary>Legal views that exist but were not prepared yet, with the step that prepares them. They are left out of the distribution.</summary>

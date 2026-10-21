@@ -22,7 +22,7 @@ public static class LegalSections
   var target=LegalCatalog.Reference(LegalCatalog.Views(doc),item) as ViewSection??throw new InvalidOperationException("Corte de referência ausente no template V02.");
   if(target.IsTemplate||target.ViewType!=ViewType.Section||target.Pinned)throw new InvalidOperationException("Vista de corte inválida ou fixada.");
   var previous=Read(target);
-  if(previous!=null&&previous.Source!=source.UniqueId)throw new InvalidOperationException("O corte foi preparado com outra planta. Confira antes de mudar sua fonte.");
+  if(previous!=null&&previous.Source!=source.UniqueId&&!request.ReplaceEdited)throw new InvalidOperationException("O corte foi preparado com outra planta. Para trocar a planta-fonte (ex.: 2º pavimento), marque a opção de refazer o corte.");
   if(previous!=null&&!request.ReplaceEdited&&(previous.ViewState!=ViewState(target)||previous.Elements.Any(s=>doc.GetElement(s.UniqueId) is not {} e||DrawingOwnership.Fingerprint(e)!=s.Fingerprint)))throw new InvalidOperationException("O corte ou suas marcações foram editados. Confira e marque a opção de refazê-los.");
   var registered=previous?.Elements.Select(s=>s.UniqueId).ToHashSet()??new HashSet<string>();
   var manual=new FilteredElementCollector(doc).WhereElementIsNotElementType().Where(e=>e.OwnerViewId==target.Id&&e is TextNote or Dimension or CurveElement or IndependentTag).Where(e=>!registered.Contains(e.UniqueId)).ToList();
@@ -31,7 +31,12 @@ public static class LegalSections
   var center=new XYZ((x0+x1)/2,(y0+y1)/2,source.GenLevel.Elevation);
   var point=request.AlongX?new XYZ(center.X,y0+(y1-y0)*request.Position/100,center.Z):new XYZ(x0+(x1-x0)*request.Position/100,center.Y,center.Z);
   var forward=(request.AlongX?XYZ.BasisY:XYZ.BasisX)*(request.Reverse?-1:1);
-  var frame=BuildingFrame.Read(doc,source,floor,LegalPreferenceStore.Read(doc).IncludeWholeTerrain);var hosts=frame.Members.OfType<HostObject>().ToList();
+  // An upper-floor source plan (e.g. 2º pavimento) still cuts the whole house: the frame starts at the lowest
+  // level that has a floor under this building outline. With the ground-floor plan this is the same level as before.
+  var baseLevel=new FilteredElementCollector(doc).OfClass(typeof(Floor)).Cast<Floor>()
+   .Where(f=>f.get_BoundingBox(null) is {} fb&&(fb.Min.X+fb.Max.X)/2>=x0&&(fb.Min.X+fb.Max.X)/2<=x1&&(fb.Min.Y+fb.Max.Y)/2>=y0&&(fb.Min.Y+fb.Max.Y)/2<=y1)
+   .Select(f=>doc.GetElement(f.LevelId) as Level).Where(l=>l!=null&&l.Elevation<=source.GenLevel.Elevation).OrderBy(l=>l!.Elevation).FirstOrDefault()??source.GenLevel;
+  var frame=BuildingFrame.Read(doc,source,floor,LegalPreferenceStore.Read(doc).IncludeWholeTerrain,baseLevel);var hosts=frame.Members.OfType<HostObject>().ToList();
   double minZ=frame.Bottom,maxZ=frame.Top;
   var made=new List<Element>();var pending=new List<string>();
   using var tx=new Transaction(doc,"VEBRAM — "+item.Label);tx.Start();
@@ -64,7 +69,7 @@ public static class LegalSections
     }
     catch(Autodesk.Revit.Exceptions.ArgumentException){pending.Add("Nível "+level.Name+": conferir extensão do símbolo nativo.");}
    }
-   KeepLevelHeadsOffBuilding(doc,target,placed,buildingLeft,pending);
+   LevelHeads.Arrange(doc,target,placed,buildingLeft,Implantation.Feet(.6),pending);
    ElevationAnnotations.Total(doc,target,frame,made,pending);
    ElevationAnnotations.Rooms(doc,target,source,frame,made,pending);
    if(!string.IsNullOrWhiteSpace(prefs.AdditionalNote))made.Add(TextNote.Create(doc,target.Id,At(buildingLeft,noteElevation),prefs.AdditionalNote,textType.Id));
@@ -73,33 +78,6 @@ public static class LegalSections
    return new(target.Id.Value,made.OfType<Dimension>().Count(),made.Count,$"{item.Label} preparado na mesma vista do V02.\nPosição: {request.Position:0.##}%; profundidade: {request.DepthMeters:0.##} m.\n{levels.Count} níveis identificados; {made.OfType<Dimension>().Count()} cota vertical entre faces reais.\n"+string.Join("\n",pending)+"\nNão há detalhamento construtivo nem cotagem completa automática. Revise o corte antes de colocá-lo na folha.");
   }
   catch{if(tx.GetStatus()==TransactionStatus.Started)tx.RollBack();throw;}
- }
- // The level head (symbol + name + elevation) is wider than the short datum line, so with a fixed gap
- // a long name ("Cobertura 5,30") ran over the building. Measure the real drawn extent of each head and,
- // when it reaches the building, slide all heads left by the same amount (they stay aligned), keeping the
- // same 0,6 m clearance already used for the line. The crop grows on that side only if a head would be cut.
- static void KeepLevelHeadsOffBuilding(Document doc,ViewSection view,List<(Level Level,Line Line)> placed,double buildingLeft,List<string> pending)
- {
-  if(placed.Count==0)return;
-  double clearance=Implantation.Feet(.6);
-  (double Min,double Max)? Extent(Level level)
-  {
-   var bb=level.get_BoundingBox(view);if(bb==null)return null;var inv=view.CropBox.Transform.Inverse;
-   var xs=new[]{bb.Min.X,bb.Max.X}.SelectMany(x=>new[]{bb.Min.Y,bb.Max.Y}.Select(y=>inv.OfPoint(bb.Transform.OfPoint(new XYZ(x,y,bb.Min.Z))).X)).ToList();
-   return (xs.Min(),xs.Max());
-  }
-  doc.Regenerate();
-  var extents=placed.Select(p=>Extent(p.Level)).Where(e=>e!=null).Select(e=>e!.Value).ToList();if(extents.Count==0)return;
-  double shift=extents.Max(e=>e.Max)-(buildingLeft-clearance);
-  if(shift>Implantation.Feet(.01))
-  {
-   var left=-view.RightDirection*shift;
-   try{foreach(var (level,line) in placed)level.SetCurveInView(DatumExtentType.ViewSpecific,view,Line.CreateBound(line.GetEndPoint(0)+left,line.GetEndPoint(1)+left));}
-   catch(Autodesk.Revit.Exceptions.ArgumentException){pending.Add("Símbolos de nível: não foi possível afastá-los da edificação; conferir no corte.");return;}
-   doc.Regenerate();extents=placed.Select(p=>Extent(p.Level)).Where(e=>e!=null).Select(e=>e!.Value).ToList();
-  }
-  var box=view.CropBox;double needed=extents.Min(e=>e.Min)-Implantation.Feet(.2);
-  if(needed<box.Min.X){box.Min=new XYZ(needed,box.Min.Y,box.Min.Z);view.CropBox=box;doc.Regenerate();}
  }
  sealed record HorizontalFace(PlanarFace Face,Reference Reference);
  static IEnumerable<HorizontalFace> HorizontalFaces(HostObject host,bool top)

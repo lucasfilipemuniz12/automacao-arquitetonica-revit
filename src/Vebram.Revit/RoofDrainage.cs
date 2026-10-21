@@ -66,7 +66,9 @@ internal static class RoofDrainage
    if(!placed){note.Coord=original+new XYZ(0,(index+2)*12*unit,0);doc.Regenerate();if(note.get_BoundingBox(view) is {} b){occupied.Add(b);textBounds.Add(b);}}
    void Line(XYZ a,XYZ b){if(a.DistanceTo(b)>doc.Application.ShortCurveTolerance){var segment=Autodesk.Revit.DB.Line.CreateBound(a,b);made.Add(doc.Create.NewDetailCurve(view,segment));roofLines.Add(segment);}}
    if(note.Coord.DistanceTo(original)>3*unit&&note.get_BoundingBox(view) is {} labelBounds&&!(center.X>=labelBounds.Min.X-unit&&center.X<=labelBounds.Max.X+unit&&center.Y>=labelBounds.Min.Y-unit&&center.Y<=labelBounds.Max.Y+unit))
-    Line(center,new XYZ(Math.Clamp(center.X,labelBounds.Min.X-unit,labelBounds.Max.X+unit),Math.Clamp(center.Y,labelBounds.Min.Y-unit,labelBounds.Max.Y+unit),z));
+    {// A leader shorter than 4 mm on paper reads as a stray dash: the caption is already next to the water centre.
+     var leaderEnd=new XYZ(Math.Clamp(center.X,labelBounds.Min.X-unit,labelBounds.Max.X+unit),Math.Clamp(center.Y,labelBounds.Min.Y-unit,labelBounds.Max.Y+unit),z);
+     if(center.DistanceTo(leaderEnd)>4*unit)Line(center,leaderEnd);}
    var direction=value.FromModel?water.Direction:Direction(value.Flow);
    if(direction!=null&&value.Slope.HasValue)
    {

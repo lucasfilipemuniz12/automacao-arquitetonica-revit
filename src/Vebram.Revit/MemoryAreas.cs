@@ -39,31 +39,44 @@ public static class MemoryAreas
   return null;
  }
  static double SquareMeters(Element e)=>(e.get_Parameter(BuiltInParameter.HOST_AREA_COMPUTED)?.AsDouble()??0)*0.09290304;
+ /// <summary>The ground (Implantação) memory keeps the original view name; each other floor gets its own view.</summary>
+ internal static string Name(Document doc,ViewPlan source,bool ground)=>ground?ViewName:ViewName+" — "+source.GenLevel.Name;
+ /// <summary>True when a lower level of the project already has floors, i.e. this plan is not the lowest floor.</summary>
+ static bool UpperFloor(Document doc,ViewPlan source)=>new FilteredElementCollector(doc).OfClass(typeof(Floor)).Cast<Floor>().Any(f=>doc.GetElement(f.LevelId) is Level l&&l.Elevation<source.GenLevel.Elevation-1e-6);
+ /// <summary>Generated memories of floors other than the ground one (the ground one is the catalogue entry).</summary>
+ internal static List<ViewPlan> FloorViews(Document doc)=>new FilteredElementCollector(doc).OfClass(typeof(ViewPlan)).Cast<ViewPlan>()
+  .Where(v=>!v.IsTemplate&&v.Name.StartsWith(ViewName+" — ",StringComparison.Ordinal)&&MemoryAreaState.Read(v)!=null).OrderBy(v=>v.GenLevel?.Elevation??0).ToList();
  static string Number(double value)=>value.ToString("0.00",CultureInfo.GetCultureInfo("pt-BR"));
 
  public static ModuleResult Apply(Document doc,ViewPlan source,bool replaceEdited=false)
  {
   if(doc.IsReadOnly||doc.IsFamilyDocument||doc.IsWorkshared)throw new InvalidOperationException("Use um RVT local editável.");
   var warnings=new List<string>();
-  var lot=Implantation.Saved(doc)??throw new InvalidOperationException("Prepare a Implantação para confirmar o lote da memória gráfica.");
-  if(lot.SourceId!=source.Id.Value)throw new InvalidOperationException("Use a mesma planta-fonte da Implantação para delimitar a memória.");
+  // One memory per floor. The lot (and the terrain painted as grass, and the lot balance) belongs only to the
+  // memory of the Implantação level; an upper floor shows only the floors of its own level.
+  var lot=Implantation.Saved(doc);
+  bool ground=lot!=null&&(lot.SourceId==source.Id.Value||(doc.GetElement(new ElementId(lot.SourceId)) as ViewPlan)?.GenLevel?.Id==source.GenLevel.Id);
+  if(lot==null&&!UpperFloor(doc,source))throw new InvalidOperationException("Prepare a Implantação para confirmar o lote da memória gráfica do térreo.");
+  var viewName=Name(doc,source,ground);
   var levelFloors=new FilteredElementCollector(doc).OfClass(typeof(Floor)).Cast<Floor>().Where(f=>f.LevelId==source.GenLevel.Id).ToList();
-  var floors=levelFloors.Where(f=>f.get_BoundingBox(null) is {} b&&MemoryProjection.Within(b,lot)).ToList();
+  // The confirmed lot still bounds what is measured on every floor (a neighbour or demonstration model is left out).
+  var floors=lot==null?levelFloors:levelFloors.Where(f=>f.get_BoundingBox(null) is {} b&&MemoryProjection.Within(b,lot)).ToList();
   int excluded=levelFloors.Count-floors.Count;
   if(excluded>0)warnings.Add(excluded+" piso(s) fora ou atravessando o lote confirmado não foram medidos. Elementos preservados no modelo.");
   if(floors.Count==0)throw new InvalidOperationException("Não há pisos modelados neste nível.");
+  if(!ground)warnings.Add("Memória do pavimento "+source.GenLevel.Name+": somente os pisos deste nível; lote e terreno ficam na memória do térreo.");
   var byType=floors.GroupBy(f=>doc.GetElement(f.GetTypeId())?.Name??"(sem tipo)").OrderBy(g=>g.Key).ToList();
   using var tx=new Transaction(doc,"VEBRAM — memória gráfica de áreas");tx.Start();
   try
   {
-   var view=new FilteredElementCollector(doc).OfClass(typeof(ViewPlan)).Cast<ViewPlan>().FirstOrDefault(v=>!v.IsTemplate&&v.Name==ViewName);
+   var view=new FilteredElementCollector(doc).OfClass(typeof(ViewPlan)).Cast<ViewPlan>().FirstOrDefault(v=>!v.IsTemplate&&v.Name==viewName);
    if(view!=null&&view.get_Parameter(BuiltInParameter.VIEW_DESCRIPTION)?.AsString()!=ViewMarker&&MemoryAreaState.Read(view)==null)
-    throw new InvalidOperationException("Já existe uma vista manual chamada \""+ViewName+"\". Renomeie-a antes de gerar a memória gráfica.");
+    throw new InvalidOperationException("Já existe uma vista manual chamada \""+viewName+"\". Renomeie-a antes de gerar a memória gráfica.");
    if(view==null)
    {
     // A generated memory that was renamed is no longer found by name; refuse instead of creating a duplicate view.
-    var renamed=new FilteredElementCollector(doc).OfClass(typeof(ViewPlan)).Cast<ViewPlan>().FirstOrDefault(v=>!v.IsTemplate&&MemoryAreaState.Read(v)!=null);
-    if(renamed!=null)throw new InvalidOperationException("A memória gráfica já existe com outro nome: \""+renamed.Name+"\". Volte ao nome \""+ViewName+"\" para atualizá-la sem criar uma vista duplicada.");
+    var renamed=new FilteredElementCollector(doc).OfClass(typeof(ViewPlan)).Cast<ViewPlan>().FirstOrDefault(v=>!v.IsTemplate&&MemoryAreaState.Read(v)?.Source==source.UniqueId);
+    if(renamed!=null)throw new InvalidOperationException("A memória gráfica já existe com outro nome: \""+renamed.Name+"\". Volte ao nome \""+viewName+"\" para atualizá-la sem criar uma vista duplicada.");
    }
    var previous=view==null?null:MemoryAreaState.Read(view);
    if(previous!=null&&previous.Source!=source.UniqueId)throw new InvalidOperationException("A memória usa outra planta-fonte. Preserve a vista existente antes de mudar a fonte.");
@@ -72,7 +85,7 @@ public static class MemoryAreas
    bool initialize=view==null||!LegalCatalog.IsLegal(view);
    if(view==null)
    {
-    view=(ViewPlan)doc.GetElement(source.Duplicate(ViewDuplicateOption.Duplicate));view.Name=ViewName;
+    view=(ViewPlan)doc.GetElement(source.Duplicate(ViewDuplicateOption.Duplicate));view.Name=viewName;
     view.get_Parameter(BuiltInParameter.VIEW_DESCRIPTION)?.Set(ViewMarker);
    }
    // A view template would override the filter colours in this generated view only.
@@ -81,7 +94,7 @@ public static class MemoryAreas
    {var p=view.get_Parameter(pair.Item1);if(p==null||p.IsReadOnly)throw new InvalidOperationException("Classificação ARQ indisponível na memória gráfica.");p.Set(pair.Item2);}
    if(initialize)view.Scale=LegalPreferenceStore.Read(doc).Scale;
    Ownership.Write(view,"legal-v02/memoria",source.UniqueId);
-   view.get_Parameter(BuiltInParameter.VIEW_DESCRIPTION)?.Set("Memória gráfica de áreas");
+   view.get_Parameter(BuiltInParameter.VIEW_DESCRIPTION)?.Set(ground?"Memória gráfica de áreas":"Memória de áreas — "+source.GenLevel.Name);
    // Navigation clutter inherited from the source plan (grids, elevation/section/callout marks) is hidden in this view only.
    foreach(var builtIn in new[]{BuiltInCategory.OST_Grids,BuiltInCategory.OST_Elev,BuiltInCategory.OST_Sections,BuiltInCategory.OST_Callouts})
    {var category=doc.Settings.Categories.get_Item(builtIn);if(category!=null&&view.CanCategoryBeHidden(category.Id))view.SetCategoryHidden(category.Id,true);}
@@ -105,7 +118,7 @@ public static class MemoryAreas
    foreach(var f in floors)view.SetElementOverrides(f.Id,new OverrideGraphicSettings());
    var totals=new Dictionary<AreaClass,double>();var projections=new Dictionary<AreaClass,Solid>();var biggest=new Dictionary<AreaClass,(Floor Floor,double Area)>();var unclassified=new HashSet<string>();var hiddenIds=new List<ElementId>();var notes=new List<string>();
    // Hide only in this generated view: an adjacent teaching model must stay in the project.
-   hiddenIds.AddRange(new FilteredElementCollector(doc).WhereElementIsNotElementType().Where(e=>!e.ViewSpecific&&e is not View&&e.Category?.CategoryType==CategoryType.Model&&e.CanBeHidden(view)&&!e.IsHidden(view)&&e.get_BoundingBox(null) is {} b&&!MemoryProjection.Intersects(b,lot)).Select(e=>e.Id));
+   if(lot!=null)hiddenIds.AddRange(new FilteredElementCollector(doc).WhereElementIsNotElementType().Where(e=>!e.ViewSpecific&&e is not View&&e.Category?.CategoryType==CategoryType.Model&&e.CanBeHidden(view)&&!e.IsHidden(view)&&e.get_BoundingBox(null) is {} b&&!MemoryProjection.Intersects(b,lot)).Select(e=>e.Id));
    hiddenIds.AddRange(levelFloors.Except(floors).Where(f=>f.CanBeHidden(view)&&!f.IsHidden(view)).Select(f=>f.Id));
    foreach(var floor in floors)
    {
@@ -144,7 +157,7 @@ public static class MemoryAreas
    warnings.AddRange(notes);
    // The terrain (toposolid) that shows between the floors is the same grass area as the "Terreno gramado" floors: same class and colour.
    string balance="";
-   var terrain=new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_Toposolid).WhereElementIsNotElementType().Where(e=>e.get_BoundingBox(null) is {} b&&MemoryProjection.Intersects(b,lot)).ToList();
+   var terrain=new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_Toposolid).WhereElementIsNotElementType().Where(e=>e.get_BoundingBox(null) is {} b&&ground&&MemoryProjection.Intersects(b,lot!)).ToList();
    if(terrain.Count>0)
    {
     var grass=new Color(Permeavel.R,Permeavel.G,Permeavel.B);var terrainOverride=new OverrideGraphicSettings();
@@ -172,7 +185,7 @@ public static class MemoryAreas
    var regionBase=new FilteredElementCollector(doc).OfClass(typeof(FilledRegionType)).Cast<FilledRegionType>().First();
    var legend=new List<Element>();
    void Mark(Element e){e.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS)?.Set(LegendMarker);DrawingOwnership.MarkAnnotation(e);legend.Add(e);}
-   Mark(TextNote.Create(doc,view.Id,new XYZ(x0,y,z),"MEMÓRIA GRÁFICA DE ÁREAS",new TextNoteOptions(LegalStyles.Text(doc,3.5,true).Id)));
+   Mark(TextNote.Create(doc,view.Id,new XYZ(x0,y,z),ground?"MEMÓRIA GRÁFICA DE ÁREAS":"MEMÓRIA GRÁFICA DE ÁREAS — "+source.GenLevel.Name.ToUpperInvariant(),new TextNoteOptions(LegalStyles.Text(doc,3.5,true).Id)));
    y-=Paper(.009);int items=1;double sum=0;
    foreach(var pair in totals.OrderBy(p=>p.Key.Label))
    {
@@ -199,7 +212,7 @@ public static class MemoryAreas
    var annotationCrop=view.get_Parameter(BuiltInParameter.VIEWER_ANNOTATION_CROP_ACTIVE);if(annotationCrop is {IsReadOnly:false})annotationCrop.Set(0);
    MemoryAreaState.Write(view,new(source.UniqueId,legend.Select(e=>new ElementStamp(e.UniqueId,MemoryAreaState.Fingerprint(e))).ToList(),hiddenIds.Select(id=>doc.GetElement(id).UniqueId).ToList()));
    if(tx.Commit()!=TransactionStatus.Committed)throw new InvalidOperationException("Memória gráfica revertida pelo Revit.");
-   return new(view.Id.Value,0,items+2,"Memória gráfica de áreas gerada na vista \""+ViewName+"\" (cópia da planta, sem o modelo alterado).\n"+
+   return new(view.Id.Value,0,items+2,"Memória gráfica de áreas gerada na vista \""+viewName+"\" (cópia da planta, sem o modelo alterado).\n"+
     string.Join("\n",totals.OrderBy(p=>p.Key.Label).Select(p=>"• "+p.Key.Label+": "+Number(p.Value)+" m²"))+"\nLaje/radier ficam ocultos nesta vista para não sobrepor os pisos.\n"+string.Join("\n",warnings));
   }
   catch{if(tx.GetStatus()==TransactionStatus.Started)tx.RollBack();throw;}

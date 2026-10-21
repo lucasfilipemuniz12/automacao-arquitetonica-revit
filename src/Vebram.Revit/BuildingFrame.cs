@@ -4,13 +4,15 @@ namespace Vebram.Revit;
 // Local building context, excluding site solids and remote landscape elements.
 internal sealed record BuildingFrame(List<Element> Members,List<XYZ> Corners,double Bottom,double Top,bool SurfaceMeasured,bool MeasuredAtPerimeter=false)
 {
- public static BuildingFrame Read(Document doc,ViewPlan source,Floor floor,bool wholeSite=false)
+ public static BuildingFrame Read(Document doc,ViewPlan source,Floor floor,bool wholeSite=false,Level? baseLevel=null)
  {
+  // The frame starts at the base level (ground floor) even when the source plan is an upper floor.
+  double ground=(baseLevel??source.GenLevel).Elevation;
   var contour=Implantation.GetContour(doc,floor);double x0=contour.Min(p=>p.X),x1=contour.Max(p=>p.X),y0=contour.Min(p=>p.Y),y1=contour.Max(p=>p.Y),buffer=Implantation.Feet(2);
   bool Terrain(Element e)=>e.Category?.Id.Value==(long)BuiltInCategory.OST_Toposolid||e.GetType().Name=="TopographySurface";
-  var members=new FilteredElementCollector(doc).WhereElementIsNotElementType().Where(e=>!e.ViewSpecific&&(e is HostObject or FamilyInstance or DirectShape)&&!Terrain(e)&&e.get_BoundingBox(null) is {} b&&b.Min.X>=x0-buffer&&b.Max.X<=x1+buffer&&b.Min.Y>=y0-buffer&&b.Max.Y<=y1+buffer&&b.Max.Z>=source.GenLevel.Elevation-Implantation.Feet(.7)).ToList();
+  var members=new FilteredElementCollector(doc).WhereElementIsNotElementType().Where(e=>!e.ViewSpecific&&(e is HostObject or FamilyInstance or DirectShape)&&!Terrain(e)&&e.get_BoundingBox(null) is {} b&&b.Min.X>=x0-buffer&&b.Max.X<=x1+buffer&&b.Min.Y>=y0-buffer&&b.Max.Y<=y1+buffer&&b.Max.Z>=ground-Implantation.Feet(.7)).ToList();
   if(!members.Any(e=>e.Id==floor.Id))members.Add(floor);
-  double surface=source.GenLevel.Elevation;bool measured=false,perimeter=false;var center=new XYZ((x0+x1)/2,(y0+y1)/2,surface);
+  double surface=ground;bool measured=false,perimeter=false;var center=new XYZ((x0+x1)/2,(y0+y1)/2,surface);
   var topFaces=new List<Face>();
   foreach(var terrain in new FilteredElementCollector(doc).WhereElementIsNotElementType().OfType<HostObject>().Where(Terrain))
   {
@@ -19,7 +21,7 @@ internal sealed record BuildingFrame(List<Element> Members,List<XYZ> Corners,dou
   }
   double? Hit(XYZ point)
   {
-   foreach(var face in topFaces){var hit=face.Project(point);if(hit!=null&&face.IsInside(hit.UVPoint)&&Math.Abs(hit.XYZPoint.Z-source.GenLevel.Elevation)<Implantation.Feet(2))return hit.XYZPoint.Z;}
+   foreach(var face in topFaces){var hit=face.Project(point);if(hit!=null&&face.IsInside(hit.UVPoint)&&Math.Abs(hit.XYZPoint.Z-ground)<Implantation.Feet(2))return hit.XYZPoint.Z;}
    return null;
   }
   if(Hit(center) is double centerZ){surface=centerZ;measured=true;}

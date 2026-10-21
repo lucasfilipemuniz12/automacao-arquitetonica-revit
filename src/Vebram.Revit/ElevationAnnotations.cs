@@ -24,9 +24,11 @@ internal static class ElevationAnnotations
  {
   var transform=view.CropBox.Transform;var inv=transform.Inverse;var normal=view.ViewDirection;var origin=view.Origin;
   var phase=source.get_Parameter(BuiltInParameter.VIEW_PHASE)?.AsElementId();
-  var rooms=new FilteredElementCollector(doc).OfClass(typeof(SpatialElement)).OfType<Room>().Where(r=>r.Area>0&&r.LevelId==source.GenLevel.Id&&(phase==null||r.get_Parameter(BuiltInParameter.ROOM_PHASE)?.AsElementId()==phase)).ToList();
+  // Every floor crossed by the section, not only the source plan level (e.g. the upper floor of a sobrado).
+  var rooms=new FilteredElementCollector(doc).OfClass(typeof(SpatialElement)).OfType<Room>().Where(r=>r.Area>0&&doc.GetElement(r.LevelId) is Level rl&&rl.Elevation>=frame.Bottom&&rl.Elevation<frame.Top&&(phase==null||r.get_Parameter(BuiltInParameter.ROOM_PHASE)?.AsElementId()==phase)).ToList();
   foreach(var room in rooms)
   {
+   double levelZ=((Level)doc.GetElement(room.LevelId)).Elevation;
    using var boundaryOptions=new SpatialElementBoundaryOptions();var boundaries=room.GetBoundarySegments(boundaryOptions);if(boundaries==null)continue;var hits=new List<double>();
    foreach(var loop in boundaries)foreach(var segment in loop)
    {
@@ -36,12 +38,12 @@ internal static class ElevationAnnotations
    hits=hits.Order().Aggregate(new List<double>(),(list,v)=>{if(list.Count==0||Math.Abs(list[^1]-v)>.001)list.Add(v);return list;});
    if(hits.Count<2)continue;var intervals=hits.Zip(hits.Skip(1),(a,b)=>(Left:a,Right:b)).Where(i=>i.Right-i.Left>Implantation.Feet(.3)).ToList();
    XYZ At(double x,double z)=>transform.OfPoint(new XYZ(x,z-transform.Origin.Z,0));
-   var valid=intervals.Where(i=>room.IsPointInRoom(At((i.Left+i.Right)/2,source.GenLevel.Elevation+Implantation.Feet(1)))).OrderByDescending(i=>i.Right-i.Left).ToList();if(valid.Count==0)continue;
-   var span=valid[0];double mid=(span.Left+span.Right)/2;var point=At(mid,source.GenLevel.Elevation+Implantation.Feet(1));
+   var valid=intervals.Where(i=>room.IsPointInRoom(At((i.Left+i.Right)/2,levelZ+Implantation.Feet(1)))).OrderByDescending(i=>i.Right-i.Left).ToList();if(valid.Count==0)continue;
+   var span=valid[0];double mid=(span.Left+span.Right)/2;var point=At(mid,levelZ+Implantation.Feet(1));
    var bottom=frame.Members.OfType<Floor>().SelectMany(f=>Faces(f,true)).Where(f=>f.Face.Origin.Z<point.Z&&Contains(f.Face,point)).OrderByDescending(f=>f.Face.Origin.Z).FirstOrDefault();
    var top=frame.Members.OfType<HostObject>().Where(h=>h is Floor or Ceiling or RoofBase).SelectMany(h=>Faces(h,false)).Where(f=>f.Face.Origin.Z>point.Z&&Contains(f.Face,point)).OrderBy(f=>f.Face.Origin.Z).FirstOrDefault();
    var name=RoomNameText.Display(room.get_Parameter(BuiltInParameter.ROOM_NAME)?.AsString());
-   double baseZ=bottom?.Face.Origin.Z??source.GenLevel.Elevation;
+   double baseZ=bottom?.Face.Origin.Z??levelZ;
    var caption=name;
    if(bottom!=null&&top!=null)
    {

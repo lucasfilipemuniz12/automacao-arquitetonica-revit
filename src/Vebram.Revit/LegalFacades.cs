@@ -105,10 +105,11 @@ public static class LegalFacades
     var phase=target.get_Parameter(BuiltInParameter.VIEW_PHASE);if(phase is {IsReadOnly:false})phase.Set(source.get_Parameter(BuiltInParameter.VIEW_PHASE).AsElementId());
     var annotationCrop=target.get_Parameter(BuiltInParameter.VIEWER_ANNOTATION_CROP_ACTIVE);if(annotationCrop is {IsReadOnly:false})annotationCrop.Set(0);
     var made=new List<Element>();var pending=new List<string>();
+    var placedHeads=new List<(Level Level,Line Line)>();
     doc.Regenerate();foreach(var level in new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>().Where(l=>l.Elevation>=bottom&&l.Elevation<=top))
     {
      if(level.IsHidden(target))target.UnhideElements(new List<ElementId>{level.Id});
-     bool native=false;using(var datum=new SubTransaction(doc))
+     bool native=false;Line? placedLine=null;using(var datum=new SubTransaction(doc))
      {
       datum.Start();try
       {
@@ -118,19 +119,22 @@ public static class LegalFacades
         if(line!=null)
         {
          var dir=line.Direction;var basePoint=line.GetEndPoint(0);XYZ At(double xx)=>box.Transform.OfPoint(new(xx,level.Elevation-box.Transform.Origin.Z,0));double a=(At(left-Implantation.Feet(1.3))-basePoint).DotProduct(dir),b=(At(left-Implantation.Feet(.6))-basePoint).DotProduct(dir);
-         level.SetDatumExtentType(DatumEnds.End0,target,DatumExtentType.ViewSpecific);level.SetDatumExtentType(DatumEnds.End1,target,DatumExtentType.ViewSpecific);level.SetCurveInView(DatumExtentType.ViewSpecific,target,Line.CreateBound(basePoint+dir*Math.Min(a,b),basePoint+dir*Math.Max(a,b)));var bubble=dir.DotProduct(target.RightDirection)>0?DatumEnds.End0:DatumEnds.End1;level.ShowBubbleInView(bubble,target);level.HideBubbleInView(bubble==DatumEnds.End0?DatumEnds.End1:DatumEnds.End0,target);native=true;
+         level.SetDatumExtentType(DatumEnds.End0,target,DatumExtentType.ViewSpecific);level.SetDatumExtentType(DatumEnds.End1,target,DatumExtentType.ViewSpecific);placedLine=Line.CreateBound(basePoint+dir*Math.Min(a,b),basePoint+dir*Math.Max(a,b));level.SetCurveInView(DatumExtentType.ViewSpecific,target,placedLine);var bubble=dir.DotProduct(target.RightDirection)>0?DatumEnds.End0:DatumEnds.End1;level.ShowBubbleInView(bubble,target);level.HideBubbleInView(bubble==DatumEnds.End0?DatumEnds.End1:DatumEnds.End0,target);native=true;
         }
        }
        if(native)datum.Commit();else datum.RollBack();
       }
       catch(Autodesk.Revit.Exceptions.ArgumentException){if(datum.GetStatus()==TransactionStatus.Started)datum.RollBack();native=false;}
      }
+     if(native&&placedLine!=null)placedHeads.Add((level,placedLine));
      if(!native)
      {
       if(level.CanBeHidden(target))target.HideElements(new List<ElementId>{level.Id});
       made.Add(TextNote.Create(doc,target.Id,box.Transform.OfPoint(new(left-Implantation.Feet(1.3),level.Elevation-box.Transform.Origin.Z,0)),level.Name+"\n"+Implantation.Meters(level.Elevation).ToString("0.00",Implantation.Pt)+" m",LegalContext.TextType(doc).Id));pending.Add(level.Name+": indicação textual; plano nativo indisponível nesta elevação.");
      }
     }
+    // Same arrangement as the sections: heads off the building, close levels staggered, values unchanged.
+    LevelHeads.Arrange(doc,target,placedHeads,left,Implantation.Feet(.6),pending);
     ElevationAnnotations.Total(doc,target,frame,made,pending);
     var note=LegalPreferenceStore.Read(doc).AdditionalNote;if(!string.IsNullOrWhiteSpace(note))made.Add(TextNote.Create(doc,target.Id,box.Transform.OfPoint(new(left,corners.Min(p=>p.Y)+Implantation.Feet(.12),0)),note,LegalContext.TextType(doc).Id));
     // Keep the original graphic template, excluding parameters this module has to control.
