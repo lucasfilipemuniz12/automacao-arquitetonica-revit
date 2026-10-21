@@ -441,3 +441,6 @@ work/
 outputs/
 dist*/
 **/*job*.json
+# VEBRAM local build and installation backups
+/current/
+/Vebram.Legal.addin.antes-teste-*

@@ -1,0 +1,15 @@
+{
+  "Version": "0.5.24",
+  "ProfileMapping": true,
+  "EmptyOverridesPreserved": true,
+  "IncompatibleProfileRejected": true,
+  "MissingRulesReported": true,
+  "SharedIdentification": true,
+  "SourceIsolation": true,
+  "NativeRegeneration": true,
+  "RegistrationInDrawings": true,
+  "ImplantationRegistration": true,
+  "ImplantationRegeneration": true,
+  "PhysicalPreserved": true,
+  "SyntheticValuesPersisted": false
+}

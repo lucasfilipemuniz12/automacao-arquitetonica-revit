@@ -1,9 +1,9 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.ExtensibleStorage;
 namespace Vebram.Revit;
 
-public sealed record ContextSelection(string Key,long SourceId,string Identification="",string LeftNeighbor="",string RightNeighbor="",string RearNeighbor="",double? ComputableArea=null,double? PermeableArea=null,double? MaximumOccupation=null,double? MaximumCoefficient=null,double? MinimumPermeability=null,bool Confirmed=false,bool ReplaceEdited=false);
+public sealed record ContextSelection(string Key,long SourceId,string Identification="",string LeftNeighbor="",string RightNeighbor="",string RearNeighbor="",double? ComputableArea=null,double? PermeableArea=null,double? MaximumOccupation=null,double? MaximumCoefficient=null,double? MinimumPermeability=null,bool Confirmed=false,bool ReplaceEdited=false,string RegistrationText="");
 record ContextStamp(string Source,List<ElementStamp> Elements,ContextSelection Input);
 
 /// <summary>Situation diagram and urbanistic worksheet using explicitly confirmed project data.</summary>
@@ -72,6 +72,7 @@ public static class LegalContext
     }
     double radians=options.NorthDegrees*Math.PI/180;var north=new XYZ(-Math.Sin(radians),Math.Cos(radians),0);var tail=P(x+w+Implantation.Feet(35),y+h);var tip=tail+north*Implantation.Feet(8);var right=new XYZ(north.Y,-north.X,0);L(tail,tip);L(tip,tip-north*Implantation.Feet(2)+right*Implantation.Feet(1));L(tip,tip-north*Implantation.Feet(2)-right*Implantation.Feet(1));Text(tip.X,tip.Y+Implantation.Feet(3),"N");
     Text(x-Implantation.Feet(35),y-Implantation.Feet(18),(options.Study?"ESTUDO FICTÍCIO — ":"")+"SITUAÇÃO ESQUEMÁTICA · conferir levantamento e cadastro municipal");
+    if(!string.IsNullOrWhiteSpace(input.RegistrationText))Wrapped(x-Implantation.Feet(35),y-Implantation.Feet(30),.11,input.RegistrationText);
     doc.Regenerate();var box=view.CropBox;var inverse=box.Transform.Inverse;var boxes=made.Select(e=>e.get_BoundingBox(view)).Where(b=>b!=null).ToList();var points=boxes.SelectMany(b=>new[]{inverse.OfPoint(b!.Min),inverse.OfPoint(b.Max)}).ToList();box.Min=new(points.Min(p=>p.X)-gap,points.Min(p=>p.Y)-gap,box.Min.Z);box.Max=new(points.Max(p=>p.X)+gap,points.Max(p=>p.Y)+gap,box.Max.Z);view.CropBox=box;view.CropBoxActive=true;view.CropBoxVisible=false;
     report.Add("Diagrama com lote confirmado, confrontantes informados, via e norte. Não equivale a mapa cadastral ou levantamento georreferenciado.");
    }
