@@ -53,16 +53,18 @@ public static class LegalSections
    var textType=TextType(doc);var transform=target.CropBox.Transform;
    XYZ At(double x,double elevation)=>transform.OfPoint(new XYZ(x,elevation-transform.Origin.Z,0));
    var levels=new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>().Where(l=>l.Elevation>=minZ&&l.Elevation<=maxZ).OrderBy(l=>l.Elevation).ToList();
+   var placed=new List<(Level Level,Line Line)>();
    foreach(var level in levels)
    {
     // Datum changes are local to this section; level elevations are never modified.
     try
     {
      var curve=level.GetCurvesInView(DatumExtentType.Model,target).OfType<Line>().FirstOrDefault();
-     if(curve!=null){var direction=curve.Direction;var origin=curve.GetEndPoint(0);double a=(At(buildingLeft-Implantation.Feet(1.3),level.Elevation)-origin).DotProduct(direction),b=(At(buildingLeft-Implantation.Feet(.6),level.Elevation)-origin).DotProduct(direction);level.SetDatumExtentType(DatumEnds.End0,target,DatumExtentType.ViewSpecific);level.SetDatumExtentType(DatumEnds.End1,target,DatumExtentType.ViewSpecific);level.SetCurveInView(DatumExtentType.ViewSpecific,target,Line.CreateBound(origin+direction*Math.Min(a,b),origin+direction*Math.Max(a,b)));var bubble=direction.DotProduct(target.RightDirection)>0?DatumEnds.End0:DatumEnds.End1;level.ShowBubbleInView(bubble,target);level.HideBubbleInView(bubble==DatumEnds.End0?DatumEnds.End1:DatumEnds.End0,target);}
+     if(curve!=null){var direction=curve.Direction;var origin=curve.GetEndPoint(0);double a=(At(buildingLeft-Implantation.Feet(1.3),level.Elevation)-origin).DotProduct(direction),b=(At(buildingLeft-Implantation.Feet(.6),level.Elevation)-origin).DotProduct(direction);level.SetDatumExtentType(DatumEnds.End0,target,DatumExtentType.ViewSpecific);level.SetDatumExtentType(DatumEnds.End1,target,DatumExtentType.ViewSpecific);var placedLine=Line.CreateBound(origin+direction*Math.Min(a,b),origin+direction*Math.Max(a,b));level.SetCurveInView(DatumExtentType.ViewSpecific,target,placedLine);placed.Add((level,placedLine));var bubble=direction.DotProduct(target.RightDirection)>0?DatumEnds.End0:DatumEnds.End1;level.ShowBubbleInView(bubble,target);level.HideBubbleInView(bubble==DatumEnds.End0?DatumEnds.End1:DatumEnds.End0,target);}
     }
     catch(Autodesk.Revit.Exceptions.ArgumentException){pending.Add("Nível "+level.Name+": conferir extensão do símbolo nativo.");}
    }
+   KeepLevelHeadsOffBuilding(doc,target,placed,buildingLeft,pending);
    ElevationAnnotations.Total(doc,target,frame,made,pending);
    ElevationAnnotations.Rooms(doc,target,source,frame,made,pending);
    if(!string.IsNullOrWhiteSpace(prefs.AdditionalNote))made.Add(TextNote.Create(doc,target.Id,At(buildingLeft,noteElevation),prefs.AdditionalNote,textType.Id));
@@ -71,6 +73,33 @@ public static class LegalSections
    return new(target.Id.Value,made.OfType<Dimension>().Count(),made.Count,$"{item.Label} preparado na mesma vista do V02.\nPosição: {request.Position:0.##}%; profundidade: {request.DepthMeters:0.##} m.\n{levels.Count} níveis identificados; {made.OfType<Dimension>().Count()} cota vertical entre faces reais.\n"+string.Join("\n",pending)+"\nNão há detalhamento construtivo nem cotagem completa automática. Revise o corte antes de colocá-lo na folha.");
   }
   catch{if(tx.GetStatus()==TransactionStatus.Started)tx.RollBack();throw;}
+ }
+ // The level head (symbol + name + elevation) is wider than the short datum line, so with a fixed gap
+ // a long name ("Cobertura 5,30") ran over the building. Measure the real drawn extent of each head and,
+ // when it reaches the building, slide all heads left by the same amount (they stay aligned), keeping the
+ // same 0,6 m clearance already used for the line. The crop grows on that side only if a head would be cut.
+ static void KeepLevelHeadsOffBuilding(Document doc,ViewSection view,List<(Level Level,Line Line)> placed,double buildingLeft,List<string> pending)
+ {
+  if(placed.Count==0)return;
+  double clearance=Implantation.Feet(.6);
+  (double Min,double Max)? Extent(Level level)
+  {
+   var bb=level.get_BoundingBox(view);if(bb==null)return null;var inv=view.CropBox.Transform.Inverse;
+   var xs=new[]{bb.Min.X,bb.Max.X}.SelectMany(x=>new[]{bb.Min.Y,bb.Max.Y}.Select(y=>inv.OfPoint(bb.Transform.OfPoint(new XYZ(x,y,bb.Min.Z))).X)).ToList();
+   return (xs.Min(),xs.Max());
+  }
+  doc.Regenerate();
+  var extents=placed.Select(p=>Extent(p.Level)).Where(e=>e!=null).Select(e=>e!.Value).ToList();if(extents.Count==0)return;
+  double shift=extents.Max(e=>e.Max)-(buildingLeft-clearance);
+  if(shift>Implantation.Feet(.01))
+  {
+   var left=-view.RightDirection*shift;
+   try{foreach(var (level,line) in placed)level.SetCurveInView(DatumExtentType.ViewSpecific,view,Line.CreateBound(line.GetEndPoint(0)+left,line.GetEndPoint(1)+left));}
+   catch(Autodesk.Revit.Exceptions.ArgumentException){pending.Add("Símbolos de nível: não foi possível afastá-los da edificação; conferir no corte.");return;}
+   doc.Regenerate();extents=placed.Select(p=>Extent(p.Level)).Where(e=>e!=null).Select(e=>e!.Value).ToList();
+  }
+  var box=view.CropBox;double needed=extents.Min(e=>e.Min)-Implantation.Feet(.2);
+  if(needed<box.Min.X){box.Min=new XYZ(needed,box.Min.Y,box.Min.Z);view.CropBox=box;doc.Regenerate();}
  }
  sealed record HorizontalFace(PlanarFace Face,Reference Reference);
  static IEnumerable<HorizontalFace> HorizontalFaces(HostObject host,bool top)

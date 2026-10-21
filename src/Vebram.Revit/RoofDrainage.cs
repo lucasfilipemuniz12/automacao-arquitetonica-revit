@@ -40,7 +40,9 @@ internal static class RoofDrainage
   {
    index++;var value=RoofDrainageRules.Resolve(water.Slope,"Modelo",choices.FirstOrDefault(c=>c.Key==water.Key));var center=new XYZ(water.Center.X,water.Center.Y,z);
    var caption="A"+index+" · "+(value.Slope.HasValue?value.Slope.Value.ToString("0.0",Implantation.Pt)+"%"+(value.FromModel?"":" (projeto)"):"caimento a definir");
-   var note=TextNote.Create(doc,view.Id,center,Implantation.Feet(.038),caption,new TextNoteOptions(LegalStyles.Text(doc,2).Id){HorizontalAlignment=HorizontalTextAlignment.Center});made.Add(note);doc.Regenerate();
+   // Non-wrapping note: its box hugs the text, so the leader and the flow arrow line up with the caption
+   // (a fixed 38 mm box left them pointing at empty space beside a short "A1 · 30,0%").
+   var note=TextNote.Create(doc,view.Id,center,caption,new TextNoteOptions(LegalStyles.Text(doc,2).Id){HorizontalAlignment=HorizontalTextAlignment.Center});made.Add(note);doc.Regenerate();
    bool Overlap(BoundingBoxXYZ a,BoundingBoxXYZ b)=>a.Min.X<b.Max.X+2*unit&&a.Max.X>b.Min.X-2*unit&&a.Min.Y<b.Max.Y+2*unit&&a.Max.Y>b.Min.Y-2*unit;
    bool ClearLeader(BoundingBoxXYZ box)
    {

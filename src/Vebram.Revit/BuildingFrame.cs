@@ -22,7 +22,7 @@ internal sealed record BuildingFrame(List<Element> Members,List<XYZ> Corners,dou
    foreach(var face in topFaces){var hit=face.Project(point);if(hit!=null&&face.IsInside(hit.UVPoint)&&Math.Abs(hit.XYZPoint.Z-source.GenLevel.Elevation)<Implantation.Feet(2))return hit.XYZPoint.Z;}
    return null;
   }
-  if(Hit(center) is double z){surface=z;measured=true;}
+  if(Hit(center) is double centerZ){surface=centerZ;measured=true;}
   else
   {
    // When the terrain is cut under the house there is no surface at the centre.
