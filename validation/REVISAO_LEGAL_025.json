@@ -1,0 +1,16 @@
+{
+  "Version": "0.5.25",
+  "PhysicalPreserved": true,
+  "PlantRegenerated": true,
+  "RoofRegenerated": true,
+  "RoofSectionMarksHidden": true,
+  "SmallRoofLabelsClear": true,
+  "DrawingLinesClear": true,
+  "DimensionBoundsClear": true,
+  "DrainageLabels": 2,
+  "SmallRoofs": 1,
+  "Reports": [
+    "Planta \u2014 n\u00EDvel 1 preparada na vista do V02.\n13 cotas e 43 marca\u00E7\u00F5es geradas.\nCotas entre acabamentos: 11; espessuras: 0; larguras de esquadrias: 0.\nR\u00F3tulos com chamada externa: 0.\nAmbiente 01: limite horizontal n\u00E3o \u00E9 um par de paredes ortogonais.\nAmbiente 03: limite horizontal n\u00E3o \u00E9 um par de paredes ortogonais.\nAmbiente 12: cota horizontal pendente para preservar leitura do r\u00F3tulo.\nAmbiente 12: cota vertical pendente para preservar leitura do r\u00F3tulo.\nAmbiente 02: cota vertical pendente para preservar leitura do r\u00F3tulo.\nAmbiente 08: cota vertical pendente para preservar leitura do r\u00F3tulo.\nAmbiente 09: cota vertical pendente para preservar leitura do r\u00F3tulo.\n17 identifica\u00E7\u00F5es de esquadrias geradas com a Marca existente. Atualize a planta ap\u00F3s alterar os c\u00F3digos.\nExecute novamente ap\u00F3s mudan\u00E7as de modelo. Revise antes de colocar na folha.",
+    "Cobertura preparada na vista do V02.\n0 cotas e 2 marca\u00E7\u00F5es geradas.\n1 \u00E1guas planas reconhecidas; inclina\u00E7\u00F5es lidas da geometria, sem alterar o telhado.\nExecute novamente ap\u00F3s mudan\u00E7as de modelo. Revise antes de colocar na folha."
+  ]
+}

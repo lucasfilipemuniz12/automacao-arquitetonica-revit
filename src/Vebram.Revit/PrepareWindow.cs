@@ -1,0 +1,293 @@
+﻿using System.Globalization;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Interop;
+using System.Windows.Media;
+using System.Windows.Shapes;
+using Autodesk.Revit.DB;
+using Autodesk.Revit.UI;
+using ComboBox=System.Windows.Controls.ComboBox;
+using Grid=System.Windows.Controls.Grid;
+using Rectangle=System.Windows.Shapes.Rectangle;
+using TextBox=System.Windows.Controls.TextBox;
+using Panel=System.Windows.Controls.Panel;
+using WpfLine=System.Windows.Shapes.Line;
+namespace Vebram.Revit;
+public sealed record SourceChoice(long Id,string Name){public override string ToString()=>Name;}
+public sealed class PrepareWindow : Window
+{
+    readonly Document doc;
+    readonly Grid root=new(){Margin=new Thickness(26)};
+    readonly ComboBox sources=new(){MinHeight=36,DisplayMemberPath=nameof(SourceChoice.Name)};
+    readonly ComboBox floors=new(){MinHeight=34,DisplayMemberPath=nameof(SourceChoice.Name)};
+    readonly Dictionary<string,TextBox> fields=[];
+    ComboBox scale=null!,front=null!;
+    CheckBox confirm=null!,study=null!,street=null!,replace=null!;
+    readonly List<(long Id,CheckBox Box)> extraBoxes=new();
+    List<RoofDrainageChoice>? drainage;
+    public ImplantationOptions? Selection{get;private set;}
+    public ModuleSelection? Module{get;private set;}
+    public SectionSelection? Section{get;private set;}
+    public ContextSelection? Context{get;private set;}
+    public FacadeSelection? Facades{get;private set;}
+    public SheetSelection? Sheet{get;private set;}
+    public bool ComposeSheets{get;private set;}
+    public SheetPlan? Plan{get;private set;}
+    public IReadOnlyList<Request> Requests{get;}=[];
+    ViewPlan? Source=>sources.SelectedItem is SourceChoice c?doc.GetElement(new ElementId(c.Id)) as ViewPlan:null;
+    public PrepareWindow(UIApplication app)
+    {
+        doc=app.ActiveUIDocument.Document;Title="VEBRAM — Projeto legal";
+        Width=Math.Min(1240,SystemParameters.WorkArea.Width-40);Height=Math.Min(900,SystemParameters.WorkArea.Height-40);MinWidth=1000;MinHeight=650;
+        Background=new SolidColorBrush(System.Windows.Media.Color.FromRgb(246,248,250));
+        WindowStartupLocation=WindowStartupLocation.CenterOwner;new WindowInteropHelper(this).Owner=app.MainWindowHandle;
+        Content=root;root.RowDefinitions.Add(new(){Height=GridLength.Auto});root.RowDefinitions.Add(new(){Height=new GridLength(1,GridUnitType.Star)});
+        var header=new StackPanel();header.Children.Add(new TextBlock{Text="PROJETO LEGAL",Foreground=Brushes.SlateGray,FontSize=12});
+        header.Children.Add(new TextBlock{Text="O que você quer preparar?",FontSize=27,FontWeight=FontWeights.SemiBold,Margin=new Thickness(0,5,0,5)});
+        header.Children.Add(new TextBlock{Text=doc.Title,Foreground=Brushes.DimGray,Margin=new Thickness(0,0,0,17)});root.Children.Add(header);
+        LoadSources(false);var saved=Implantation.Saved(doc);
+        sources.SelectedItem=sources.Items.Cast<SourceChoice>().FirstOrDefault(c=>c.Id==saved?.SourceId)??
+            sources.Items.Cast<SourceChoice>().FirstOrDefault(c=>c.Name.StartsWith("PRE - Layout / Nível 1"))??sources.Items.Cast<SourceChoice>().FirstOrDefault();
+        Hub();
+    }
+    void LoadSources(bool all)
+    {
+        var previous=(sources.SelectedItem as SourceChoice)?.Id;var plans=Implantation.ModelPlans(doc,all);
+        if(plans.Count==0)plans=Implantation.ModelPlans(doc,true);
+        sources.ItemsSource=plans.Select(v=>new SourceChoice(v.Id.Value,v.Name+" · "+v.GenLevel.Name)).ToList();
+        sources.SelectedItem=sources.Items.Cast<SourceChoice>().FirstOrDefault(c=>c.Id==previous)??sources.Items.Cast<SourceChoice>().FirstOrDefault();
+    }
+    void Page(UIElement element)
+    {if(root.Children.Count>1)root.Children.RemoveAt(1);Grid.SetRow(element,1);root.Children.Add(element);}
+    static TextBlock Label(string value)=>new(){Text=value,TextWrapping=TextWrapping.Wrap,FontWeight=FontWeights.SemiBold,Margin=new Thickness(0,9,0,6)};
+    void Hub()
+    {
+        if(sources.Parent is Panel parent)parent.Children.Remove(sources);
+        var body=new StackPanel();Page(new ScrollViewer{Content=body,VerticalScrollBarVisibility=ScrollBarVisibility.Auto});
+        body.Children.Add(Label("1. Escolha sua planta de modelagem"));body.Children.Add(sources);
+        body.Children.Add(new TextBlock{Text="A planta escolhida será preservada. O entregável recebe o perfil gráfico do template.",Foreground=Brushes.DimGray,Margin=new Thickness(0,8,0,0)});
+        var more=new CheckBox{Content="Mostrar também outras plantas do projeto",Margin=new Thickness(0,10,0,10)};
+        more.Checked+=(_,_)=>LoadSources(true);more.Unchecked+=(_,_)=>LoadSources(false);body.Children.Add(more);
+        body.Children.Add(Label("2. Clique no entregável"));
+        var cards=new UniformGrid{Columns=3,Margin=new Thickness(0,6,0,0)};body.Children.Add(cards);
+        cards.Children.Add(Card("Implantação","Lote, cobertura, acesso e cotas","site",true,Configure));
+        cards.Children.Add(Card("Situação","Lote, confrontantes, via e norte","map",true,()=>ChooseContext("situacao")));
+        cards.Children.Add(Card("Planta legal","Cotas gerais e áreas dos ambientes","plan",true,()=>ChooseModule("planta")));
+        cards.Children.Add(Card("Corte A","Posição, sentido e profundidade","cut",true,()=>ChooseSection("corte-a")));cards.Children.Add(Card("Corte B","Posição, sentido e profundidade","cut",true,()=>ChooseSection("corte-b")));
+        cards.Children.Add(Card("Fachadas","Quatro elevações a partir do modelo","facade",true,ChooseFacades));
+        cards.Children.Add(Card("Cobertura","Inclinação e seta por água modelada","roof",true,()=>ChooseModule("cobertura")));
+        cards.Children.Add(Card("Quadros de esquadrias","Portas e janelas: códigos, medidas e quantidades","area",true,()=>{if(Source==null)return;Module=new("esquadrias",Source.Id.Value);DialogResult=true;})); cards.Children.Add(Card("Memória gráfica de áreas","Planta colorida por classe de piso, com legenda e áreas","area",true,()=>ChooseModule("memoria"))); cards.Children.Add(Card("Áreas dos ambientes","Quadro Q04 do template","area",true,()=>ChooseModule("areas")));
+        cards.Children.Add(Card("Quadro urbanístico","Áreas e limites informados pelo projetista","area",true,()=>ChooseContext("urbanistico")));
+        cards.Children.Add(Card("Notas das folhas","Notas gerais e por folha na lateral, escritas por você","area",true,ChooseNotes));
+        cards.Children.Add(Card("Dados do carimbo","Projeto, cliente, endereço e responsáveis nas folhas legais","area",true,ChooseStamp));
+        cards.Children.Add(Card("Organizar folhas","Distribuição automática com prévia e preferências","area",true,ChoosePlan));
+        body.Children.Add(new TextBlock{Text="Estilo das cotas, escala e informação adicional: Preferências legais. Situação e quadro urbanístico usam o lote confirmado na Implantação. Confira os entregáveis antes de organizar as folhas.",TextWrapping=TextWrapping.Wrap,Foreground=Brushes.SlateGray,Margin=new Thickness(0,12,0,0)});
+    }
+    Button Card(string title,string description,string kind,bool active=false,Action? action=null)
+    {
+        var content=new StackPanel();content.Children.Add(DrawIcon(kind,active));content.Children.Add(new TextBlock{Text=title,FontSize=17,FontWeight=FontWeights.SemiBold,Margin=new Thickness(0,6,0,4)});
+        content.Children.Add(new TextBlock{Text=description,FontSize=12,TextWrapping=TextWrapping.Wrap});
+        content.Children.Add(new TextBlock{Text=active?"CONFIGURAR E CRIAR →":"PRÓXIMA ETAPA",FontSize=10,Foreground=active?Brushes.Teal:Brushes.SlateGray,Margin=new Thickness(0,8,0,0)});
+        var button=new Button{Content=content,Padding=new Thickness(16,10,16,10),Margin=new Thickness(0,0,12,12),MinHeight=124,
+            HorizontalContentAlignment=HorizontalAlignment.Left,Background=Brushes.White,BorderBrush=active?Brushes.Teal:Brushes.LightGray,BorderThickness=new Thickness(active?2:1),IsEnabled=active};
+        if(action!=null)button.Click+=(_,_)=>action();return button;
+    }
+    static Canvas DrawIcon(string kind,bool active)
+    {
+        var canvas=new Canvas{Width=90,Height=32,HorizontalAlignment=HorizontalAlignment.Left};var ink=active?Brushes.Teal:Brushes.SlateGray;
+        void Line(double a,double b,double c,double d)=>canvas.Children.Add(new WpfLine{X1=a,Y1=b,X2=c,Y2=d,Stroke=ink,StrokeThickness=1.5});
+        void Rect(double x,double y,double w,double h){var r=new Rectangle{Width=w,Height=h,Stroke=ink,StrokeThickness=1.5};Canvas.SetLeft(r,x);Canvas.SetTop(r,y);canvas.Children.Add(r);}
+        if(kind is "site" or "map"){Rect(3,2,66,28);Rect(20,8,32,16);Line(79,29,79,3);Line(79,3,75,9);Line(79,3,83,9);if(kind=="map"){Line(0,16,88,16);Line(36,0,36,32);}}
+        else if(kind is "cut" or "facade"){Line(3,30,82,30);Rect(14,10,56,20);Rect(24,20,11,10);Rect(49,17,14,8);Line(10,10,74,10);if(kind=="cut")Line(41,0,41,32);}
+        else if(kind=="roof"){Rect(8,4,68,25);Line(8,4,42,17);Line(76,4,42,17);Line(42,17,42,29);}
+        else if(kind=="area"){Rect(5,2,75,28);Line(5,12,80,12);Line(5,22,80,22);Line(50,2,50,30);}
+        else{Rect(5,2,74,28);Line(45,2,45,30);Line(5,16,45,16);Line(61,2,61,30);}return canvas;
+    }
+    void Configure()
+    {
+        if(Source==null){MessageBox.Show(this,"Escolha uma planta de modelagem.");return;}
+        var candidates=Implantation.Footprints(doc,Source);if(candidates.Count==0){MessageBox.Show(this,"Escolha o nível em que o piso da casa foi modelado.");return;}
+        var layout=new DockPanel();Page(layout);var footer=new StackPanel{Orientation=Orientation.Horizontal,HorizontalAlignment=HorizontalAlignment.Right,Margin=new Thickness(0,15,0,0)};
+        DockPanel.SetDock(footer,Dock.Bottom);layout.Children.Add(footer);
+        var back=new Button{Content="← Voltar aos entregáveis",Padding=new Thickness(14,9,14,9),Margin=new Thickness(0,0,12,0)};back.Click+=(_,_)=>Hub();footer.Children.Add(back);
+        var create=new Button{Content="Preparar Implantação",Padding=new Thickness(22,9,22,9),Background=Brushes.Teal,Foreground=Brushes.White,IsDefault=true};create.Click+=(_,_)=>Accept();footer.Children.Add(create);
+        var content=new StackPanel();var guide=new LegalGuide("implantacao");layout.Children.Add(LegalGuide.Beside(new ScrollViewer{Content=content,VerticalScrollBarVisibility=ScrollBarVisibility.Auto},guide));
+        content.Children.Add(new TextBlock{Text="Implantação",FontSize=23,FontWeight=FontWeights.SemiBold});
+        content.Children.Add(new TextBlock{Text="Origem: "+Source.Name+"\nPerfil gráfico: V02. Confira os dados específicos deste lote.",Margin=new Thickness(0,8,0,12)});
+        content.Children.Add(Label("Contorno do térreo — escolha o piso principal"));floors.ItemsSource=candidates.Select(f=>new SourceChoice(f.Id.Value,f.Name+" · "+
+            ((f.get_Parameter(BuiltInParameter.HOST_AREA_COMPUTED)?.AsDouble()??0)*.09290304).ToString("0.00",Implantation.Pt)+" m²")).ToList();
+        var saved=Implantation.Saved(doc);floors.SelectedItem=floors.Items.Cast<SourceChoice>().FirstOrDefault(c=>c.Id==saved?.FootprintId)??floors.Items.Cast<SourceChoice>().First();
+        if(floors.Parent is Panel fp)fp.Children.Remove(floors);content.Children.Add(floors);
+        // TO: optional extra slabs of the same level (e.g. abrigo). Default = none, i.e. only the main slab above.
+        content.Children.Add(Label("Taxa de ocupação — lajes adicionais no contorno (opcional)"));extraBoxes.Clear();
+        foreach(var f in candidates){var box=new CheckBox{Content=f.Name+" · "+((f.get_Parameter(BuiltInParameter.HOST_AREA_COMPUTED)?.AsDouble()??0)*.09290304).ToString("0.00",Implantation.Pt)+" m² (id "+f.Id.Value+")",IsChecked=saved?.OccupationExtraIds?.Contains(f.Id.Value)==true,Margin=new Thickness(0,2,0,2)};extraBoxes.Add((f.Id.Value,box));content.Children.Add(box);}
+        content.Children.Add(new TextBlock{Text="Marque só se a laje deve entrar na projeção da TO (critério do município). A laje principal já entra; sobreposições contam uma vez. O quadro urbanístico lista cada laje usada com sua área.",TextWrapping=TextWrapping.Wrap,Foreground=Brushes.SlateGray,Margin=new Thickness(0,4,0,8)});
+        var settings=new Grid{Margin=new Thickness(0,10,0,10)};settings.ColumnDefinitions.Add(new());settings.ColumnDefinitions.Add(new());
+        var left=new StackPanel{Margin=new Thickness(0,0,24,0)};var right=new StackPanel();Grid.SetColumn(right,1);settings.Children.Add(left);settings.Children.Add(right);content.Children.Add(settings);
+        var lot=Implantation.SuggestedLot(doc);fields.Clear();
+        left.Children.Add(Label("Lote retangular · dimensões em metros"));
+        Field(left,"Largura do lote","width",saved?.LotWidth??lot?.Width??0);Field(left,"Profundidade do lote","depth",saved?.LotDepth??lot?.Depth??0);
+        Field(left,"Canto inferior esquerdo · X (m)","x",saved?.LotMinX??lot?.X??0);Field(left,"Canto inferior esquerdo · Y (m)","y",saved?.LotMinY??lot?.Y??0);
+        left.Children.Add(new TextBlock{Text="O terreno sugere esses valores. Confirme se o retângulo corresponde ao lote. X/Y usam as coordenadas do modelo.",TextWrapping=TextWrapping.Wrap,Foreground=Brushes.SlateGray,Margin=new Thickness(0,7,0,7)});
+        left.Children.Add(Label("Escala do entregável"));scale=new ComboBox{ItemsSource=new[]{"1:100","1:50","1:200"},SelectedItem="1:"+(saved?.Scale??100),MinHeight=34};left.Children.Add(scale);
+        right.Children.Add(Label("Lado da frente, no desenho"));front=new ComboBox{ItemsSource=new[]{"Direita","Esquerda","Acima","Abaixo"},SelectedItem=saved?.Front??"Direita",MinHeight=34};right.Children.Add(front);
+        Field(right,"Norte · giro a partir do eixo vertical (graus)","north",saved?.NorthDegrees??0);
+        street=new CheckBox{Content="Representar passeio e via com os dados abaixo",IsChecked=saved?.AddStreet??doc.Title.Contains("Casa_Terras",StringComparison.OrdinalIgnoreCase),Margin=new Thickness(0,12,0,6)};right.Children.Add(street);
+        Field(right,"Largura do passeio (m)","sidewalk",saved?.SidewalkWidth??1.8);Field(right,"Largura da via (m)","road",saved?.StreetWidth??7);
+        right.Children.Add(Label("Nome da via"));var name=new TextBox{Text=saved?.StreetName??"Rua de estudo (fictícia)",MinHeight=32,Padding=new Thickness(6)};fields["streetName"]=name;right.Children.Add(name);
+        drainage=saved?.Drainage;
+        var roofButton=new Button{Content="Configurar caimentos por água →",Padding=new Thickness(12,10,12,10),Margin=new Thickness(0,15,0,6)};content.Children.Add(roofButton);
+        roofButton.Click+=(_,_)=>{var roofs=new FilteredElementCollector(doc).OfClass(typeof(RoofBase)).Cast<Element>().OrderBy(r=>r.Id.Value).ToList();var dialog=new RoofDrainageWindow(this,doc,RoofWaters.Read(doc,roofs),saved,drainage);if(dialog.ShowDialog()==true)drainage=dialog.Choices;};
+        content.Children.Add(new TextBlock{Text="Lajes planas: configure percentual e sentido por água. Sem proposta, aparece ‘caimento a definir’. Telhados inclinados usam sua geometria.",TextWrapping=TextWrapping.Wrap,Foreground=Brushes.SlateGray});
+        study=new CheckBox{Content="Estudo fictício (identificar no desenho)",IsChecked=saved?.Study??doc.Title.Contains("Casa_Terras",StringComparison.OrdinalIgnoreCase),Margin=new Thickness(0,6,0,6)};content.Children.Add(study);
+        confirm=new CheckBox{Content="Conferi o contorno, a posição do lote e o norte informado",Margin=new Thickness(0,8,0,6)};content.Children.Add(confirm);
+        replace=new CheckBox{Content="Refazer também marcações do gerador que editei manualmente",Margin=new Thickness(0,6,0,6)};content.Children.Add(replace);
+        content.Children.Add(new TextBlock{Text="Será completada LEGAL - Implantação: cobertura vista de cima, contorno do térreo, cotas do lote/afastamentos, norte, acesso e chamadas. A casa é preservada; a folha será escolhida depois.",TextWrapping=TextWrapping.Wrap,Foreground=Brushes.DimGray,Margin=new Thickness(0,8,0,0)});
+        var registration=ProjectRegistrationStore.Read(doc);content.Children.Add(new TextBlock{Text="Cadastro reutilizado na identificação da Implantação: "+(string.IsNullOrWhiteSpace(registration.Lot)?"lote não informado":registration.Lot)+"\n"+ProjectDataIntegration.Summary(registration)+"\nDimensões, posição, via e norte dependem da conferência acima; não são deduzidos do endereço.",TextWrapping=TextWrapping.Wrap,Foreground=Brushes.Teal,Margin=new Thickness(0,10,0,0)});
+        guide.BindFields(content);
+    }
+    void Field(Panel parent,string label,string key,double value){parent.Children.Add(Label(label));var field=new TextBox{Text=value.ToString("0.###",Implantation.Pt),MinHeight=32,Padding=new Thickness(6)};fields[key]=field;parent.Children.Add(field);}
+    void ChooseModule(string key)
+    {
+        if(Source==null){MessageBox.Show(this,"Escolha sua planta de modelagem.");return;}
+        var title=key=="planta"?"Planta legal":key=="cobertura"?"Cobertura":key=="memoria"?"Memória gráfica de áreas":"Áreas dos ambientes";
+        var dialog=new Window{Owner=this,Title=title,Width=620,Height=350,WindowStartupLocation=WindowStartupLocation.CenterOwner};
+        var body=new StackPanel{Margin=new Thickness(24)};dialog.Content=body;
+        body.Children.Add(new TextBlock{Text=title,FontSize=22,Margin=new Thickness(0,0,0,10)});
+        body.Children.Add(new TextBlock{Text="Fonte: "+Source.Name,TextWrapping=TextWrapping.Wrap});
+        var candidates=Implantation.Footprints(doc,Source);var bases=new ComboBox{ItemsSource=candidates.Select(f=>new SourceChoice(f.Id.Value,f.Name)).ToList(),MinHeight=32,Margin=new Thickness(0,10,0,10)};
+        if(candidates.Count>0)bases.SelectedIndex=0;if(key is not ("areas" or "memoria")){body.Children.Add(Label("Piso base do nível escolhido"));body.Children.Add(bases);}
+        var edited=new CheckBox{Content="Refazer marcas do gerador que editei manualmente",Margin=new Thickness(0,12,0,12)};if(key!="areas")body.Children.Add(edited);
+        body.Children.Add(new TextBlock{Text=key=="memoria"?"Cores e classes pelo nome dos tipos de piso. Confira a classificação; terreno em verde não equivale a área permeável medida. A legenda editada exige autorização para ser refeita. Memórias antigas precisam dessa autorização na primeira atualização. A vista entra em Organizar folhas na escala das Preferências legais.":key=="planta"?"Cotas gerais e internas entre acabamentos; nomes e áreas priorizados dentro dos ambientes. Identificações de portas e janelas usam a Marca existente; execute novamente após alterar os códigos. Espessuras e larguras de esquadrias opcionais nas preferências. Cotas sem espaço ou referência válida são relatadas.":key=="cobertura"?"Lê inclinação e sentido das águas modeladas. Nas lajes planas, usa os caimentos configurados na Implantação; sem dados, indica caimento a definir. Após alterar a Implantação, prepare a Cobertura novamente.":"Abrir o quadro Q04 existente, que acompanha as áreas do modelo.",TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,0,0,12)});
+        var apply=new Button{Content="Preparar "+title,Padding=new Thickness(15,8,15,8),HorizontalAlignment=HorizontalAlignment.Right};body.Children.Add(apply);apply.Click+=(_,_)=>{if(key is not ("areas" or "memoria")&&bases.SelectedItem==null){MessageBox.Show(dialog,"Este nível não possui piso base disponível.");return;}dialog.DialogResult=true;};
+        LegalGuide.Attach(dialog,body,key);
+        if(dialog.ShowDialog()==true){Module=new(key,Source.Id.Value,(bases.SelectedItem as SourceChoice)?.Id??0,edited.IsChecked==true);DialogResult=true;}
+    }
+    void ChooseSection(string key)
+    {
+        if(Source==null){MessageBox.Show(this,"Escolha sua planta de modelagem.");return;}
+        var title=key=="corte-a"?"Corte A":"Corte B";
+        var dialog=new Window{Owner=this,Title=title,Width=650,Height=590,WindowStartupLocation=WindowStartupLocation.CenterOwner};
+        var body=new StackPanel{Margin=new Thickness(24)};dialog.Content=new ScrollViewer{Content=body,VerticalScrollBarVisibility=ScrollBarVisibility.Auto};
+        body.Children.Add(new TextBlock{Text=title,FontSize=23});body.Children.Add(new TextBlock{Text="Fonte: "+Source.Name,TextWrapping=TextWrapping.Wrap});
+        var candidates=Implantation.Footprints(doc,Source);var bases=new ComboBox{ItemsSource=candidates.Select(f=>new SourceChoice(f.Id.Value,f.Name)).ToList(),MinHeight=32};if(candidates.Count>0)bases.SelectedIndex=0;
+        body.Children.Add(Label("Piso base"));body.Children.Add(bases);
+        var axis=new ComboBox{ItemsSource=new[]{"Ao longo de X — posição medida em Y","Ao longo de Y — posição medida em X"},SelectedIndex=key=="corte-a"?0:1,MinHeight=32};body.Children.Add(Label("Direção do corte (eixos do projeto)"));body.Children.Add(axis);
+        var position=new Slider{Minimum=5,Maximum=95,Value=50,TickFrequency=5,IsSnapToTickEnabled=true,Margin=new Thickness(0,5,0,0)};var location=new TextBlock{Text="50% — centro da casa"};position.ValueChanged+=(_,_)=>location.Text=position.Value.ToString("0")+"% da extensão do piso";
+        body.Children.Add(Label("Posição dentro da casa"));body.Children.Add(position);body.Children.Add(location);
+        var reverse=new CheckBox{Content="Inverter sentido de observação",Margin=new Thickness(0,12,0,5)};body.Children.Add(reverse);
+        var depth=new TextBox{Text="15",MinHeight=32};body.Children.Add(Label("Profundidade visível, em metros"));body.Children.Add(depth);
+        var edited=new CheckBox{Content="Refazer corte/marcações do gerador que editei",Margin=new Thickness(0,12,0,8)};body.Children.Add(edited);
+        body.Children.Add(new TextBlock{Text="Reutiliza o corte do template, identifica níveis e cota altura entre faces horizontais quando disponíveis. Escala/estilo: Preferências legais. Não substitui detalhamento construtivo. Cortes com anotações manuais externas ao gerador exigem revisão antes de reposicionar.",TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,0,0,12)});
+        var apply=new Button{Content="Preparar "+title,Padding=new Thickness(16,8,16,8),HorizontalAlignment=HorizontalAlignment.Right};body.Children.Add(apply);
+        apply.Click+=(_,_)=>{if(bases.SelectedItem is not SourceChoice floor||!double.TryParse(depth.Text.Replace(',','.'),NumberStyles.Float,CultureInfo.InvariantCulture,out var meters)||!double.IsFinite(meters)||meters<=.1||meters>200){MessageBox.Show(dialog,"Escolha o piso e informe uma profundidade entre 0,1 e 200 m.");return;}Section=new(key,Source.Id.Value,floor.Id,axis.SelectedIndex==0,position.Value,reverse.IsChecked==true,meters,edited.IsChecked==true);dialog.DialogResult=true;};
+        LegalGuide.Attach(dialog,body,"corte");if(dialog.ShowDialog()==true)DialogResult=true;
+    }
+    void ChoosePlan()
+    {
+        var window=new SheetPlannerWindow(SheetPlanner.Items(doc),(profile,ids,optimize)=>SheetPlanner.Preview(doc,profile,ids,optimize),SheetPlanner.Unprepared(doc)){Owner=this};
+        if(window.ShowDialog()==true){Plan=window.Result;DialogResult=true;}
+    }
+    void ChooseNotes()
+    {
+        var sheets=SheetPlanner.Sheets(doc);if(sheets.Count==0){MessageBox.Show(this,"Não há folhas legais (LEG) no projeto.");return;}
+        var saved=SheetNotes.ReadUser(doc);var perSheet=new Dictionary<string,string>(saved.Sheets);
+        var dialog=new Window{Owner=this,Title="Notas das folhas",Width=640,Height=760,WindowStartupLocation=WindowStartupLocation.CenterOwner};
+        var body=new StackPanel{Margin=new Thickness(24)};dialog.Content=new ScrollViewer{Content=body,VerticalScrollBarVisibility=ScrollBarVisibility.Auto};
+        body.Children.Add(new TextBlock{Text="Notas das folhas",FontSize=23});
+        body.Children.Add(new TextBlock{Text="Escreva uma nota por linha. Elas entram no campo de notas da lateral de cada folha legal, depois das notas automáticas. O plugin não escreve exigências nem hipóteses por você; só o que for digitado aqui.",TextWrapping=TextWrapping.Wrap,Foreground=Brushes.SlateGray,Margin=new Thickness(0,8,0,8)});
+        body.Children.Add(Label("Notas gerais (todas as folhas legais)"));
+        var general=new TextBox{Text=saved.General,AcceptsReturn=true,TextWrapping=TextWrapping.Wrap,MinHeight=110,Padding=new Thickness(6),VerticalScrollBarVisibility=ScrollBarVisibility.Auto};body.Children.Add(general);
+        var insert=new Button{Content="Inserir identificação do cadastro nas notas gerais",Padding=new Thickness(12,8,12,8),Margin=new Thickness(0,10,0,0)};body.Children.Add(insert);
+        insert.Click+=(_,_)=>{try{var lines=general.Text.Replace("\r","").Split('\n').ToList();foreach(var line in ProjectDataIntegration.Notes(ProjectRegistrationStore.Read(doc)).Split('\n').Where(s=>!string.IsNullOrWhiteSpace(s)))if(!lines.Contains(line))lines.Add(line);general.Text=string.Join("\n",lines);}catch(System.IO.InvalidDataException ex){MessageBox.Show(this,ex.Message,"VEBRAM — cadastro");}};
+        body.Children.Add(Label("Notas só de uma folha"));
+        var choices=sheets.Select(s=>new SourceChoice(s.Id.Value,s.SheetNumber+" · "+s.Name)).ToList();
+        var picker=new ComboBox{ItemsSource=choices,SelectedIndex=0,MinHeight=32};body.Children.Add(picker);
+        var own=new TextBox{AcceptsReturn=true,TextWrapping=TextWrapping.Wrap,MinHeight=130,Margin=new Thickness(0,8,0,0),Padding=new Thickness(6),VerticalScrollBarVisibility=ScrollBarVisibility.Auto};body.Children.Add(own);
+        string? current=null;
+        void Remember(){if(current!=null)perSheet[current]=own.Text;}
+        string NumberOf(SourceChoice choice)=>sheets.First(s=>s.Id.Value==choice.Id).SheetNumber;
+        void Load(){var choice=(SourceChoice)picker.SelectedItem;current=NumberOf(choice);own.Text=perSheet.GetValueOrDefault(current)??"";}
+        picker.SelectionChanged+=(_,_)=>{Remember();Load();};Load();
+        body.Children.Add(new TextBlock{Text="Se faltar espaço no campo lateral, a nota não é colocada e o plugin avisa. Notas editadas à mão no desenho são preservadas.",TextWrapping=TextWrapping.Wrap,Foreground=Brushes.SlateGray,Margin=new Thickness(0,10,0,10)});
+        var apply=new Button{Content="Gravar e aplicar nas folhas",Padding=new Thickness(15,8,15,8),HorizontalAlignment=HorizontalAlignment.Right};body.Children.Add(apply);
+        apply.Click+=(_,_)=>{try{Remember();using(var tx=new Transaction(doc,"VEBRAM — gravar notas")){tx.Start();SheetNotes.SaveUser(doc,new(general.Text,perSheet.Where(p=>!string.IsNullOrWhiteSpace(p.Value)).ToDictionary(p=>p.Key,p=>p.Value)));tx.Commit();}MessageBox.Show(dialog,SheetNotes.Refresh(doc),"VEBRAM — notas das folhas");dialog.DialogResult=true;}catch(Exception ex){MessageBox.Show(dialog,ex.Message);}};
+        dialog.ShowDialog();
+    }
+    void ChooseStamp()
+    {
+        var dialog=new Window{Owner=this,Title="Dados do carimbo",Width=620,Height=760,WindowStartupLocation=WindowStartupLocation.CenterOwner};
+        var body=new StackPanel{Margin=new Thickness(24)};dialog.Content=new ScrollViewer{Content=body,VerticalScrollBarVisibility=ScrollBarVisibility.Auto};
+        body.Children.Add(new TextBlock{Text="Dados do carimbo",FontSize=23});
+        body.Children.Add(new TextBlock{Text="O carimbo das folhas legais lê estes campos. Preencha só o que for verdadeiro: campos vazios não são alterados e nada é inventado. Hoje muitos aparecem como A PREENCHER.",TextWrapping=TextWrapping.Wrap,Foreground=Brushes.SlateGray,Margin=new Thickness(0,8,0,8)});
+        var current=StampData.Read(doc);var boxes=new Dictionary<string,TextBox>();
+        foreach(var field in StampData.Fields)
+        {
+            body.Children.Add(Label(field.Label));var box=new TextBox{Text=current.GetValueOrDefault(field.Key)??"",MinHeight=32,Padding=new Thickness(6),ToolTip=field.Help};boxes[field.Key]=box;body.Children.Add(box);
+        }
+        body.Children.Add(new TextBlock{Text="Dados do projeto valem para todas as folhas. Os responsáveis valem só para as folhas legais (LEG). Os campos de revisão ficam como estão.",TextWrapping=TextWrapping.Wrap,Foreground=Brushes.SlateGray,Margin=new Thickness(0,10,0,10)});
+        var apply=new Button{Content="Gravar nos carimbos",Padding=new Thickness(15,8,15,8),HorizontalAlignment=HorizontalAlignment.Right};body.Children.Add(apply);
+        apply.Click+=(_,_)=>{try{MessageBox.Show(dialog,StampData.Apply(doc,boxes.ToDictionary(p=>p.Key,p=>p.Value.Text)),"VEBRAM — dados do carimbo");dialog.DialogResult=true;}catch(Exception ex){MessageBox.Show(dialog,ex.Message);}};
+        dialog.ShowDialog();
+    }
+    void ChooseSheet()
+    {
+        var dialog=new Window{Owner=this,Title="Organizar folhas legais",Width=640,Height=490,WindowStartupLocation=WindowStartupLocation.CenterOwner};var body=new StackPanel{Margin=new Thickness(24)};dialog.Content=body;
+        body.Children.Add(new TextBlock{Text="Colocar entregável na folha",FontSize=23});var sheets=new ComboBox{ItemsSource=new FilteredElementCollector(doc).OfClass(typeof(ViewSheet)).Cast<ViewSheet>().Where(LegalSheets.IsLegalSheet).OrderBy(s=>s.SheetNumber).Select(s=>new SourceChoice(s.Id.Value,s.SheetNumber+" · "+s.Name)).ToList(),SelectedIndex=0,MinHeight=32};
+        var views=new ComboBox{ItemsSource=LegalCatalog.Views(doc).Where(LegalCatalog.IsLegal).Select(v=>new SourceChoice(v.Id.Value,v.Name)).OrderBy(c=>c.Name).ToList(),SelectedIndex=0,MinHeight=32};body.Children.Add(Label("Entregável já preparado"));body.Children.Add(views);body.Children.Add(Label("Folha do template"));body.Children.Add(sheets);body.Children.Add(new TextBlock{Text="Tenta primeiro a folha selecionada e depois as demais LEG existentes, preservando colocações e a faixa do carimbo. Não altera a escala da vista. Se não couber, a operação será revertida. Revise espaços-guia e composição gráfica.",TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,15,0,15)});
+        var newSheet=new CheckBox{Content="Permitir folha complementar se não couber nas LEG existentes",Margin=new Thickness(0,0,0,16)};body.Children.Add(newSheet);
+        var apply=new Button{Content="Colocar na folha",Padding=new Thickness(15,8,15,8)};body.Children.Add(apply);apply.Click+=(_,_)=>{if(sheets.SelectedItem is not SourceChoice s||views.SelectedItem is not SourceChoice v)return;Sheet=new(s.Id,v.Id,newSheet.IsChecked==true);dialog.DialogResult=true;};LegalGuide.Attach(dialog,body,"folhas");if(dialog.ShowDialog()==true)DialogResult=true;
+    }
+    void ChooseFacades()
+    {
+        if(Source==null)return;
+        var dialog=new Window{Owner=this,Title="Fachadas",Width=650,Height=460,WindowStartupLocation=WindowStartupLocation.CenterOwner};var body=new StackPanel{Margin=new Thickness(24)};dialog.Content=body;
+        body.Children.Add(new TextBlock{Text="Preparar as quatro fachadas",FontSize=23});body.Children.Add(new TextBlock{Text="Fonte: "+Source.Name});
+        var bases=new ComboBox{ItemsSource=Implantation.Footprints(doc,Source).Select(f=>new SourceChoice(f.Id.Value,f.Name)).ToList(),SelectedIndex=0,MinHeight=32};body.Children.Add(Label("Piso base"));body.Children.Add(bases);
+        var distance=new TextBox{Text="3",MinHeight=32};body.Children.Add(Label("Distância da observação até a casa (m)"));body.Children.Add(distance);
+        var rotation=new TextBox{Text="0",MinHeight=32};body.Children.Add(Label("Giro das fachadas em relação aos eixos do projeto (graus)"));body.Children.Add(rotation);
+        var edited=new CheckBox{Content="Refazer fachadas/marcas do gerador que editei",Margin=new Thickness(0,10,0,10)};body.Children.Add(edited);body.Children.Add(new TextBlock{Text="Reutiliza as elevações nativas Norte/Sul/Leste/Oeste do template. Marcadores compartilhados são separados automaticamente, guardando as vistas originais em Reserva. Fachadas já em folhas e anotações manuais exigem revisão. O giro não altera o norte verdadeiro do modelo.",TextWrapping=TextWrapping.Wrap});
+        var apply=new Button{Content="Preparar fachadas",Margin=new Thickness(0,15,0,0),Padding=new Thickness(15,8,15,8)};body.Children.Add(apply);apply.Click+=(_,_)=>{if(bases.SelectedItem is not SourceChoice f||!double.TryParse(distance.Text.Replace(',','.'),NumberStyles.Float,CultureInfo.InvariantCulture,out var d)||!double.TryParse(rotation.Text.Replace(',','.'),NumberStyles.Float,CultureInfo.InvariantCulture,out var r)||!double.IsFinite(d)||d<.5||d>100||!double.IsFinite(r)){MessageBox.Show(dialog,"Escolha o piso e confira distância e giro.");return;}Facades=new(Source.Id.Value,f.Id,d,r,edited.IsChecked==true);dialog.DialogResult=true;};LegalGuide.Attach(dialog,body,"fachadas");if(dialog.ShowDialog()==true)DialogResult=true;
+    }
+    void ChooseContext(string key)
+    {
+        if(Source==null)return;var lot=Implantation.Saved(doc);if(lot==null){MessageBox.Show(this,"Prepare primeiro a Implantação para confirmar o lote.");return;}
+        var title=key=="situacao"?"Situação":"Quadro urbanístico";var previous=LegalContext.Saved(doc,key);var registration=ProjectRegistrationStore.Read(doc);
+        var current=ProjectDataIntegration.Context(registration,key,Source.Id.Value,null);
+        var saved=ProjectDataIntegration.Context(registration,key,Source.Id.Value,previous,LegalContext.Saved(doc,key=="situacao"?"urbanistico":"situacao"));
+        var registrationText=saved.RegistrationText;
+        var dialog=new Window{Owner=this,Title=title,Width=670,Height=700,WindowStartupLocation=WindowStartupLocation.CenterOwner};var body=new StackPanel{Margin=new Thickness(24)};dialog.Content=new ScrollViewer{Content=body,VerticalScrollBarVisibility=ScrollBarVisibility.Auto};
+        body.Children.Add(new TextBlock{Text=title,FontSize=23});body.Children.Add(new TextBlock{Text=$"Lote confirmado: {lot.LotWidth:0.##} × {lot.LotDepth:0.##} m",Margin=new Thickness(0,8,0,8)});
+        TextBox Field(string label,string value){body.Children.Add(Label(label));var field=new TextBox{Text=value,MinHeight=32,MaxLength=120};System.Windows.Automation.AutomationProperties.SetName(field,label);body.Children.Add(field);return field;}
+        var identification=Field("Identificação do lote (quadra / lote / CP)",saved?.Identification??"");TextBox? left=null,right=null,rear=null,computable=null,permeable=null,to=null,ca=null,tp=null;
+        if(key=="situacao"){left=Field("Confrontante esquerdo",saved?.LeftNeighbor??"");right=Field("Confrontante direito",saved?.RightNeighbor??"");rear=Field("Confrontante ao fundo",saved?.RearNeighbor??"");body.Children.Add(new TextBlock{Text="O diagrama usa lote, via e norte da Implantação. Campos vazios aparecem como NÃO INFORMADO. Não substitui mapa cadastral ou levantamento. Esquerda/direita/fundo seguem os eixos do desenho.",TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,12,0,8)});}
+        else{string N(double? n)=>n?.ToString("0.##",Implantation.Pt)??"";computable=Field("Área computável total (m²) · opcional",N(saved?.ComputableArea));permeable=Field("Área permeável (m²) · opcional",N(saved?.PermeableArea));to=Field("TO máxima da legislação (%) · opcional",N(saved?.MaximumOccupation));ca=Field("CA máximo da legislação · opcional",N(saved?.MaximumCoefficient));tp=Field("TP mínima da legislação (%) · opcional",N(saved?.MinimumPermeability));body.Children.Add(new TextBlock{Text="TO usa a projeção do piso base: confira beirais, anexos e critérios de ocupação. CA e TP usam as áreas informadas. Valores vazios ficam pendentes. Não declara aprovação municipal.",TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,12,0,8)});}
+        var inherited=new TextBlock{Text=(previous==null?"Sugestões do cadastro; confira antes de criar.":"Configuração anterior preservada, inclusive campos deixados vazios.")+"\n"+registrationText,TextWrapping=TextWrapping.Wrap,Foreground=Brushes.Teal,Margin=new Thickness(0,10,0,8)};body.Children.Add(inherited);
+        var refresh=new Button{Content="Usar lote e limites do cadastro atual",Padding=new Thickness(12,8,12,8),HorizontalAlignment=HorizontalAlignment.Left};body.Children.Add(refresh);
+        refresh.Click+=(_,_)=>{identification.Text=current.Identification;string N(double? n)=>n?.ToString("0.##",Implantation.Pt)??"";if(to!=null)to.Text=N(current.MaximumOccupation);if(ca!=null)ca.Text=N(current.MaximumCoefficient);if(tp!=null)tp.Text=N(current.MinimumPermeability);registrationText=current.RegistrationText;inherited.Text="Sugestões do cadastro atual aplicadas. Áreas e confrontantes preservados.\n"+registrationText;};
+        var pending=new TextBlock{TextWrapping=TextWrapping.Wrap,Foreground=Brushes.SlateGray,Margin=new Thickness(0,10,0,8)};body.Children.Add(pending);
+        void Pending(){var missing=new List<string>();if(string.IsNullOrWhiteSpace(identification.Text))missing.Add("identificação do lote");if(key=="situacao"){if(string.IsNullOrWhiteSpace(left?.Text))missing.Add("confrontante esquerdo");if(string.IsNullOrWhiteSpace(right?.Text))missing.Add("confrontante direito");if(string.IsNullOrWhiteSpace(rear?.Text))missing.Add("confrontante ao fundo");}else{foreach(var pair in new[]{("área computável",computable),("área permeável",permeable),("TO máxima",to),("CA máximo",ca),("TP mínima",tp)})if(string.IsNullOrWhiteSpace(pair.Item2?.Text))missing.Add(pair.Item1);}pending.Text=missing.Count==0?"Campos preenchidos. Confira a origem e os critérios; isto não aprova o projeto.":"Ainda não informado: "+string.Join(", ",missing)+". Campos opcionais vazios aparecem como pendência no desenho.";}
+        foreach(var field in new[]{identification,left,right,rear,computable,permeable,to,ca,tp})if(field!=null)field.TextChanged+=(_,_)=>Pending();Pending();
+        var confirmed=new CheckBox{Content="Conferi os dados e os critérios usados neste entregável",Margin=new Thickness(0,10,0,8)};var edited=new CheckBox{Content="Refazer marcações do gerador que editei",Margin=new Thickness(0,8,0,8)};body.Children.Add(confirmed);body.Children.Add(edited);
+        var apply=new Button{Content="Preparar "+title,Padding=new Thickness(15,8,15,8)};body.Children.Add(apply);apply.Click+=(_,_)=>{try{double? Value(TextBox? field){if(string.IsNullOrWhiteSpace(field?.Text))return null;if(!double.TryParse(field.Text.Replace(',','.'),NumberStyles.Float,CultureInfo.InvariantCulture,out var n)||!double.IsFinite(n)||n<0)throw new InvalidOperationException("Confira áreas e índices.");return n;}if(confirmed.IsChecked!=true)throw new InvalidOperationException("Confira e confirme os dados.");Context=new(key,Source.Id.Value,identification.Text,left?.Text??"",right?.Text??"",rear?.Text??"",Value(computable),Value(permeable),Value(to),Value(ca),Value(tp),true,edited.IsChecked==true,registrationText);dialog.DialogResult=true;}catch(Exception ex){MessageBox.Show(dialog,ex.Message);}};LegalGuide.Attach(dialog,body,key);if(dialog.ShowDialog()==true)DialogResult=true;
+    }
+    void Accept()
+    {
+        try
+        {
+            if(confirm.IsChecked!=true)throw new InvalidOperationException("Confira o lote e o norte e marque a confirmação.");
+            double Number(string key){if(!double.TryParse(fields[key].Text.Trim().Replace(',', '.'),NumberStyles.Float,CultureInfo.InvariantCulture,out var n)||!double.IsFinite(n))throw new InvalidOperationException("Confira o campo: "+key);return n;}
+            if(Source==null||floors.SelectedItem is not SourceChoice footprint)throw new InvalidOperationException("Escolha a planta e seu piso base.");
+            Selection=new(Source.Id.Value,footprint.Id,Number("x"),Number("y"),Number("width"),Number("depth"),int.Parse(((string)scale.SelectedItem).Split(':')[1]),
+                (string)front.SelectedItem,street.IsChecked==true,Number("sidewalk"),Number("road"),fields["streetName"].Text,Number("north"),study.IsChecked==true,replace.IsChecked==true,
+                Implantation.Saved(doc)?.DesignRoofSlope,Implantation.Saved(doc)?.RoofFlow??"Modelo",drainage,
+                extraBoxes.Where(e=>e.Box.IsChecked==true&&e.Id!=footprint.Id).Select(e=>e.Id).ToList() is {Count:>0} extras?extras:null);
+            _=Implantation.Plan(doc,Selection);DialogResult=true;
+        }
+        catch(Exception e){MessageBox.Show(this,e.Message,"Conferir Implantação",MessageBoxButton.OK,MessageBoxImage.Information);}
+    }
+}
+
+
+

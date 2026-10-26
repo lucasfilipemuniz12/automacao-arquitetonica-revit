@@ -1,0 +1,40 @@
+{
+  "modules": [
+    {
+      "module": "planta",
+      "same_view": true,
+      "report": "Planta — nível 1 preparada na vista do V02.\n11 cotas e 36 marcações geradas.\nCotas entre acabamentos: 9; espessuras: 0; larguras de esquadrias: 0.\nRótulos com chamada externa: 0.\nAmbiente 02: cota horizontal pendente para preservar leitura do rótulo.\nAmbiente 04: cota vertical pendente para preservar leitura do rótulo.\nAmbiente 05: cota vertical pendente para preservar leitura do rótulo.\n15 identificações de esquadrias geradas com a Marca existente. Atualize a planta após alterar os códigos.\nExecute novamente após mudanças de modelo. Revise antes de colocar na folha."
+    },
+    {
+      "module": "cobertura",
+      "same_view": true,
+      "report": "Cobertura preparada na vista do V02.\n0 cotas e 20 marcações geradas.\n4 águas planas reconhecidas; inclinações lidas da geometria, sem alterar o telhado.\nExecute novamente após mudanças de modelo. Revise antes de colocar na folha."
+    },
+    {
+      "module": "areas",
+      "same_view": true,
+      "report": "Q04 nativo do template: 6 ambientes com área; 0 sem área.\nO quadro acompanha o modelo. Confira os ambientes e as pendências de modelagem antes de emitir."
+    },
+    {
+      "module": "memoria",
+      "same_view": true,
+      "report": "Memória gráfica de áreas gerada na vista \"02 PROJETO LEGAL - VEBRAM - Memória gráfica de áreas\" (cópia da planta, sem o modelo alterado).\n• Área externa: 22,19 m²\n• Área interna: 190,73 m²\n• Calçada e passeio (impermeável): 80,77 m²\n• Gramado (classe física): 145,87 m²\nLaje/radier ficam ocultos nesta vista para não sobrepor os pisos.\nSaldo aritmético lote menos pisos: -79,55 m². Estimativa sem união de contornos; não é área permeável medida. Pisos sobrepostos, pavimentos e áreas fora do lote exigem revisão. O saldo não entra na soma das classes.\nTerreno em verde apenas para orientação visual. Sua geometria não foi medida nem classificada como permeável.\nTipo de piso sem classe: \"Genérico 150 mm\" (mantido sem cor). Informe a classe para incluí-lo."
+    },
+    {
+      "module": "situacao",
+      "same_view": true,
+      "report": "Diagrama com lote confirmado, confrontantes informados, via e norte. Não equivale a mapa cadastral ou levantamento georreferenciado."
+    },
+    {
+      "module": "urbanistico",
+      "same_view": true,
+      "report": "TO usa o contorno base, ajustado às faces externas adjacentes; CA/TP usam somente as áreas que você informou. Limites não informados ficam pendentes. Não declara aprovação urbanística."
+    },
+    {
+      "module": "implantacao",
+      "same_view": true,
+      "report": "LEGAL - Implantação preparada em 1:100.\n4 cotas nativas; 39 elementos de anotação.\nA vista está disponível para colocar na folha. A planta de modelagem foi preservada.\nPara refletir alterações do modelo, execute Implantação novamente. Confira o lote informado, norte e chamadas antes de emitir."
+    }
+  ],
+  "physical_preserved": true
+}

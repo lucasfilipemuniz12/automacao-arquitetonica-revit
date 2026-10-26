@@ -1,0 +1,15 @@
+# VEBRAM 0.5.24 - integração do cadastro com os entregáveis
+
+Continuação da interface 0.5.23. Implantação reutiliza identificação do lote e resumo cadastral nas suas notas. Situação e Quadro urbanístico iniciam com a identificação cadastrada; quando o outro entregável já tem uma identificação conferida na mesma fonte, ela é reaproveitada. No quadro, TO/CA/TP vêm do perfil copiado para o RVT, apenas quando cidade, UF, zona, uso e intervenção continuam compatíveis. A biblioteca pessoal nunca é relida para substituir os limites de um projeto existente.
+
+Uma configuração já gerada tem prioridade integral, inclusive campos que o usuário deixou vazios. O botão 'Usar lote e limites do cadastro atual' aplica explicitamente o cadastro atual sem alterar áreas e confrontantes. Cancelar o formulário descarta alterações não aplicadas, como antes. A tela informa campos opcionais ausentes; a confirmação dos critérios continua obrigatória.
+
+O resumo com município, zona, uso/intervenção e referência do perfil acompanha os desenhos de Situação e Quadro urbanístico, guardado com a configuração usada. Na Implantação usa o cadastro vigente quando o usuário solicita a regeneração. Em Notas das folhas, um botão insere explicitamente a identificação cadastrada sem apagar o texto e sem repetir linhas idênticas. Nome, código, cliente e endereço continuam nos parâmetros nativos do carimbo.
+
+Não deduz dimensões, área computável, permeabilidade física, confrontantes, norte ou nome da via pelo endereço. Afastamentos mínimos e altura cadastrados ainda não têm verificador geométrico. Não aplica condições municipais automaticamente nem declara aprovação. Dados específicos de corte/fachada continuam nos próprios controles: município não determina sua geometria.
+
+Validação: build Release com 0 erros/0 avisos e binlog. Job integracao024 somente em cópia verifica valores sintéticos em memória (sem gravá-los), campos apagados, divergência de perfil, pendências, isolamento por fonte, regeneração nativa de Situação/Quadro com dados demonstrativos reais do RVT e modelo físico preservado. Resultado do job e PNGs ficam na pasta INTEGRACAO_VEBRAM_V0524. A revisão global anterior continua pendente.
+
+Resultado: job CONCLUIDO; todos os itens de INTEGRACAO_024.json verdadeiros. PNGs de Situação/Quadro inspecionados. UI: reabertura preservou dados, botão de atualização funcionou, inserção repetida nas notas não duplicou linhas. Notas inseridas somente no formulário foram descartadas ao fechar, sem modificar folhas. A anotação adicional da Implantação compila, mas ainda precisa de regeneração e revisão visual específica. Parada por uso: 13% restantes, respeitando o pedido de encerrar nesta faixa. Código 0.5.24 ainda não publicado no GitHub.
+
+Fechamento em 18/10/2026: job completo repetido em nova cópia, incluindo geração e regeneração da Implantação. Identificação do lote/município presentes; PNG inspecionado, texto completo e sem sobreposição com as cotas. Modelo físico preservado. Pendência de revisão da Implantação encerrada.
