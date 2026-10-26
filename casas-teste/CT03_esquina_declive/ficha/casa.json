@@ -1,0 +1,204 @@
+{
+ "versao": "CT03-2026-10-26",
+ "unidades": "metros; cotas de nível relativas ao RN 0,00 (meio-fio da Rua das Paineiras no canto oeste do lote)",
+ "eixos": "x de oeste para leste (0 = divisa com o lote 06, 15 = alinhamento da Rua dos Jacarandás); y da frente para os fundos (0 = alinhamento da Rua das Paineiras, 25 = divisa de fundos). Paredes por EIXO; ambientes medidos entre eixos.",
+
+ "cadastro": {
+  "projeto": "Residência Paineiras",
+  "codigo": "CT03-2026",
+  "cliente": "Helena Duarte Vieira e Tiago Moreira Vieira",
+  "endereco": "Rua das Paineiras, 245 — esquina com Rua dos Jacarandás",
+  "bairro": "Jardim Vale do Sol",
+  "cidade": "Belo Horizonte",
+  "uf": "MG",
+  "cep": "30000-000",
+  "lote": "Lote 07 — Quadra 22",
+  "inscricao_cadastral": "007.022.0245.001-4",
+  "zoneamento": "ZR-2 — Zona Residencial 2 (perfil de teste)",
+  "uso": "Residencial unifamiliar",
+  "intervencao": "Construção nova",
+  "pavimentos": "2 (térreo e pavimento inferior em meio-nível sob o fundo)",
+  "autor": "Arq. Beatriz Nogueira Prado",
+  "registro_profissional": "CAU A000000-0",
+  "projetado_por": "Beatriz N. Prado",
+  "desenhado_por": "Lucas F. Muniz",
+  "verificado_por": "Silvana B. M. Heredia",
+  "aprovado_por": "Beatriz N. Prado",
+  "data_emissao": "26/10/2026",
+  "observacao": "Cenário de teste do plugin VEBRAM. Os dados são inventados para preencher todos os campos; tratar como se fossem reais durante o teste."
+ },
+
+ "perfil_municipal_teste": {
+  "titulo": "BH — ZR-2 (perfil de teste CT03)",
+  "taxa_ocupacao_max_pct": 50,
+  "coeficiente_aproveitamento_max": 1.0,
+  "taxa_permeabilidade_min_pct": 20,
+  "afastamento_frontal_principal_m": 4.0,
+  "afastamento_frontal_secundario_esquina_m": 2.0,
+  "afastamento_lateral_m": 1.5,
+  "afastamento_fundos_m": 1.5,
+  "altura_max_pavimentos": 2,
+  "fonte": "Valores inventados para o teste; não são a legislação real de Belo Horizonte."
+ },
+
+ "lote": {
+  "forma": "retangular, de esquina",
+  "largura": 15.0,
+  "profundidade": 25.0,
+  "area": 375.0,
+  "frente_principal": "Rua das Paineiras (lado y = 0, norte)",
+  "frente_secundaria": "Rua dos Jacarandás (lado x = 15, leste)",
+  "norte": "aponta para a Rua das Paineiras (y negativo no desenho = norte)",
+  "confrontantes": {
+   "esquerdo_oeste": "Lote 06 — Residência de Carlos Eduardo Lima e Ana Paula Lima, Rua das Paineiras, 235",
+   "direito_leste": "Rua dos Jacarandás (via pública, esquina)",
+   "fundos_sul": "Lote 08 — terreno vago, propriedade de Imobiliária Serra Verde Ltda."
+  },
+  "variante_estresse": "Opcional: chanfro de esquina de 2,50 x 2,50 m no canto nordeste (x 12,5–15 / y 0–2,5). Deixa o lote NÃO retangular; usar só numa segunda rodada para testar o limite do plugin."
+ },
+
+ "vias": [
+  {"nome": "Rua das Paineiras", "lado": "y = 0", "leito_m": 9.0, "passeio_m": 2.5, "declividade": "plana na frente do lote (cota 0,00)"},
+  {"nome": "Rua dos Jacarandás", "lado": "x = 15", "leito_m": 8.0, "passeio_m": 2.0, "declividade": "desce acompanhando o lote: 0,00 na esquina até −4,70 no fundo (≈ 19%)"}
+ ],
+
+ "terreno": {
+  "descricao": "Lote em declive para o fundo (≈ 18%) e levemente para a Rua dos Jacarandás. Superfície natural pela fórmula abaixo; curvas de nível de 0,50 m no DXF.",
+  "formula_z": "z(x,y) = -0.18*y - 0.025*x + 0.003*(x-7.5)^2",
+  "pontos_5m": [
+   [0, 0, 0.17], [5, 0, -0.11], [10, 0, -0.23], [15, 0, -0.21],
+   [0, 5, -0.73], [5, 5, -1.01], [10, 5, -1.13], [15, 5, -1.11],
+   [0, 10, -1.63], [5, 10, -1.91], [10, 10, -2.03], [15, 10, -2.01],
+   [0, 15, -2.53], [5, 15, -2.81], [10, 15, -2.93], [15, 15, -2.91],
+   [0, 20, -3.43], [5, 20, -3.71], [10, 20, -3.83], [15, 20, -3.81],
+   [0, 25, -4.33], [5, 25, -4.61], [10, 25, -4.73], [15, 25, -4.71]
+  ],
+  "movimento_de_terra": [
+   "Frente (y 0–4): aterro do acesso e da garagem até +0,15, nivelado com a calçada.",
+   "Pavimento inferior: corte até −2,85 entre y 9,5 e 16; parede de y = 9,5 é de contenção (arrimo) e as laterais ficam parcialmente enterradas.",
+   "Fundo (y 16–19): pátio externo em −2,85; do pátio ao fundo, terreno natural com talude."
+  ]
+ },
+
+ "niveis": {
+  "RN_meio_fio": 0.00,
+  "inferior": -2.85,
+  "terreo": 0.15,
+  "forro_terreo": 2.95,
+  "cobertura_laje": 3.15,
+  "telhado": "4 águas sobre o corpo do térreo, 30%, beiral 0,60; cumeeira resulta da inclinação (não fixar)",
+  "pe_direito_terreo": 2.80,
+  "pe_direito_inferior": 2.70
+ },
+
+ "implantacao": {
+  "corpo_principal": {"x1": 1.5, "y1": 4.0, "x2": 10.5, "y2": 16.0},
+  "afastamentos_resultantes": {"frente_Paineiras": 4.0, "lateral_oeste": 1.5, "lateral_Jacaranda_esquina": 4.5, "fundos": 9.0},
+  "lajes_no_terreo": [
+   {"nome": "Laje principal do térreo (interna + garagem)", "x1": 1.5, "y1": 4.0, "x2": 10.5, "y2": 12.5, "area_eixos": 76.5},
+   {"nome": "Laje do terraço (sobre o pavimento inferior)", "x1": 1.5, "y1": 12.5, "x2": 10.5, "y2": 16.0, "area_eixos": 31.5}
+  ],
+  "teste_TO": "Duas lajes no térreo, como o abrigo do Sobrado: conferir a TO só com a laje principal e com as duas."
+ },
+
+ "paredes": [
+  {"p": "T", "x1": 1.5, "y1": 4.0, "x2": 10.5, "y2": 4.0, "esp": 0.15, "tipo": "externa"},
+  {"p": "T", "x1": 1.5, "y1": 4.0, "x2": 1.5, "y2": 12.5, "esp": 0.15, "tipo": "externa"},
+  {"p": "T", "x1": 10.5, "y1": 4.0, "x2": 10.5, "y2": 12.5, "esp": 0.15, "tipo": "externa"},
+  {"p": "T", "x1": 1.5, "y1": 12.5, "x2": 10.5, "y2": 12.5, "esp": 0.15, "tipo": "externa"},
+  {"p": "T", "x1": 1.5, "y1": 9.5, "x2": 10.5, "y2": 9.5, "esp": 0.15, "tipo": "interna"},
+  {"p": "T", "x1": 7.5, "y1": 4.0, "x2": 7.5, "y2": 12.5, "esp": 0.15, "tipo": "interna"},
+  {"p": "T", "x1": 5.0, "y1": 9.5, "x2": 5.0, "y2": 12.5, "esp": 0.10, "tipo": "interna"},
+  {"p": "T", "x1": 5.0, "y1": 11.0, "x2": 7.5, "y2": 11.0, "esp": 0.10, "tipo": "interna"},
+
+  {"p": "I", "x1": 1.5, "y1": 9.5, "x2": 10.5, "y2": 9.5, "esp": 0.25, "tipo": "contencao (arrimo, enterrada)"},
+  {"p": "I", "x1": 1.5, "y1": 9.5, "x2": 1.5, "y2": 16.0, "esp": 0.20, "tipo": "externa parcialmente enterrada"},
+  {"p": "I", "x1": 10.5, "y1": 9.5, "x2": 10.5, "y2": 16.0, "esp": 0.20, "tipo": "externa parcialmente enterrada"},
+  {"p": "I", "x1": 1.5, "y1": 16.0, "x2": 10.5, "y2": 16.0, "esp": 0.15, "tipo": "externa"},
+  {"p": "I", "x1": 1.5, "y1": 12.5, "x2": 10.5, "y2": 12.5, "esp": 0.15, "tipo": "interna"},
+  {"p": "I", "x1": 4.0, "y1": 9.5, "x2": 4.0, "y2": 12.5, "esp": 0.10, "tipo": "interna"},
+  {"p": "I", "x1": 7.5, "y1": 9.5, "x2": 7.5, "y2": 12.5, "esp": 0.15, "tipo": "interna"},
+  {"p": "I", "x1": 6.0, "y1": 12.5, "x2": 6.0, "y2": 16.0, "esp": 0.10, "tipo": "interna"}
+ ],
+
+ "guarda_corpos": [
+  {"p": "T", "x1": 1.5, "y1": 16.0, "x2": 10.5, "y2": 16.0, "altura": 1.10, "tipo": "vidro com montantes"},
+  {"p": "T", "x1": 1.5, "y1": 12.5, "x2": 1.5, "y2": 16.0, "altura": 1.10, "tipo": "vidro com montantes"},
+  {"p": "T", "x1": 10.5, "y1": 12.5, "x2": 10.5, "y2": 16.0, "altura": 1.10, "tipo": "vidro com montantes"}
+ ],
+
+ "ambientes": [
+  {"p": "T", "nome": "Estar / jantar", "x1": 1.5, "y1": 4.0, "x2": 7.5, "y2": 9.5, "piso": "PISO INTERNO / porcelanato"},
+  {"p": "T", "nome": "Garagem", "x1": 7.5, "y1": 4.0, "x2": 10.5, "y2": 9.5, "piso": "PISO EXTERNO / cimentado", "obs": "coberta, dentro do corpo da casa"},
+  {"p": "T", "nome": "Cozinha / serviço", "x1": 1.5, "y1": 9.5, "x2": 5.0, "y2": 12.5, "piso": "PISO INTERNO / cerâmica"},
+  {"p": "T", "nome": "Hall", "x1": 5.0, "y1": 9.5, "x2": 7.5, "y2": 11.0, "piso": "PISO INTERNO / porcelanato"},
+  {"p": "T", "nome": "Lavabo", "x1": 5.0, "y1": 11.0, "x2": 7.5, "y2": 12.5, "piso": "PISO INTERNO / cerâmica", "obs": "sem janela; ventilação mecânica"},
+  {"p": "T", "nome": "Escada", "x1": 7.5, "y1": 9.5, "x2": 10.5, "y2": 12.5, "piso": "PISO INTERNO / porcelanato", "escada": true},
+  {"p": "T", "nome": "Terraço", "x1": 1.5, "y1": 12.5, "x2": 10.5, "y2": 16.0, "piso": "PISO EXTERNO / cerâmica antiderrapante", "obs": "descoberto, sobre laje impermeabilizada"},
+
+  {"p": "I", "nome": "Banho", "x1": 1.5, "y1": 9.5, "x2": 4.0, "y2": 12.5, "piso": "PISO INTERNO / cerâmica", "box": {"x1": 1.5, "y1": 9.5, "x2": 2.5, "y2": 10.9, "piso": "PISO BOX / cerâmica 1 cm"}},
+  {"p": "I", "nome": "Estar íntimo", "x1": 4.0, "y1": 9.5, "x2": 7.5, "y2": 12.5, "piso": "PISO INTERNO / madeira"},
+  {"p": "I", "nome": "Escada", "x1": 7.5, "y1": 9.5, "x2": 10.5, "y2": 12.5, "piso": "PISO INTERNO / porcelanato", "escada": true},
+  {"p": "I", "nome": "Suíte", "x1": 1.5, "y1": 12.5, "x2": 6.0, "y2": 16.0, "piso": "PISO INTERNO / madeira"},
+  {"p": "I", "nome": "Quarto 02", "x1": 6.0, "y1": 12.5, "x2": 10.5, "y2": 16.0, "piso": "PISO INTERNO / madeira"},
+
+  {"p": "EXT", "nome": "Pátio inferior", "x1": 1.5, "y1": 16.0, "x2": 10.5, "y2": 19.0, "nivel": -2.85, "piso": "PISO EXTERNO / cimentado"},
+  {"p": "EXT", "nome": "Acesso / garagem descoberta", "x1": 7.5, "y1": 0.0, "x2": 10.5, "y2": 4.0, "nivel": 0.15, "piso": "CALÇADA / concreto"},
+  {"p": "EXT", "nome": "Acesso social", "x1": 2.8, "y1": 0.0, "x2": 4.1, "y2": 4.0, "nivel": 0.15, "piso": "CALÇADA / concreto"},
+  {"p": "EXT", "nome": "Jardim (restante do lote)", "piso": "GRAMADO / grama esmeralda", "obs": "terreno natural; conta como permeável no teste"}
+ ],
+
+ "escada": {
+  "tipo": "em U, dois lances",
+  "caixa": {"x1": 7.5, "y1": 9.5, "x2": 10.5, "y2": 12.5},
+  "de": -2.85, "ate": 0.15,
+  "espelhos": 17, "espelho_cm": 17.6, "piso_cm": 26,
+  "largura_lance_m": 1.40, "patamar_m": 0.90,
+  "obs": "2×espelho + piso = 61,2 cm. Primeiro lance sobe junto à parede x = 10,5 em direção a y = 12,5; patamar junto a y = 12,5; segundo lance volta junto a x = 7,5."
+ },
+
+ "esquadrias": [
+  {"cod": "P01", "p": "T", "tipo": "porta de abrir (entrada)", "parede": "y=4.0", "de": 3.0, "ate": 3.9, "l": 0.90, "h": 2.10},
+  {"cod": "PG01", "p": "T", "tipo": "portão basculante da garagem", "parede": "y=4.0", "de": 7.75, "ate": 10.35, "l": 2.60, "h": 2.20},
+  {"cod": "J01", "p": "T", "tipo": "janela de correr 2 folhas", "parede": "y=4.0", "de": 4.5, "ate": 6.5, "l": 2.00, "h": 1.20, "peitoril": 0.90},
+  {"cod": "J02", "p": "T", "tipo": "janela de correr 2 folhas", "parede": "x=1.5", "de": 6.0, "ate": 7.5, "l": 1.50, "h": 1.20, "peitoril": 0.90, "obs": "a 1,50 m da divisa oeste"},
+  {"cod": "J03", "p": "T", "tipo": "janela basculante (ventilação garagem)", "parede": "x=10.5", "de": 6.0, "ate": 7.0, "l": 1.00, "h": 0.60, "peitoril": 1.50, "obs": "voltada para a Rua dos Jacarandás"},
+  {"cod": "J04", "p": "T", "tipo": "janela maxim-ar (escada)", "parede": "x=10.5", "de": 10.5, "ate": 11.5, "l": 1.00, "h": 1.00, "peitoril": 1.60},
+  {"cod": "J05", "p": "T", "tipo": "janela de correr (cozinha)", "parede": "x=1.5", "de": 10.5, "ate": 11.7, "l": 1.20, "h": 1.00, "peitoril": 1.10},
+  {"cod": "V01", "p": "T", "tipo": "vão livre estar → cozinha", "parede": "y=9.5", "de": 2.5, "ate": 3.9, "l": 1.40, "h": 2.10},
+  {"cod": "V02", "p": "T", "tipo": "vão livre estar → hall", "parede": "y=9.5", "de": 5.6, "ate": 6.8, "l": 1.20, "h": 2.10},
+  {"cod": "V03", "p": "T", "tipo": "vão livre hall → escada", "parede": "x=7.5", "de": 9.7, "ate": 10.6, "l": 0.90, "h": 2.10},
+  {"cod": "P02", "p": "T", "tipo": "porta de abrir (garagem → escada)", "parede": "y=9.5", "de": 8.5, "ate": 9.3, "l": 0.80, "h": 2.10},
+  {"cod": "P03", "p": "T", "tipo": "porta de abrir (lavabo)", "parede": "y=11.0", "de": 5.4, "ate": 6.1, "l": 0.70, "h": 2.10},
+  {"cod": "P04", "p": "T", "tipo": "porta-janela de correr (cozinha → terraço)", "parede": "y=12.5", "de": 2.0, "ate": 4.0, "l": 2.00, "h": 2.10},
+  {"cod": "P05", "p": "T", "tipo": "porta de abrir (escada → terraço)", "parede": "y=12.5", "de": 8.5, "ate": 9.4, "l": 0.90, "h": 2.10},
+
+  {"cod": "P11", "p": "I", "tipo": "porta de abrir (banho)", "parede": "x=4.0", "de": 10.5, "ate": 11.2, "l": 0.70, "h": 2.10},
+  {"cod": "V11", "p": "I", "tipo": "vão livre escada → estar íntimo", "parede": "x=7.5", "de": 10.0, "ate": 11.0, "l": 1.00, "h": 2.10},
+  {"cod": "P12", "p": "I", "tipo": "porta de abrir (suíte)", "parede": "y=12.5", "de": 4.6, "ate": 5.4, "l": 0.80, "h": 2.10},
+  {"cod": "P13", "p": "I", "tipo": "porta de abrir (quarto 02)", "parede": "y=12.5", "de": 6.4, "ate": 7.2, "l": 0.80, "h": 2.10},
+  {"cod": "P14", "p": "I", "tipo": "porta-janela de correr (suíte → pátio)", "parede": "y=16.0", "de": 2.5, "ate": 4.1, "l": 1.60, "h": 2.10},
+  {"cod": "J11", "p": "I", "tipo": "janela de correr 2 folhas", "parede": "y=16.0", "de": 7.25, "ate": 9.25, "l": 2.00, "h": 1.20, "peitoril": 0.90},
+  {"cod": "J12", "p": "I", "tipo": "janela de correr", "parede": "x=1.5", "de": 13.5, "ate": 14.7, "l": 1.20, "h": 1.20, "peitoril": 0.90},
+  {"cod": "J13", "p": "I", "tipo": "janela de correr", "parede": "x=10.5", "de": 13.5, "ate": 14.7, "l": 1.20, "h": 1.20, "peitoril": 0.90, "obs": "voltada para a Rua dos Jacarandás"},
+  {"cod": "J14", "p": "I", "tipo": "janela maxim-ar (banho)", "parede": "x=1.5", "de": 10.5, "ate": 11.1, "l": 0.60, "h": 0.60, "peitoril": 1.60, "obs": "peitoril em −1,25; terreno natural ali ≈ −1,93"}
+ ],
+
+ "cortes": [
+  {"nome": "Corte A-A (longitudinal)", "linha": "x = 3.0, de y = −2 até y = 27", "olhando": "para leste"},
+  {"nome": "Corte B-B (transversal)", "linha": "y = 14.0, de x = −2 até x = 17", "olhando": "para o norte (frente)"}
+ ],
+
+ "o_que_estressa_o_plugin": [
+  "Lote de esquina com duas frentes (o plugin hoje representa uma via só).",
+  "Terreno em declive nos dois sentidos, com corte, aterro e contenção.",
+  "Pavimento inferior só sob o fundo: plantas de pavimento com contornos diferentes.",
+  "Dois níveis de piso abaixo da rua (−2,85) e acima (+0,15): cortes com níveis negativos.",
+  "Duas lajes no térreo (principal + terraço): teste da TO com lajes escolhidas.",
+  "Terraço descoberto sobre laje: memória gráfica (área externa sobre área interna).",
+  "Janelas voltadas para a via lateral e janela a 1,50 m da divisa.",
+  "Garagem coberta dentro do corpo da casa (classe 'garagem' na memória).",
+  "Confrontante direito é uma rua, não um lote.",
+  "Variante opcional com chanfro de esquina (lote não retangular)."
+ ]
+}
