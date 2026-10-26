@@ -19,7 +19,8 @@ public static class LegalModules
   {
    var schedule=LegalCatalog.Reference(LegalCatalog.Views(doc),LegalCatalog.Items.First(i=>i.Key=="areas")) as ViewSchedule??throw new InvalidOperationException("Q04 do V02 não encontrado. Use o template compatível.");
    var rooms=new FilteredElementCollector(doc).OfClass(typeof(SpatialElement)).OfType<Room>().ToList();
-   return new(schedule.Id.Value,0,0,$"Q04 nativo do template: {rooms.Count(r=>r.Area>0)} ambientes com área; {rooms.Count(r=>r.Area<=0)} sem área.\nO quadro acompanha o modelo. Confira os ambientes e as pendências de modelagem antes de emitir.");
+   var totals=AreaScheduleTotals.Apply(doc,schedule);
+   return new(schedule.Id.Value,0,0,$"Q04 nativo do template: {rooms.Count(r=>r.Area>0)} ambientes com área; {rooms.Count(r=>r.Area<=0)} sem área.\n"+totals+"\n"+$"O quadro acompanha o modelo. Confira os ambientes e as pendências de modelagem antes de emitir.");
   }
   if(request.Key is not ("planta" or "cobertura"))throw new InvalidOperationException("Módulo ainda não habilitado.");
   var floor=doc.GetElement(new ElementId(request.FloorId)) as Floor??throw new InvalidOperationException("Escolha o piso base.");
