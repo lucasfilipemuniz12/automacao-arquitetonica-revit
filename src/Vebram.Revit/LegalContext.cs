@@ -81,8 +81,9 @@ public static class LegalContext
    else
    {
     view.ViewTemplateId=ElementId.InvalidElementId;view.Scale=1;
-    var contour=Implantation.GetContour(doc,(Floor)doc.GetElement(new ElementId(options.FootprintId)));double projection=LegalMetrics.PolygonArea(contour.Select(p=>(Implantation.Meters(p.X),Implantation.Meters(p.Y))).ToList());
-    UrbanisticTable.Draw(doc,view,input,options,projection,made);
+    var occupation=OccupationFootprint.Measure(doc,options);double projection=occupation.Total;
+    UrbanisticTable.Draw(doc,view,input,options,projection,made,occupation);
+    report.Add("Lajes no contorno da TO: "+string.Join("; ",occupation.Parts.Select(p=>p.Label+" = "+p.Area.ToString("0.00",Implantation.Pt)+" m²"))+". Projeção total: "+projection.ToString("0.00",Implantation.Pt)+" m²."+(occupation.Parts.Count==1?" Somente a laje principal (padrão); outras lajes podem ser marcadas na Implantação.":""));
     report.Add("TO usa o contorno base, ajustado às faces externas adjacentes; CA/TP usam somente as áreas que você informou. Limites não informados ficam pendentes. Não declara aprovação urbanística.");
    }
    doc.Regenerate();foreach(var e in made)DrawingOwnership.MarkAnnotation(e);Write(view,new(source.UniqueId,made.Select(e=>new ElementStamp(e.UniqueId,DrawingOwnership.Fingerprint(e))).ToList(),input));

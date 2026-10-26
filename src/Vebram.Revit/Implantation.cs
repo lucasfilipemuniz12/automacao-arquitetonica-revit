@@ -10,7 +10,8 @@ namespace Vebram.Revit;
 public sealed record ImplantationOptions(long SourceId, long FootprintId, double LotMinX, double LotMinY,
     double LotWidth, double LotDepth, int Scale, string Front, bool AddStreet, double SidewalkWidth,
     double StreetWidth, string StreetName, double NorthDegrees, bool Study, bool ReplaceEdited = false,
-    double? DesignRoofSlope = null, string RoofFlow = "Modelo", List<RoofDrainageChoice>? Drainage = null);
+    double? DesignRoofSlope = null, string RoofFlow = "Modelo", List<RoofDrainageChoice>? Drainage = null,
+    List<long>? OccupationExtraIds = null);
 
 public sealed record ImplantationPlan(ViewPlan Source, Floor Footprint, ViewPlan? Target,
     ImplantationOptions Options, IReadOnlyList<XYZ> Contour, IReadOnlyList<Element> Roofs)
@@ -59,6 +60,8 @@ public static class Implantation
             throw new InvalidOperationException("Escolha uma planta de modelagem válida.");
         if (doc.GetElement(new ElementId(options.FootprintId)) is not Floor floor || !Footprints(doc, source).Any(f => f.Id == floor.Id))
             throw new InvalidOperationException("Escolha o piso que define o contorno do térreo no nível selecionado.");
+        if ((options.OccupationExtraIds ?? new()).Any(id => !Footprints(doc, source).Any(f => f.Id.Value == id)))
+            throw new InvalidOperationException("Uma das lajes adicionais da taxa de ocupação não pertence ao nível escolhido. Refaça a seleção.");
         var numbers = new[] { options.LotMinX, options.LotMinY, options.LotWidth, options.LotDepth, options.NorthDegrees,
             options.SidewalkWidth, options.StreetWidth };
         if (numbers.Any(n => !double.IsFinite(n)) || options.LotWidth <= 0 || options.LotDepth <= 0 ||

@@ -24,6 +24,7 @@ public sealed class PrepareWindow : Window
     readonly Dictionary<string,TextBox> fields=[];
     ComboBox scale=null!,front=null!;
     CheckBox confirm=null!,study=null!,street=null!,replace=null!;
+    readonly List<(long Id,CheckBox Box)> extraBoxes=new();
     List<RoofDrainageChoice>? drainage;
     public ImplantationOptions? Selection{get;private set;}
     public ModuleSelection? Module{get;private set;}
@@ -118,6 +119,10 @@ public sealed class PrepareWindow : Window
             ((f.get_Parameter(BuiltInParameter.HOST_AREA_COMPUTED)?.AsDouble()??0)*.09290304).ToString("0.00",Implantation.Pt)+" m²")).ToList();
         var saved=Implantation.Saved(doc);floors.SelectedItem=floors.Items.Cast<SourceChoice>().FirstOrDefault(c=>c.Id==saved?.FootprintId)??floors.Items.Cast<SourceChoice>().First();
         if(floors.Parent is Panel fp)fp.Children.Remove(floors);content.Children.Add(floors);
+        // TO: optional extra slabs of the same level (e.g. abrigo). Default = none, i.e. only the main slab above.
+        content.Children.Add(Label("Taxa de ocupação — lajes adicionais no contorno (opcional)"));extraBoxes.Clear();
+        foreach(var f in candidates){var box=new CheckBox{Content=f.Name+" · "+((f.get_Parameter(BuiltInParameter.HOST_AREA_COMPUTED)?.AsDouble()??0)*.09290304).ToString("0.00",Implantation.Pt)+" m² (id "+f.Id.Value+")",IsChecked=saved?.OccupationExtraIds?.Contains(f.Id.Value)==true,Margin=new Thickness(0,2,0,2)};extraBoxes.Add((f.Id.Value,box));content.Children.Add(box);}
+        content.Children.Add(new TextBlock{Text="Marque só se a laje deve entrar na projeção da TO (critério do município). A laje principal já entra; sobreposições contam uma vez. O quadro urbanístico lista cada laje usada com sua área.",TextWrapping=TextWrapping.Wrap,Foreground=Brushes.SlateGray,Margin=new Thickness(0,4,0,8)});
         var settings=new Grid{Margin=new Thickness(0,10,0,10)};settings.ColumnDefinitions.Add(new());settings.ColumnDefinitions.Add(new());
         var left=new StackPanel{Margin=new Thickness(0,0,24,0)};var right=new StackPanel();Grid.SetColumn(right,1);settings.Children.Add(left);settings.Children.Add(right);content.Children.Add(settings);
         var lot=Implantation.SuggestedLot(doc);fields.Clear();
@@ -276,7 +281,8 @@ public sealed class PrepareWindow : Window
             if(Source==null||floors.SelectedItem is not SourceChoice footprint)throw new InvalidOperationException("Escolha a planta e seu piso base.");
             Selection=new(Source.Id.Value,footprint.Id,Number("x"),Number("y"),Number("width"),Number("depth"),int.Parse(((string)scale.SelectedItem).Split(':')[1]),
                 (string)front.SelectedItem,street.IsChecked==true,Number("sidewalk"),Number("road"),fields["streetName"].Text,Number("north"),study.IsChecked==true,replace.IsChecked==true,
-                Implantation.Saved(doc)?.DesignRoofSlope,Implantation.Saved(doc)?.RoofFlow??"Modelo",drainage);
+                Implantation.Saved(doc)?.DesignRoofSlope,Implantation.Saved(doc)?.RoofFlow??"Modelo",drainage,
+                extraBoxes.Where(e=>e.Box.IsChecked==true&&e.Id!=footprint.Id).Select(e=>e.Id).ToList() is {Count:>0} extras?extras:null);
             _=Implantation.Plan(doc,Selection);DialogResult=true;
         }
         catch(Exception e){MessageBox.Show(this,e.Message,"Conferir Implantação",MessageBoxButton.OK,MessageBoxImage.Information);}

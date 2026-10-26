@@ -33,6 +33,8 @@ public static class MemoryAreas
   if(n.Contains("PISCINA"))return Piscina;
   if(n.Contains("DECK"))return Deck;
   if(n.Contains("INTERNO"))return Interna;
+  // Shower box floor: same internal ceramic as the bathroom floor around it (confirmed by the user).
+  if(n.Contains("PISO BOX"))return Interna;
   if(n.Contains("EXTERNO"))return Externa;
   if(n.Contains("CALCADA")||n.Contains("PASSEIO"))return Impermeavel;
   if(n.Contains("GRAMADO")||n.Contains("GRAMA"))return Permeavel;

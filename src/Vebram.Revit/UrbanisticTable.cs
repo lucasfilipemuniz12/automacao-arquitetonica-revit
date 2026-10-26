@@ -2,7 +2,7 @@
 namespace Vebram.Revit;
 internal static class UrbanisticTable
 {
- internal static void Draw(Document doc,View view,ContextSelection input,ImplantationOptions options,double projection,List<Element> made)
+ internal static void Draw(Document doc,View view,ContextSelection input,ImplantationOptions options,double projection,List<Element> made,OccupationFootprint.Result? occupation=null)
  {
   var manual=new FilteredElementCollector(doc,view.Id).WhereElementIsNotElementType().Where(e=>e.OwnerViewId==view.Id&&e is TextNote or CurveElement).Select(e=>e.get_BoundingBox(view)).Where(b=>b!=null).ToList();
   double y=manual.Count>0?manual.Min(b=>b!.Min.Y)-Implantation.Feet(.02):0,padding=Implantation.Feet(.002),lot=options.LotWidth*options.LotDepth;
@@ -21,6 +21,8 @@ internal static class UrbanisticTable
   Row(["Lote",string.IsNullOrWhiteSpace(input.Identification)?"Não informado":input.Identification],[.05,.13]);
   if(!string.IsNullOrWhiteSpace(input.RegistrationText))Row([ProjectDataIntegration.CompactForDrawing(input.RegistrationText)],[.18]);
   Row(["Área do lote",Area(lot)],[.09,.09]);Row(["Projeção do contorno base",Area(projection)],[.09,.09]);
+  // Every slab counted in the projection, for checking (e.g. whether the abrigo slab is in or out).
+  if(occupation!=null){foreach(var part in occupation.Parts)Row(["  Laje no contorno: "+part.Label,Area(part.Area)],[.09,.09]);if(occupation.Overlap>.005)Row(["  Sobreposição entre lajes (contada uma vez)","−"+Area(occupation.Overlap)],[.09,.09]);}
   Row(["Área computável informada",Area(input.ComputableArea)],[.09,.09]);Row(["Área permeável informada",Area(input.PermeableArea)],[.09,.09]);
   double[] columns=[.025,.042,.042,.071];Row(["Índice","Permitido","Projeto","Situação"],columns,true);
   void Index(string label,double? allowed,double? project,bool maximum,bool percent)
