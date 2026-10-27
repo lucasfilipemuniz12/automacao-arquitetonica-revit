@@ -1,38 +1,55 @@
-# Passagem para o ChatGPT/Codex — continuar do ponto em que o Claude parou (26/10/2026)
+# Passagem para o ChatGPT/Codex — 27/10/2026 (Claude → ChatGPT)
 
-## Onde estamos
+## Estado atual
 
-- **Projeto legal do plugin VEBRAM:** concluído e juntado na `main` (PR #14, 26/10/2026). Toda nova tarefa começa da `main` e volta para a `main` por PR. Não continuar de branches antigas.
-- **Última versão compilada:** Revit 2026, .NET 8. Instalação local em `ARQ TESTE\claude-pendencias-0527\current` (manifesto `Vebram.Legal.addin`). Ao abrir o Revit, aparece o aviso de segurança do complemento: escolher "Carregar uma vez" ou "Sempre carregar".
-- **Últimas mudanças (Claude):**
-  - níveis escalonados e afastados da casa em cortes e fachadas;
-  - cortes com todos os pavimentos e com a planta do 2º pavimento como fonte;
-  - memória gráfica por pavimento; PISO BOX como área interna;
-  - TO com lajes adicionais opcionais, listadas no quadro urbanístico;
-  - Q04 com total por pavimento e total geral.
-- **Testado em cópia do Sobrado_Teste_02:** PNGs em `validation/pendencias-0527`. O RVT original nunca é salvo nos testes.
+- **Plugin VEBRAM (projeto legal):** está na `main` (PR #14). A `main` é a referência. Toda mudança de código sai de uma branch nova criada a partir da `main` e volta por pull request.
+- **Documentos da Casa Teste 03:** na branch `claude/casa-teste-03` (pasta `casas-teste/CT03_esquina_declive`). Só documentos e scripts de modelagem; nenhum código do plugin.
+- **Template V03:**
+  - Restaurado em 26/10. O ChatGPT tinha modelado a casa DENTRO do `ARQ_AUTOMACAO_V03.rte`.
+  - A versão estragada ficou guardada como `ARQ_AUTOMACAO_V03_estragado_ChatGPT_20261026.rte`.
+  - **Nunca modelar nem salvar dentro de um .rte.**
+- **Casa Teste 03 modelada pelo Claude, via pyRevit:**
+  - **Arquivo:** `C:\Users\lucas\OneDrive\Área de Trabalho\ARQ TESTE\casas-teste\Casa_Teste_03_Esquina_Declive\Casa_Teste_03.rvt`. Atenção: está na pasta do OneDrive.
+  - **Conteúdo:** terreno em declive com corte, aterro e taludes; paredes, lajes e pisos com os nomes que o plugin lê; 23 esquadrias; escada em U; telhado 4 águas 30%; 12 ambientes; DXF vinculado; zero avisos.
+  - **Scripts e decisões:** em `apoio/` e `HIPOTESES_CT03.md`.
+  - **Níveis × vistas do template:** Nível 1 = Inferior (−2,85), Nível 2 = Térreo (+0,15), Nível 3 = Cobertura (+3,15). Ver o item 4 abaixo.
+- **Teste do plugin na CT03:** cópia `C:\Users\lucas\Desktop\ARQ TESTE\casas-teste\Casa_Teste_03_Esquina_Declive\Casa_Teste_03_teste_plugin.rvt`. Resultado completo em `RESULTADO_TESTE_CT03.md`; imagens em `revisao_claude/teste_plugin/`.
 
-## Próxima tarefa: modelar a Casa Teste 03
+## Próxima tarefa: corrigir o plugin, nesta ordem
 
-Tudo nesta pasta (`casas-teste/CT03_esquina_declive`):
+1. **"A casa inteira".**
+   - **Hoje:** `BuildingFrame.Read` (src/Vebram.Revit/BuildingFrame.cs) só considera elementos dentro do contorno da laje principal + 2 m.
+   - **Na CT03:**
+     - terraço e fundo do inferior ficam de fora;
+     - Corte A com "PD a conferir" no terraço e na suíte;
+     - símbolo de nível "RN / Rua" em cima do terraço;
+     - fachadas sem o pavimento inferior;
+     - afastamento de fundos medido da laje principal: 12,48 m em vez de ≈ 8,9 m.
+   - **Corrigir:** o contexto passa a ser a edificação inteira. Sugestão: todos os pisos, paredes, telhados e guarda-corpos ligados ao corpo da casa, em todos os níveis, sem pegar terreno nem calçadas.
+   - **Não mudar:** o cálculo da TO, que já tem a escolha de lajes.
+2. **Fachadas e cortes em terreno inclinado.**
+   - A linha de terreno e a base vêm de uma cota só. A fachada leste da CT03 aparece como casa térrea em terreno plano.
+   - Usar o perfil real do toposólido na vista e mostrar os pavimentos abaixo da rua.
+3. **Organizar folhas × escala da Implantação.**
+   - O organizador usa a escala das preferências (1:100) e falha: "Implantação não cabe… em 1:100".
+   - Respeitar a escala de cada vista, por exemplo Implantação 1:200, ou sugerir a escala que cabe.
+4. **Nível da Implantação/Situação.**
+   - O plugin exige que a planta-fonte esteja no nível das vistas legais do template (Nível 1).
+   - Em casa com pavimento abaixo da rua isso quebra. Permitir escolher o nível ou criar as vistas no nível escolhido.
+5. **Lote de esquina:** desenhar a segunda via na Implantação e na Situação; aceitar confrontante = via.
+6. **Cadastro — Pavimentos:** aceitar descrição, ou separar número e texto.
 
-1. Ler `LEIA-ME.md` e `ficha/FICHA_MODELAGEM_CT03.md`. Números só de `ficha/casa.json`.
-2. Usar `referencia/Casa_Teste_03.dxf` como referência. Abre no AutoCAD e pode ser vinculado/importado no Revit em metros; já foi testado.
-3. Modelar no Revit a partir do template V03, com as mesmas regras do Sobrado:
-   - famílias de sistema;
-   - esquadrias hospedadas;
-   - ambientes com os nomes da ficha;
-   - tipos de piso com os nomes da ficha;
-   - toposólido pela fórmula/pontos;
-   - sem DirectShape.
-4. Salvar como `ARQ TESTE\casas-teste\Casa_Teste_03_Esquina_Declive\Casa_Teste_03.rvt`, pela interface do Revit.
-5. Conferir: zero avisos; vãos recortando paredes; ambientes fechados; escada de −2,85 a +0,15.
-6. Rodar o roteiro de teste do plugin (seção "Roteiro" da ficha) numa CÓPIA do RVT e registrar, com prints: funcionou / aviso / falhou.
+Depois de cada correção:
 
-## Regras combinadas com a Silvana e o Lucas
+- compilar (.NET 8, Revit 2026; `scripts/Build.ps1` com o Revit fechado) e rodar os testes (`tests/Arithmetic` e `tests/SheetPacking`);
+- testar numa **nova cópia** da CT03 com o roteiro do script `apoio/ct03_teste_plugin.py`;
+- exportar as folhas LEG em PNG.
 
-- Não inventar medidas nem índices legais além dos que estão na ficha. A ficha é um cenário de teste com dados fictícios.
-- Testes sempre em cópia; nunca salvar por cima do RVT original.
+## Regras combinadas (Silvana e Lucas)
+
+- Testes sempre em CÓPIA; nunca salvar por cima do RVT original nem do template.
 - Não fechar o Revit com alterações não salvas sem perguntar.
-- Explicar resultados sem jargão. Avisar quando precisar de decisão (ex.: critério da TO com o abrigo/terraço).
-- Em uso de cota alta (> 85% da janela de 5 h), parar, subir o trabalho no GitHub e escrever uma passagem como esta.
+- Não inventar medidas nem índices legais. Dado que faltar vai para um arquivo de hipóteses ou vira pergunta.
+- Explicar resultados sem jargão. Pedir decisão quando for critério de projeto ou municipal; o critério da TO com abrigo/terraço é deles.
+- Uso alto (> 85% da janela de 5 h): parar, subir no GitHub e escrever uma passagem como esta.
+- Ao abrir o Revit aparece o aviso de segurança do complemento VEBRAM: escolher "Carregar uma vez" (o usuário clica).
