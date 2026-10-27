@@ -1,0 +1,127 @@
+[
+  {
+    "Name": "Implanta\u00E7\u00E3o e n\u00EDvel da fonte",
+    "Status": "executado",
+    "Report": "LEGAL - Implanta\u00E7\u00E3o preparada em 1:100.\n5 cotas nativas; 51 elementos de anota\u00E7\u00E3o.\nA vista est\u00E1 dispon\u00EDvel para colocar na folha. A planta de modelagem foi preservada.\nPara refletir altera\u00E7\u00F5es do modelo, execute Implanta\u00E7\u00E3o novamente. Confira o lote informado, norte e chamadas antes de emitir."
+  },
+  {
+    "Name": "TO uma laje",
+    "Status": "executado",
+    "Report": "79,15"
+  },
+  {
+    "Name": "TO duas lajes",
+    "Status": "executado",
+    "Report": "111,17"
+  },
+  {
+    "Name": "situacao",
+    "Status": "executado",
+    "Report": "Situa\u00E7\u00E3o criada no n\u00EDvel da planta-fonte: T\u00E9rreo. Vista anterior preservada como reserva.\nDiagrama com lote confirmado, confrontantes informados, via e norte. N\u00E3o equivale a mapa cadastral ou levantamento georreferenciado."
+  },
+  {
+    "Name": "urbanistico",
+    "Status": "executado",
+    "Report": "Lajes no contorno da TO: VEBRAM LAJE / concreto 15 cm (id 372603) = 79,15 m\u00B2. Proje\u00E7\u00E3o total: 79,15 m\u00B2. Somente a laje principal (padr\u00E3o); outras lajes podem ser marcadas na Implanta\u00E7\u00E3o.\nTO usa o contorno base, ajustado \u00E0s faces externas adjacentes; CA/TP usam somente as \u00E1reas que voc\u00EA informou. Limites n\u00E3o informados ficam pendentes. N\u00E3o declara aprova\u00E7\u00E3o urban\u00EDstica."
+  },
+  {
+    "Name": "Planta Inferior",
+    "Status": "executado",
+    "Report": "Planta \u2014 n\u00EDvel 1 preparada na vista do V02.\n11 cotas e 20 marca\u00E7\u00F5es geradas.\nCotas entre acabamentos: 9; espessuras: 0; larguras de esquadrias: 0.\nR\u00F3tulos com chamada externa: 0.\nAmbiente 001: cota vertical pendente para preservar leitura do r\u00F3tulo.\n0 identifica\u00E7\u00F5es de esquadrias geradas com a Marca existente. Atualize a planta ap\u00F3s alterar os c\u00F3digos.\nExecute novamente ap\u00F3s mudan\u00E7as de modelo. Revise antes de colocar na folha."
+  },
+  {
+    "Name": "Mem\u00F3ria Inferior",
+    "Status": "executado",
+    "Report": "Mem\u00F3ria gr\u00E1fica de \u00E1reas gerada na vista \u002202 PROJETO LEGAL - VEBRAM - Mem\u00F3ria gr\u00E1fica de \u00E1reas \u2014 Inferior\u0022 (c\u00F3pia da planta, sem o modelo alterado).\n\u2022 \u00C1rea interna: 45,18 m\u00B2\nLaje/radier ficam ocultos nesta vista para n\u00E3o sobrepor os pisos.\nMem\u00F3ria do pavimento Inferior: somente os pisos deste n\u00EDvel; lote e terreno ficam na mem\u00F3ria do t\u00E9rreo."
+  },
+  {
+    "Name": "Planta T\u00E9rreo",
+    "Status": "executado",
+    "Report": "Planta \u2014 n\u00EDvel 2 preparada na vista do V02.\n7 cotas e 23 marca\u00E7\u00F5es geradas.\nCotas entre acabamentos: 5; espessuras: 0; larguras de esquadrias: 0.\nR\u00F3tulos com chamada externa: 0.\nAmbiente 107: limite horizontal n\u00E3o \u00E9 um par de paredes ortogonais.\nAmbiente 107: limite vertical n\u00E3o \u00E9 um par de paredes ortogonais.\nAmbiente 103: limite horizontal n\u00E3o \u00E9 um par de paredes ortogonais.\nAmbiente 103: cota vertical pendente para preservar leitura do r\u00F3tulo.\nAmbiente 106: limite horizontal n\u00E3o \u00E9 um par de paredes ortogonais.\nAmbiente 105: cota horizontal pendente para preservar leitura do r\u00F3tulo.\nAmbiente 105: cota vertical pendente para preservar leitura do r\u00F3tulo.\nAmbiente 104: cota horizontal pendente para preservar leitura do r\u00F3tulo.\nAmbiente 104: cota vertical pendente para preservar leitura do r\u00F3tulo.\n5 identifica\u00E7\u00F5es de esquadrias geradas com a Marca existente. Atualize a planta ap\u00F3s alterar os c\u00F3digos.\nExecute novamente ap\u00F3s mudan\u00E7as de modelo. Revise antes de colocar na folha."
+  },
+  {
+    "Name": "Mem\u00F3ria T\u00E9rreo",
+    "Status": "executado",
+    "Report": "Mem\u00F3ria gr\u00E1fica de \u00E1reas gerada na vista \u002202 PROJETO LEGAL - VEBRAM - Mem\u00F3ria gr\u00E1fica de \u00E1reas\u0022 (c\u00F3pia da planta, sem o modelo alterado).\n\u2022 \u00C1rea externa: 32,03 m\u00B2\n\u2022 \u00C1rea interna: 47,45 m\u00B2\n\u2022 Garagem coberta: 15,25 m\u00B2\nLaje/radier ficam ocultos nesta vista para n\u00E3o sobrepor os pisos.\nPiso 372642 (PISO EXTERNO / cimentado 5 cm, 15,25 m\u00B2) classificado como garagem coberta por estar sob o ambiente de garagem.\nLote confirmado: 375,00 m\u00B2. Saldo sem piso classificado neste n\u00EDvel: 280,28 m\u00B2; n\u00E3o equivale a \u00E1rea perme\u00E1vel. Sobreposi\u00E7\u00F5es da mesma classe s\u00E3o unidas em proje\u00E7\u00E3o. O saldo n\u00E3o entra na soma das classes.\nTerreno em verde apenas para orienta\u00E7\u00E3o visual. Sua geometria n\u00E3o foi medida nem classificada como perme\u00E1vel."
+  },
+  {
+    "Name": "cobertura",
+    "Status": "executado",
+    "Report": "Cobertura preparada na vista do V02.\n0 cotas e 16 marca\u00E7\u00F5es geradas.\n4 \u00E1guas planas reconhecidas; inclina\u00E7\u00F5es lidas da geometria, sem alterar o telhado.\nExecute novamente ap\u00F3s mudan\u00E7as de modelo. Revise antes de colocar na folha."
+  },
+  {
+    "Name": "areas",
+    "Status": "executado",
+    "Report": "Q04 nativo do template: 12 ambientes com \u00E1rea; 0 sem \u00E1rea.\nQ04 agrupado por pavimento, com o total de cada pavimento e o total geral no final. Regra: soma das \u00E1reas dos ambientes medidas pelo Revit (\u00E1rea \u00FAtil); n\u00E3o \u00E9 \u00E1rea constru\u00EDda nem proje\u00E7\u00E3o, e nenhum crit\u00E9rio municipal foi aplicado.\nO quadro acompanha o modelo. Confira os ambientes e as pend\u00EAncias de modelagem antes de emitir."
+  },
+  {
+    "Name": "esquadrias",
+    "Status": "executado",
+    "Report": "Quadros nativos de portas e janelas preparados. Cada linha representa uma inst\u00E2ncia; medidas em metros. Incluem o projeto na fase da planta de origem, em todos os n\u00EDveis.\nAs tabelas acompanham o modelo e est\u00E3o dispon\u00EDveis em Organizar folhas, preferencialmente nas laterais da folha de plantas.\nMarcas existentes preservadas. Abertura/material n\u00E3o s\u00E3o deduzidos do nome da fam\u00EDlia.\n"
+  },
+  {
+    "Name": "Corte A",
+    "Status": "executado",
+    "Report": "Corte A preparado na mesma vista do V02.\nPosi\u00E7\u00E3o: 17%; profundidade: 20 m.\n4 n\u00EDveis identificados; 5 cota vertical entre faces reais.\nN\u00EDveis muito pr\u00F3ximos (T\u00E9rreo) foram escalonados para a esquerda; valores inalterados.\nN\u00E3o h\u00E1 detalhamento construtivo nem cotagem completa autom\u00E1tica. Revise o corte antes de coloc\u00E1-lo na folha."
+  },
+  {
+    "Name": "Corte B",
+    "Status": "executado",
+    "Report": "Corte B preparado na mesma vista do V02.\nPosi\u00E7\u00E3o: 85%; profundidade: 20 m.\n4 n\u00EDveis identificados; 3 cota vertical entre faces reais.\nN\u00EDveis muito pr\u00F3ximos (T\u00E9rreo) foram escalonados para a esquerda; valores inalterados.\nN\u00E3o h\u00E1 detalhamento construtivo nem cotagem completa autom\u00E1tica. Revise o corte antes de coloc\u00E1-lo na folha."
+  },
+  {
+    "Name": "Fachadas",
+    "Status": "executado",
+    "Report": "Fachada norte: eleva\u00E7\u00E3o nativa recortada com n\u00EDveis laterais. Revise materiais, esquadrias e informa\u00E7\u00F5es adicionais antes de emitir.\nN\u00EDveis muito pr\u00F3ximos (T\u00E9rreo) foram escalonados para a esquerda; valores inalterados.\nFachada sul: eleva\u00E7\u00E3o nativa recortada com n\u00EDveis laterais. Revise materiais, esquadrias e informa\u00E7\u00F5es adicionais antes de emitir.\nN\u00EDveis muito pr\u00F3ximos (T\u00E9rreo) foram escalonados para a esquerda; valores inalterados.\nFachada leste: eleva\u00E7\u00E3o nativa recortada com n\u00EDveis laterais. Revise materiais, esquadrias e informa\u00E7\u00F5es adicionais antes de emitir.\nN\u00EDveis muito pr\u00F3ximos (T\u00E9rreo) foram escalonados para a esquerda; valores inalterados.\nFachada oeste: eleva\u00E7\u00E3o nativa recortada com n\u00EDveis laterais. Revise materiais, esquadrias e informa\u00E7\u00F5es adicionais antes de emitir.\nN\u00EDveis muito pr\u00F3ximos (T\u00E9rreo) foram escalonados para a esquerda; valores inalterados."
+  },
+  {
+    "Name": "Exportar LEGAL - Corte A",
+    "Status": "executado",
+    "Report": "LEGAL - Corte A"
+  },
+  {
+    "Name": "Exportar LEGAL - Corte B",
+    "Status": "executado",
+    "Report": "LEGAL - Corte B"
+  },
+  {
+    "Name": "Exportar LEGAL - Fachada Norte",
+    "Status": "executado",
+    "Report": "LEGAL - Fachada Norte"
+  },
+  {
+    "Name": "Exportar LEGAL - Fachada Sul",
+    "Status": "executado",
+    "Report": "LEGAL - Fachada Sul"
+  },
+  {
+    "Name": "Exportar LEGAL - Fachada Leste",
+    "Status": "executado",
+    "Report": "LEGAL - Fachada Leste"
+  },
+  {
+    "Name": "Exportar LEGAL - Fachada Oeste",
+    "Status": "executado",
+    "Report": "LEGAL - Fachada Oeste"
+  },
+  {
+    "Name": "Organizar folhas \u2014 Implanta\u00E7\u00E3o 1:200",
+    "Status": "executado",
+    "Report": "3 folha(s) utilizada(s); 1 nova(s); 0 existente(s) mantida(s) como reserva. Escalas preservadas. Conte\u00FAdo manual mantido.\nImplanta\u00E7\u00E3o em 1:200 conforme escolha nesta pr\u00E9via; demais escalas preservadas.\nColoca\u00E7\u00E3o da refer\u00EAncia urban\u00EDstica vazia retirada da folha; vista original preservada.\nLEG-02: Q04 \u2014 \u00E1reas dos ambientes n\u00E3o coube nas faixas laterais e foi mantido na \u00E1rea principal.\nLEG-03 incorporada \u00E0 LEG-01 para aproveitar espa\u00E7o; escalas e grupos de cortes/fachadas mantidos."
+  },
+  {
+    "Name": "Exportar LEG-01",
+    "Status": "executado",
+    "Report": "Implanta\u00E7\u00E3o, situa\u00E7\u00E3o, cobertura e cortes"
+  },
+  {
+    "Name": "Exportar LEG-02",
+    "Status": "executado",
+    "Report": "Plantas legais e \u00E1reas"
+  },
+  {
+    "Name": "Exportar LEG-04",
+    "Status": "executado",
+    "Report": "Fachadas"
+  }
+]
