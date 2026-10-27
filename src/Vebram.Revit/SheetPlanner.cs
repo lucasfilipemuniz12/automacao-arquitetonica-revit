@@ -5,7 +5,7 @@ public sealed record PlannerItem(string Key,string Label,long ViewId,bool Schedu
 public sealed record PlannerZone(string Key,string Label,LegalPaperRect Rect,bool Writable=true);
 public sealed record PlannerDrawing(long ViewId,string Label,int Scale,LegalPaperRect Rect,string Zone="desenhos");
 public sealed record PlannerPage(string Number,string Name,bool IsNew,LegalPaperRect Area,List<PlannerDrawing> Drawings,List<LegalPaperRect> Obstacles,LegalPaperRect? SheetBounds=null,List<PlannerZone>? Zones=null,List<string>? Notes=null);
-public sealed record SheetPlan(string Profile,List<long> ViewIds,List<PlannerPage> Pages,List<string> Warnings,bool Optimize=true,List<string>? ReservedSheets=null);
+public sealed record SheetPlan(string Profile,List<long> ViewIds,List<PlannerPage> Pages,List<string> Warnings,bool Optimize=true,List<string>? ReservedSheets=null,Dictionary<long,int>? ScaleOverrides=null);
 
 /// <summary>Preview and apply run the same native measurement/layout, atomically. Preview always rolls back.</summary>
 public static partial class SheetPlanner
@@ -47,18 +47,19 @@ public static partial class SheetPlanner
   }
   return result;
  }
- public static SheetPlan Preview(Document doc,string profile,IEnumerable<long> ids,bool optimize=true)=>Run(doc,profile,ids.Distinct().ToList(),optimize,null);
+ public static SheetPlan Preview(Document doc,string profile,IEnumerable<long> ids,bool optimize=true,Dictionary<long,int>? scaleOverrides=null)=>Run(doc,profile,ids.Distinct().ToList(),optimize,null,scaleOverrides);
  public static ModuleResult Apply(Document doc,SheetPlan plan)
  {
-  var result=Run(doc,plan.Profile,plan.ViewIds,plan.Optimize,plan);
+  var result=Run(doc,plan.Profile,plan.ViewIds,plan.Optimize,plan,plan.ScaleOverrides);
   var first=Sheets(doc).First(s=>s.SheetNumber==result.Pages[0].Number);
   return new(first.Id.Value,0,result.Pages.Sum(p=>p.Drawings.Count),$"{result.Pages.Count} folha(s) utilizada(s); {result.Pages.Count(p=>p.IsNew)} nova(s); {result.ReservedSheets?.Count??0} existente(s) mantida(s) como reserva. Escalas preservadas. Conteúdo manual mantido.\n"+string.Join("\n",result.Warnings));
  }
- static SheetPlan Run(Document doc,string profile,List<long> ids,bool optimize,SheetPlan? expected)
+ static SheetPlan Run(Document doc,string profile,List<long> ids,bool optimize,SheetPlan? expected,Dictionary<long,int>? scaleOverrides)
  {
   if(doc.IsFamilyDocument||doc.IsReadOnly||doc.IsWorkshared||doc.PathName.EndsWith(".rte",StringComparison.OrdinalIgnoreCase))throw new InvalidOperationException("Use um RVT local editável.");
   if(profile is not ("preferencial" or "r20"))throw new ArgumentException("Padrão de folhas desconhecido.");
   var items=Items(doc).Where(i=>ids.Contains(i.ViewId)).ToList();if(items.Count==0||items.Count!=ids.Count)throw new InvalidOperationException("Selecione entregáveis preparados e gere uma nova prévia.");
+  if(scaleOverrides!=null&&scaleOverrides.Any(p=>!items.Any(i=>i.ViewId==p.Key&&i.Key=="implantacao")||p.Value is not (50 or 100 or 200)))throw new InvalidOperationException("A escala escolhida deve ser 1:50, 1:100 ou 1:200 para a Implantação selecionada.");
   var sheets=Sheets(doc);var reference=sheets.FirstOrDefault(s=>Title(doc,s)!=null)??throw new InvalidOperationException("É necessária uma folha LEG com carimbo para usar como referência.");
   var zoneProfile=SheetZones.Read(doc,Title(doc,reference)!);
   var types=new Dictionary<long,ElementId>();var scales=items.Where(i=>!i.Schedule).ToDictionary(i=>i.ViewId,i=>((View)doc.GetElement(new ElementId(i.ViewId))).Scale);
@@ -67,6 +68,13 @@ public static partial class SheetPlanner
   using var tx=new Transaction(doc,expected==null?"VEBRAM — calcular prévia (revertida)":"VEBRAM — distribuir folhas automaticamente");tx.Start();
   try
   {
+   foreach(var pair in scaleOverrides??new())
+   {
+    var view=(View)doc.GetElement(new ElementId(pair.Key));view.Scale=pair.Value;
+    if(view.Scale!=pair.Value)throw new InvalidOperationException("A escala da Implantação está bloqueada pelo modelo de vista. Libere a escala antes de organizar.");
+    scales[pair.Key]=pair.Value;
+    warnings.Add("Implantação em 1:"+pair.Value+" conforme escolha nesta prévia; demais escalas preservadas.");
+   }
    if(UrbanisticReference.RemoveUnfilledPlacement(doc)>0)warnings.Add("Colocação da referência urbanística vazia retirada da folha; vista original preservada.");
    if(!zoneProfile.Recognized)warnings.Add("Faixas laterais não reconhecidas neste carimbo; quadros mantidos na área principal.");
    // Remove only placements of the selected deliverables, never the views themselves.
@@ -121,7 +129,7 @@ public static partial class SheetPlanner
       if(batch.Count==0&&lateral.Count==0)
       {
        if(obstacles.Count>0){target=GetSheet(NextExtra());continue;}
-       var big=remaining[0];throw new InvalidOperationException($"{big.Label} não cabe no carimbo, incluindo o título, em 1:{((View)doc.GetElement(new ElementId(big.ViewId))).Scale}. Escolha um formato maior ou revise a vista; a escala não será reduzida.");
+       var big=remaining[0];throw new InvalidOperationException($"{big.Label} não cabe no carimbo, incluindo o título, em 1:{((View)doc.GetElement(new ElementId(big.ViewId))).Scale}. "+(big.Key=="implantacao"?"Escolha Implantação 1:200 no organizador e calcule nova prévia, ou use formato maior.":"Escolha um formato maior ou revise a vista; a escala não será reduzida."));
       }
      }
      batch.AddRange(lateral.Select(l=>l.Item));layout!.AddRange(lateral.Select(l=>l.Placement));
@@ -145,7 +153,7 @@ public static partial class SheetPlanner
    var reserved=optimize?Consolidate(doc,pages,items,sizes,types,sheets,initialNumbers,newSheetDependencies,warnings):new List<string>();if(reserved.Count>0)Compact(pages,sheets,reserved,warnings);
    RefreshBounds(doc,pages);
    if(scales.Any(p=>((View)doc.GetElement(new ElementId(p.Key))).Scale!=p.Value))throw new InvalidOperationException("Escala alterada; operação revertida.");
-   var result=new SheetPlan(profile,ids,pages,warnings,optimize,reserved);
+   var result=new SheetPlan(profile,ids,pages,warnings,optimize,reserved,scaleOverrides==null?null:new Dictionary<long,int>(scaleOverrides));
    if(expected==null){tx.RollBack();return result;}
    if(!Equivalent(expected,result))throw new InvalidOperationException("O projeto mudou desde a prévia. Gere uma nova prévia antes de aplicar.");
    if(tx.Commit()!=TransactionStatus.Committed)throw new InvalidOperationException("Distribuição revertida pelo Revit.");return result;

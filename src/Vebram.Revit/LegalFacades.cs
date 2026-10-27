@@ -57,6 +57,11 @@ public static class LegalFacades
   var points=Implantation.GetContour(doc,floor);double z=source.GenLevel.Elevation,angle=input.RotationDegrees*Math.PI/180;
   var rotate=Transform.CreateRotation(XYZ.BasisZ,angle);var center=new XYZ((points.Min(p=>p.X)+points.Max(p=>p.X))/2,(points.Min(p=>p.Y)+points.Max(p=>p.Y))/2,z);
   var frame=BuildingFrame.Read(doc,source,floor,LegalPreferenceStore.Read(doc).IncludeWholeTerrain);
+  // Marker positions and far clip must surround the complete building, not only its seed slab.
+  points=frame.Members.Where(e=>e is HostObject or Autodesk.Revit.DB.Architecture.Railing or Autodesk.Revit.DB.Architecture.Stairs)
+   .Select(e=>e.get_BoundingBox(null)).Where(b=>b!=null)
+   .SelectMany(b=>new[]{new XYZ(b!.Min.X,b.Min.Y,z),new XYZ(b.Max.X,b.Max.Y,z)}).ToList();
+  center=new XYZ((points.Min(p=>p.X)+points.Max(p=>p.X))/2,(points.Min(p=>p.Y)+points.Max(p=>p.Y))/2,z);
   double top=frame.Top,bottom=frame.Bottom;var results=new List<ModuleResult>();
   using var tx=new Transaction(doc,"VEBRAM — preparar quatro fachadas");tx.Start();
   try

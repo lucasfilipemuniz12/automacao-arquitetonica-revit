@@ -80,7 +80,7 @@ public static class ProjectRegistrationStore
  {
   if(doc.IsReadOnly||doc.IsFamilyDocument||doc.IsWorkshared)throw new InvalidOperationException("Use um RVT local editável para este protótipo.");
   if(string.IsNullOrWhiteSpace(data.Name)||string.IsNullOrWhiteSpace(data.City)||!System.Text.RegularExpressions.Regex.IsMatch(data.State,"^[A-Z]{2}$"))throw new InvalidOperationException("Preencha o nome do projeto, o município e a UF.");
-  if(data.Floors.Length>0&&(!int.TryParse(data.Floors,out int floors)||floors<1))throw new InvalidOperationException("O número de pavimentos deve ser um inteiro positivo, ou ficar vazio.");
+  if(data.Floors.Length>160||data.Floors.Any(char.IsControl))throw new InvalidOperationException("Descreva os pavimentos em uma linha de até 160 caracteres.");
   using var tx=new Transaction(doc,"VEBRAM — cadastro do projeto");tx.Start();
   var schema=Schema();var entity=new Entity(schema);entity.Set(schema.GetField("Payload"),JsonSerializer.Serialize(data));doc.ProjectInformation.SetEntity(entity);
   foreach(var entry in new[]{(BuiltInParameter.PROJECT_NAME,data.Name),(BuiltInParameter.PROJECT_NUMBER,data.Code),(BuiltInParameter.CLIENT_NAME,data.Client),(BuiltInParameter.PROJECT_ADDRESS,data.Address)})

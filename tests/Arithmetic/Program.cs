@@ -37,5 +37,18 @@ Check(RoofDrainageRules.Resolve(12,"Modelo",new("a",5,"Direita")).Slope==12,"Inc
 Check(RoofDrainageRules.Resolve(0,"Modelo",new("a",5,"Esquerda")).Flow=="Esquerda","Proposta por água preserva direção");
 Check(RoofDrainageRules.Resolve(.049,"Modelo",null).Slope==null,"Tolerância de plano evita 0,0%");
 foreach(var bad in new[]{new RoofDrainageChoice("a",0,"Direita"),new RoofDrainageChoice("a",-2,"Direita"),new RoofDrainageChoice("a",double.NaN,"Direita"),new RoofDrainageChoice("a",101,"Direita"),new RoofDrainageChoice("a",5,"Modelo")}){bool rejected=false;try{RoofDrainageRules.Resolve(0,"Modelo",bad);}catch(ArgumentException){rejected=true;}Check(rejected,"Proposta inválida recusada: "+bad);}
-var report=new{Scope="Aritmética e retângulos do código de produção; não testa Revit, geometria nativa, marcadores ou viewport real.",Passed=passed.Count,Checks=passed};
+var house=new List<BuildingBounds>{new(1.5,4,0,10.5,12.5,.15),new(1.5,12.5,0,10.5,16,.15),new(1.5,9.5,-2.85,10.5,16,-.15),new(1.5,9.5,-3,10.5,16,-2.85),new(1.5,15.9,.15,10.5,16.1,1.25),new(30,30,0,40,40,3)};
+var connected=BuildingEnvelope.Connected(house,0,.35);
+Check(connected.SetEquals(new[]{0,1,2,3,4}),"CT03 inclui terraço, inferior abaixo da rua e guarda-corpos; exclui edificação remota");
+Check(BuildingEnvelope.Connected(house,3,.35).SetEquals(connected),"Fonte no inferior encontra a mesma casa completa");
+Check(!new BuildingBounds(0,0,0,1,1,1).Touches(new(0,0,5,1,1,6),.35),"Proximidade em planta não conecta volumes separados em altura");
+var triangle=new[]{new TerrainPoint(0,0,0),new TerrainPoint(10,0,-1),new TerrainPoint(0,20,-4)};
+var slice=TerrainSlice.Triangle(triangle,new(0,5,0),new(0,1,0));
+Check(slice!=null&&Near(slice.Value.A.Y,5)&&Near(slice.Value.B.Y,5),"Perfil pertence ao plano exato da vista");
+Check(slice!=null&&Near(slice.Value.A.Z+slice.Value.A.X*.1,-1)&&Near(slice.Value.B.Z+slice.Value.B.X*.1,-1),"Perfil conserva declive e cotas negativas reais");
+Check(TerrainSlice.Triangle(triangle,new(0,30,0),new(0,1,0))==null,"Plano fora do terreno não inventa linha plana");
+Check(TerrainSlice.Triangle(triangle,new(10,0,0),new(1,0,0))==null,"Toque em um vértice não produz segmento de comprimento zero");
+Check(TerrainSlice.Triangle(triangle,new(0,0,0),new(0,1,0))!=null,"Plano sobre uma aresta mantém o trecho real");
+Check(TerrainSlice.Triangle(triangle,new(0,0,0),new(.1,.2,1))==null,"Triângulo coplanar não produz aresta arbitrária");
+var report=new{Scope="Aritmética, envelopes, perfis de terreno e retângulos do código de produção; não testa Revit, geometria nativa, marcadores ou viewport real.",Passed=passed.Count,Checks=passed};
 var json=JsonSerializer.Serialize(report,new JsonSerializerOptions{WriteIndented=true});Console.WriteLine(json);if(args.Length>0)File.WriteAllText(args[0],json);

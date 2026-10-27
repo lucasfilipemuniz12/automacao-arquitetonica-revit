@@ -186,7 +186,7 @@ public sealed class PrepareWindow : Window
     }
     void ChoosePlan()
     {
-        var window=new SheetPlannerWindow(SheetPlanner.Items(doc),(profile,ids,optimize)=>SheetPlanner.Preview(doc,profile,ids,optimize),SheetPlanner.Unprepared(doc)){Owner=this};
+        var window=new SheetPlannerWindow(SheetPlanner.Items(doc),(profile,ids,optimize)=>SheetPlanner.Preview(doc,profile,ids,optimize),SheetPlanner.Unprepared(doc),(profile,ids,optimize,scales)=>SheetPlanner.Preview(doc,profile,ids,optimize,scales)){Owner=this};
         if(window.ShowDialog()==true){Plan=window.Result;DialogResult=true;}
     }
     void ChooseNotes()

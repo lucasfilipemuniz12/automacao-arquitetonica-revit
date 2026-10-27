@@ -43,6 +43,15 @@ public static class LegalContext
    var made=new List<Element>();var type=TextType(doc);var report=new List<string>();
    if(input.Key=="situacao")
    {
+    if(view is ViewPlan old&&old.GenLevel.Id!=source.GenLevel.Id)
+    {
+     old.Name="RESERVA - "+item.ReferenceName+" - "+old.Id.Value;
+     var replacement=ViewPlan.Create(doc,old.GetTypeId(),source.GenLevel.Id);replacement.Name=item.ReferenceName;
+     foreach(var parameter in new[]{LegalCatalog.StageId,LegalCatalog.FunctionId})
+      if(replacement.get_Parameter(parameter) is {IsReadOnly:false} target)target.Set(LegalCatalog.Text(old,parameter));
+     view=replacement;
+     report.Add("Situação criada no nível da planta-fonte: "+source.GenLevel.Name+". Vista anterior preservada como reserva.");
+    }
     view.ViewTemplateId=ElementId.InvalidElementId;view.Scale=500;
     var annotationCrop=view.get_Parameter(BuiltInParameter.VIEWER_ANNOTATION_CROP_ACTIVE);if(annotationCrop is {IsReadOnly:false})annotationCrop.Set(0);
     // A localization diagram intentionally excludes the physical building; it is not a surveyed map.

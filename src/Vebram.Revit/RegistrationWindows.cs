@@ -76,7 +76,7 @@ public sealed class ProjectRegistrationWindow:Window
   left=new StackPanel();right=new StackPanel();Field(left,"city","Município *",saved.City);Field(right,"state","UF *",saved.State);RegistrationUi.Row(form,left,right);
   left=new StackPanel();right=new StackPanel();Field(left,"lot","Lote / quadra / inscrição cadastral",saved.Lot);Field(right,"zone","Zoneamento informado",saved.Zone);RegistrationUi.Row(form,left,right);
   left=new StackPanel();right=new StackPanel();use=RegistrationUi.Choice(left,"Uso predominante",RegistrationUi.Uses,saved.Use);intervention=RegistrationUi.Choice(right,"Tipo de intervenção",RegistrationUi.Interventions,saved.Intervention);RegistrationUi.Row(form,left,right);
-  Field(form,"floors","Número de pavimentos — se conhecido",saved.Floors);Field(form,"notes","Observações / condições específicas do imóvel",saved.Notes,true);
+  Field(form,"floors","Pavimentos — ex.: 2 — térreo + inferior",saved.Floors);Field(form,"notes","Observações / condições específicas do imóvel",saved.Notes,true);
   form.Children.Add(new TextBlock{Text="* Mínimo para salvar: nome, município e UF. Este cadastro não mede áreas, não verifica legislação e não modifica a geometria.",Foreground=Brushes.SlateGray,TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,12,0,0)});
   LoadProfiles(saved.Profile);
   profiles.SelectionChanged+=(_,_)=>

@@ -9,15 +9,16 @@ public sealed class SheetPlannerWindow:Window
  public SheetPlan? Result{get;private set;}
  readonly WrapPanel previews=new(){Orientation=Orientation.Horizontal};
  readonly TextBlock status=new(){TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,8,0,8)};
- public SheetPlannerWindow(IReadOnlyList<PlannerItem> items,Func<string,IEnumerable<long>,bool,SheetPlan> calculate,IReadOnlyList<string>? unprepared=null)
+ public SheetPlannerWindow(IReadOnlyList<PlannerItem> items,Func<string,IEnumerable<long>,bool,SheetPlan> calculate,IReadOnlyList<string>? unprepared=null,Func<string,IEnumerable<long>,bool,Dictionary<long,int>,SheetPlan>? calculateScaled=null)
  {
   Title="VEBRAM — Distribuição automática de folhas";Width=Math.Min(1220,SystemParameters.WorkArea.Width-40);Height=Math.Min(850,SystemParameters.WorkArea.Height-40);WindowStartupLocation=WindowStartupLocation.CenterOwner;
   var root=new DockPanel{Margin=new Thickness(22)};Content=root;
   var heading=new StackPanel();DockPanel.SetDock(heading,Dock.Top);root.Children.Add(heading);
   heading.Children.Add(new TextBlock{Text="Organize o conjunto antes de aplicar",FontSize=25,FontWeight=FontWeights.SemiBold});
-  heading.Children.Add(new TextBlock{Text="Prévia da folha inteira: vistas, quadros laterais e notas. Escalas preservadas. Cinza = conteúdo existente ou identificação reservada. Novas folhas somente quando necessário.",TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,8,0,10)});
+  heading.Children.Add(new TextBlock{Text="Prévia da folha inteira: vistas, quadros laterais e notas. Escolha a escala da Implantação abaixo; demais escalas preservadas. Cinza = conteúdo existente ou identificação reservada. Novas folhas somente quando necessário.",TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,8,0,10)});
   var profile=new ComboBox{ItemsSource=new[]{"Preferencial — Implantação + Situação; Cortes A/B; quatro Fachadas","Referência R20 — Situação; Plantas; Implantação/Cobertura/Cortes; Fachadas"},SelectedIndex=0,MinHeight=34};heading.Children.Add(profile);
   var adaptive=new CheckBox{Content="Combinar assuntos compatíveis para aproveitar espaço (mantém grupos de cortes e fachadas)",IsChecked=true,Margin=new Thickness(0,8,0,5)};heading.Children.Add(adaptive);
+  var implantationScale=new ComboBox{ItemsSource=new[]{"Implantação: manter escala atual","Implantação: 1:100","Implantação: 1:200","Implantação: 1:50"},SelectedIndex=0,MinHeight=30,IsEnabled=calculateScaled!=null};heading.Children.Add(implantationScale);
   var footer=new DockPanel{Margin=new Thickness(0,10,0,0)};DockPanel.SetDock(footer,Dock.Bottom);root.Children.Add(footer);
   var actions=new StackPanel{Orientation=Orientation.Horizontal,HorizontalAlignment=HorizontalAlignment.Right};DockPanel.SetDock(actions,Dock.Right);footer.Children.Add(actions);footer.Children.Add(status);
   var preview=new Button{Content="Calcular prévia",Padding=new Thickness(14,8,14,8),Margin=new Thickness(6)};var apply=new Button{Content="Aplicar esta distribuição",Padding=new Thickness(14,8,14,8),Margin=new Thickness(6),IsEnabled=false};var cancel=new Button{Content="Cancelar",Padding=new Thickness(14,8,14,8),Margin=new Thickness(6),IsCancel=true};actions.Children.Add(preview);actions.Children.Add(apply);actions.Children.Add(cancel);
@@ -33,10 +34,14 @@ public sealed class SheetPlannerWindow:Window
    choices.Children.Add(new TextBlock{Text="AINDA NÃO PREPARADOS (ficam fora)",FontWeight=FontWeights.SemiBold,Foreground=Brushes.DarkOrange,Margin=new Thickness(0,16,0,6)});
    foreach(var text in unprepared)choices.Children.Add(new TextBlock{Text=text,TextWrapping=TextWrapping.Wrap,Foreground=Brushes.DimGray,Margin=new Thickness(0,3,0,3)});
   }
-  profile.SelectionChanged+=(_,_)=>Invalidate();adaptive.Checked+=(_,_)=>Invalidate();adaptive.Unchecked+=(_,_)=>Invalidate();var scroll=new ScrollViewer{Content=previews,VerticalScrollBarVisibility=ScrollBarVisibility.Auto};Grid.SetColumn(scroll,1);body.Children.Add(scroll);
+  profile.SelectionChanged+=(_,_)=>Invalidate();implantationScale.SelectionChanged+=(_,_)=>Invalidate();adaptive.Checked+=(_,_)=>Invalidate();adaptive.Unchecked+=(_,_)=>Invalidate();var scroll=new ScrollViewer{Content=previews,VerticalScrollBarVisibility=ScrollBarVisibility.Auto};Grid.SetColumn(scroll,1);body.Children.Add(scroll);
   preview.Click+=(_,_)=>
   {
-   Invalidate();try{calculated=calculate(profile.SelectedIndex==1?"r20":"preferencial",checks.Where(c=>c.Check.IsChecked==true).Select(c=>c.Item.ViewId),adaptive.IsChecked==true);foreach(var page in calculated.Pages)previews.Children.Add(DrawPage(page));status.Text=$"{calculated.Pages.Count} folhas utilizadas · {calculated.Pages.Count(p=>p.IsNew)} novas"+(calculated.ReservedSheets?.Count>0?$" · {calculated.ReservedSheets.Count} existente(s) de reserva":"")+"\n"+(calculated.Warnings.Count==0?"Grupos preferenciais mantidos.":string.Join("\n",calculated.Warnings))+(unprepared?.Count>0?$"\nFora da distribuição (não preparados): {unprepared.Count}. Veja a lista à esquerda.":"");apply.IsEnabled=true;}
+   Invalidate();try{
+    string selectedProfile=profile.SelectedIndex==1?"r20":"preferencial";var selected=checks.Where(c=>c.Check.IsChecked==true).Select(c=>c.Item.ViewId).ToList();
+    var overrides=new Dictionary<long,int>();if(implantationScale.SelectedIndex>0)foreach(var item in items.Where(i=>i.Key=="implantacao"&&selected.Contains(i.ViewId)))overrides[item.ViewId]=implantationScale.SelectedIndex switch{1=>100,2=>200,_=>50};
+    calculated=calculateScaled==null?calculate(selectedProfile,selected,adaptive.IsChecked==true):calculateScaled(selectedProfile,selected,adaptive.IsChecked==true,overrides);
+    foreach(var page in calculated.Pages)previews.Children.Add(DrawPage(page));status.Text=$"{calculated.Pages.Count} folhas utilizadas · {calculated.Pages.Count(p=>p.IsNew)} novas"+(calculated.ReservedSheets?.Count>0?$" · {calculated.ReservedSheets.Count} existente(s) de reserva":"")+"\n"+(calculated.Warnings.Count==0?"Grupos preferenciais mantidos.":string.Join("\n",calculated.Warnings))+(unprepared?.Count>0?$"\nFora da distribuição (não preparados): {unprepared.Count}. Veja a lista à esquerda.":"");apply.IsEnabled=true;}
    catch(Exception ex){status.Text=ex.Message;}
   };
   apply.Click+=(_,_)=>{if(calculated==null)return;Result=calculated;DialogResult=true;};Invalidate();

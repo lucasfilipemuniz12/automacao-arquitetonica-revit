@@ -1,5 +1,6 @@
 param([string]$AssemblyPath)
 $ErrorActionPreference = 'Stop'
+if (Get-Process -Name Revit -ErrorAction SilentlyContinue) { throw 'Feche todas as sessões do Revit antes de instalar o plugin.' }
 $package = Split-Path -Parent $PSScriptRoot
 if (-not $AssemblyPath) { $AssemblyPath = Join-Path $package 'current\Vebram.Revit.dll' }
 $resolved = (Resolve-Path -LiteralPath $AssemblyPath).Path
