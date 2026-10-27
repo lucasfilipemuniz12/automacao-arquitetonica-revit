@@ -43,6 +43,11 @@ Os valores são inventados para o teste. Tratar como reais durante o teste, mas 
 - **Lote:** retangular, 15,00 × 25,00 m = 375,00 m².
 - **Eixos:** x de oeste para leste (0 = divisa com o lote 06; 15 = alinhamento da Rua dos Jacarandás). y da frente para os fundos (0 = alinhamento da Rua das Paineiras; 25 = fundos).
 - **Norte:** para a Rua das Paineiras.
+- **ATENÇÃO às coordenadas:**
+  - No DXF o norte está para cima. Por isso, **Y do DXF = −y do casa.json**: os fundos do lote ficam em Y = −25.
+  - Ao modelar no Revit, colocar o lote em X 0…15 e Y 0…−25, ou vincular o DXF na origem e seguir o desenho. Nunca colocar a casa em Y positivo: ela cairia sobre a Rua das Paineiras.
+- **Arquivo:** **criar um PROJETO NOVO** a partir do template V03 e salvar como `Casa_Teste_03.rvt`. **Nunca modelar nem salvar dentro do arquivo do template (.rte).**
+- **DXF:** só **vincular** como referência (Inserir → Vincular CAD), em vista de planta, nunca como modelo final.
 - **Rua das Paineiras:** leito 9,00 m, passeio 2,50 m, plana em 0,00 (RN = meio-fio no canto oeste do lote).
 - **Rua dos Jacarandás:** leito 8,00 m, passeio 2,00 m; desce junto com o lote até ≈ −4,70 no fundo.
 - **Terreno natural:** z(x,y) = −0,18·y − 0,025·x + 0,003·(x − 7,5)². Pontos a cada 5 m em `casa.json › terreno.pontos_5m` (de +0,17 na frente-oeste a −4,71 no fundo-leste).
