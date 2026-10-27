@@ -1,5 +1,15 @@
 [
   {
+    "Name": "Cadastro com Pavimentos em texto",
+    "Status": "executado",
+    "Report": "2 (t\u00E9rreo e pavimento inferior em meio-n\u00EDvel sob o fundo)"
+  },
+  {
+    "Name": "Carimbo",
+    "Status": "executado",
+    "Report": "3 campo(s) do projeto e 8 campo(s) em 2 folha(s) legal(is) atualizados. Campos vazios n\u00E3o foram alterados.\nO carimbo mostra esses dados automaticamente; as folhas EX e PRE n\u00E3o foram alteradas."
+  },
+  {
     "Name": "Implanta\u00E7\u00E3o e n\u00EDvel da fonte",
     "Status": "executado",
     "Report": "LEGAL - Implanta\u00E7\u00E3o preparada em 1:100.\n5 cotas nativas; 51 elementos de anota\u00E7\u00E3o.\nA vista est\u00E1 dispon\u00EDvel para colocar na folha. A planta de modelagem foi preservada.\nPara refletir altera\u00E7\u00F5es do modelo, execute Implanta\u00E7\u00E3o novamente. Confira o lote informado, norte e chamadas antes de emitir."
@@ -68,6 +78,16 @@
     "Name": "Corte B",
     "Status": "executado",
     "Report": "Corte B preparado na mesma vista do V02.\nPosi\u00E7\u00E3o: 85%; profundidade: 20 m.\n4 n\u00EDveis identificados; 3 cota vertical entre faces reais.\nN\u00EDveis muito pr\u00F3ximos (T\u00E9rreo) foram escalonados para a esquerda; valores inalterados.\nN\u00E3o h\u00E1 detalhamento construtivo nem cotagem completa autom\u00E1tica. Revise o corte antes de coloc\u00E1-lo na folha."
+  },
+  {
+    "Name": "Corte com fonte Inferior",
+    "Status": "executado",
+    "Report": "Corte A preparado na mesma vista do V02.\nPosi\u00E7\u00E3o: 17%; profundidade: 20 m.\n4 n\u00EDveis identificados; 5 cota vertical entre faces reais.\nN\u00EDvel Inferior: conferir extens\u00E3o do s\u00EDmbolo nativo.\nN\u00EDvel RN / Rua: conferir extens\u00E3o do s\u00EDmbolo nativo.\nN\u00EDvel T\u00E9rreo: conferir extens\u00E3o do s\u00EDmbolo nativo.\nN\u00EDvel Cobertura: conferir extens\u00E3o do s\u00EDmbolo nativo.\nN\u00E3o h\u00E1 detalhamento construtivo nem cotagem completa autom\u00E1tica. Revise o corte antes de coloc\u00E1-lo na folha."
+  },
+  {
+    "Name": "Restaurar Corte A fonte T\u00E9rreo",
+    "Status": "executado",
+    "Report": "Corte A preparado na mesma vista do V02.\nPosi\u00E7\u00E3o: 17%; profundidade: 20 m.\n4 n\u00EDveis identificados; 5 cota vertical entre faces reais.\nN\u00EDvel Inferior: conferir extens\u00E3o do s\u00EDmbolo nativo.\nN\u00EDvel RN / Rua: conferir extens\u00E3o do s\u00EDmbolo nativo.\nN\u00EDvel T\u00E9rreo: conferir extens\u00E3o do s\u00EDmbolo nativo.\nN\u00EDvel Cobertura: conferir extens\u00E3o do s\u00EDmbolo nativo.\nN\u00E3o h\u00E1 detalhamento construtivo nem cotagem completa autom\u00E1tica. Revise o corte antes de coloc\u00E1-lo na folha."
   },
   {
     "Name": "Fachadas",

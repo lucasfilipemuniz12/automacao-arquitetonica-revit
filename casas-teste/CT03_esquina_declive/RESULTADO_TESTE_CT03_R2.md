@@ -6,7 +6,9 @@ Branch: `codex/ct03-casa-inteira-terreno`, criada de `main` em `9d8ac749454144c0
 
 ## Situação da verificação
 
-A primeira rodada nativa concluiu na CT03 e no Sobrado, com folhas exportadas, zero avisos do Revit e geometria física preservada nos dois arquivos. A segunda rodada, com testes adicionais e o carimbo da CT03 preenchido, aguarda a autorização de carregamento do complemento no Revit. Os PNGs abaixo são da primeira rodada, cujo código já contém as três correções principais.
+A rodada final concluiu na CT03 (29 etapas) e no Sobrado (24 etapas), com folhas exportadas, zero avisos nativos do Revit e geometria física preservada nos dois arquivos. Nenhuma etapa registrou exceção. Os PNGs abaixo são da compilação final. Os avisos informativos do plugin e as pendências visuais estão discriminados abaixo; zero avisos do Revit não significa projeto pronto para emissão.
+
+PR para a main: [#15 — CT03: casa completa, terreno real e Implantação em 1:200](https://github.com/lucasfilipemuniz12/automacao-arquitetonica-revit/pull/15).
 
 ## O que mudou
 
@@ -16,10 +18,12 @@ A primeira rodada nativa concluiu na CT03 e no Sobrado, com folhas exportadas, z
 4. Implantação e Situação passam a usar o nível da planta-fonte. A vista anterior fica preservada como reserva quando está em outro nível.
 5. O campo Pavimentos aceita texto descritivo em uma linha de até 160 caracteres.
 
-## Passo a passo — primeira rodada nativa
+## Passo a passo — rodada final nativa
 
 | Etapa | Resultado | Conferência |
 |---|---|---|
+| Cadastro / Pavimentos em texto | Funcionou | Gravou e releu exatamente “2 (térreo e pavimento inferior em meio-nível sob o fundo)” |
+| Carimbo | Funcionou com aviso | Nome, clientes, endereço, emissão e campos das folhas existentes preenchidos; a nova LEG-04 não herdou o responsável da folha |
 | Edificação completa | Funcionou | Inventário inclui inferior, terraço, escada e guarda-corpos; limite inferior do recorte ≈ −3,81 m |
 | Implantação a partir do Térreo | Funcionou | Não exigiu recriar manualmente as vistas do template |
 | Afastamento dos fundos | Funcionou | Desenho mede aproximadamente 8,93 m até as faces externas, em vez dos 12,48 m da laje principal |
@@ -33,13 +37,17 @@ A primeira rodada nativa concluiu na CT03 e no Sobrado, com folhas exportadas, z
 | Memória do Inferior | Funcionou | Interna 45,18 m², incluindo PISO BOX |
 | Q04 | Funcionou | 12 ambientes com área, totais por pavimento e total geral |
 | Quadros de esquadrias | Funcionou | Portas/janelas mantidas nos quadros nativos |
-| Corte A | Funcionou | Suíte com PD 2,80 m medido no modelo; terraço identificado como DESCOBERTO; RN/Rua fora da casa |
+| Corte A | Funcionou com aviso | Suíte com PD 2,80 m medido no modelo; terraço identificado como DESCOBERTO; RN/Rua fora da casa; ao refazer o corte houve avisos para conferir extensões dos símbolos de nível |
 | Corte B | Funcionou | Níveis negativos e terreno real; três cotas verticais entre faces |
+| Corte usando a planta Inferior como fonte | Funcionou com aviso | Casa inteira e cinco cotas verticais reconhecidas; extensão dos quatro símbolos nativos de nível pede conferência. Fonte Térreo restaurada depois do teste |
 | Quatro fachadas | Funcionou | Inferior e terreno inclinado aparecem; áreas efetivamente enterradas continuam encobertas pelo terreno |
 | Organizar folhas | Funcionou | Três folhas utilizadas: LEG-01, LEG-02 e LEG-04; Implantação em 1:200 e desenhos restantes em suas escalas |
+| Reversão da prévia | Funcionou | IDs dos elementos e escalas iguais aos de antes após calcular; ao aplicar, somente a escala escolhida da Implantação mudou |
 | Preservação e avisos | Funcionou | Geometria física sem alteração e zero avisos do Revit |
 
 Os valores de PD vêm das faces reais do modelo entregue, e podem diferir do valor nominal da ficha devido às camadas das lajes/pisos. A modelagem não foi ajustada para o plugin passar.
+
+As duas TOs foram verificadas pela medição de produção `OccupationFootprint.Measure`; o quadro exportado mantém a escolha padrão de uma laje (79,15 m²).
 
 ## Folhas da CT03
 
@@ -74,7 +82,8 @@ A origem foi a cópia já cadastrada `Sobrado_Teste_02_teste_claude_0527.rvt`, d
 ## O que continua estranho ou pendente
 
 - Segunda rua da esquina e afastamento frontal secundário: não implementados nesta rodada.
-- O carimbo da primeira rodada da CT03 está sem os dados cadastrais, pois partiu da cópia do modelo-base. A rodada final para preencher e conferir esses campos ainda está pendente de carregamento do complemento.
+- A nova LEG-04 mostra o responsável genérico “Projetista”, pois não herdou os campos por folha preenchidos antes da sua criação. Os dados gerais da Residência Paineiras aparecem normalmente. O total após a barra da numeração da folha continua vazio.
+- Trocar a planta-fonte do Corte A para o Inferior e refazê-lo gerou avisos informativos para conferir as extensões dos símbolos de nível. O PNG final mantém os símbolos fora da casa; a suíte e o terraço estão reconhecidos.
 - Plantas pequenas continuam com algumas cotas pendentes para preservar a leitura dos rótulos.
 - A memória gráfica ainda tem legenda/texto próximos ao desenho; mantida a regra anterior.
 - O Q04 foi para a área principal porque não coube na lateral do carimbo.
@@ -87,3 +96,5 @@ Nenhum template foi aberto para modelagem nesta rodada. As origens tiveram os me
 
 - CT03 original: `227261B93AA7FBB287646D5B34E2167C8DBC888AB681C838457DF0C3A2AEE7CD`.
 - Sobrado de referência: `BF5C294DB9F64C3522D8320FA9C50C2B2E6E5A798D248C908FE57D1F9DE8CAF0`.
+
+As cópias finais salvas estão em `validation/ct03-r2-final/R2_TESTE_CT03.rvt` e `R2_TESTE_Sobrado.rvt`, no checkout da branch. Uma cópia de cada uma acompanha a entrega local em `testes/`; os RVT não são enviados ao GitHub.
