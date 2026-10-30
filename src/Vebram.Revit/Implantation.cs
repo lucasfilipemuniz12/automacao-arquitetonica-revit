@@ -72,7 +72,12 @@ public static class Implantation
             throw new InvalidOperationException("Confira o caimento de projeto informado (0 a 100%).");
         if(!new[]{"Modelo","Direita","Esquerda","Acima","Abaixo"}.Contains(options.RoofFlow))
             throw new InvalidOperationException("Escolha um sentido válido para a seta de caimento.");
-        var contour = ExternalContour(doc, floor, FloorContour(doc, floor));
+        // OccupationFootprint keeps its explicitly selected slabs; setbacks use the whole building.
+        var frame=BuildingFrame.Read(doc,source,floor);
+        var building=frame.Members.Where(e=>e is Wall or Floor or Autodesk.Revit.DB.Architecture.Railing)
+            .Select(e=>e.get_BoundingBox(null)).Where(b=>b!=null).ToList();
+        double bx0=building.Min(b=>b!.Min.X),bx1=building.Max(b=>b!.Max.X),by0=building.Min(b=>b!.Min.Y),by1=building.Max(b=>b!.Max.Y),bz=source.GenLevel.Elevation;
+        IReadOnlyList<XYZ> contour=[new(bx0,by0,bz),new(bx1,by0,bz),new(bx1,by1,bz),new(bx0,by1,bz)];
         var left = Feet(options.LotMinX); var right = left + Feet(options.LotWidth);
         var bottom = Feet(options.LotMinY); var top = bottom + Feet(options.LotDepth);
         if (contour.Any(p => p.X < left - .001 || p.X > right + .001 || p.Y < bottom - .001 || p.Y > top + .001))
@@ -80,8 +85,8 @@ public static class Implantation
         var targets = LegalCatalog.Views(doc).OfType<ViewPlan>().Where(v => v.Name == ViewName).ToList();
         if (targets.Count > 1) throw new InvalidOperationException("Há mais de uma Implantação com o nome do V02.");
         var target = targets.SingleOrDefault();
-        if (target != null && (target.Id == source.Id || target.GenLevel.Id != source.GenLevel.Id))
-            throw new InvalidOperationException("Escolha a planta de modelagem no mesmo nível da Implantação do V02.");
+        if (target != null && target.Id == source.Id)
+            throw new InvalidOperationException("Escolha uma planta de modelagem diferente da Implantação.");
         if (target != null)
         {
             var state = DrawingOwnership.Read(target);
@@ -106,8 +111,15 @@ public static class Implantation
         transaction.SetFailureHandlingOptions(transaction.GetFailureHandlingOptions().SetFailuresPreprocessor(problems).SetClearAfterRollback(true));
         try
         {
-            var view = plan.Target ?? ViewPlan.Create(doc, plan.Source.GetTypeId(), plan.Source.GenLevel.Id);
-            if (plan.Target == null) view.Name = ViewName;
+            var view = plan.Target;
+            if(view!=null&&view.GenLevel.Id!=plan.Source.GenLevel.Id)
+            {
+                // A plan's level is immutable. Preserve the old view and all placements as a reserve.
+                var old=view;old.Name="RESERVA - "+ViewName+" - "+old.Id.Value;
+                view=ViewPlan.Create(doc,old.GetTypeId(),plan.Source.GenLevel.Id);view.Name=ViewName;
+                view.ViewTemplateId=old.ViewTemplateId;
+            }
+            if(view==null){view=ViewPlan.Create(doc,plan.Source.GetTypeId(),plan.Source.GenLevel.Id);view.Name=ViewName;}
             var previous = DrawingOwnership.Read(view);
             if (previous != null)
             {
@@ -185,7 +197,7 @@ public static class Implantation
                 helpers.Text(label,item.Item2,false,true,item.Item1=="piscina" && b.Max.Y-b.Min.Y>b.Max.X-b.Min.X?Math.PI/2:0);
             }
             var notes="IMPLANTAÇÃO\nCotas em "+LegalPreferenceStore.UnitLabel(doc,dimensionType)+"\n"+
-                "Linha contínua: limite do lote informado\nLinha tracejada: contorno do térreo\n"+
+                "Linha contínua: limite do lote informado\nLinha tracejada: envelope da edificação completa\n"+
                 "Cotas parciais: afastamentos desse contorno\nFrente: "+o.Front.ToLower(Pt)+" do desenho\n"+
                 (o.Study?"ESTUDO FICTÍCIO — NÃO PROTOCOLAR":"Dados do lote/norte informados pelo autor");
             var registrationNotes=ProjectDataIntegration.CompactForDrawing(ProjectDataIntegration.Notes(ProjectRegistrationStore.Read(doc)));if(registrationNotes.Length>0)notes+="\n"+registrationNotes;

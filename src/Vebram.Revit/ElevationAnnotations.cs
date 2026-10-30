@@ -7,7 +7,8 @@ internal static class ElevationAnnotations
  internal static void Total(Document doc,ViewSection view,BuildingFrame frame,List<Element> made,List<string> pending)
  {
   var transform=view.CropBox.Transform;var inv=transform.Inverse;double right=frame.Corners.Max(p=>inv.OfPoint(p).X),left=frame.Corners.Min(p=>inv.OfPoint(p).X);
-  double surface=frame.Bottom+Implantation.Feet(.5),top=frame.Top-Implantation.Feet(.6),x=right+Implantation.Feet(.65);
+  var profile=TerrainProfile.Read(doc).Slice(view,frame);
+  double surface=profile.SelectMany(p=>new[]{p.A.Z,p.B.Z}).DefaultIfEmpty(frame.Bottom+Implantation.Feet(.5)).Min(),top=frame.Members.Select(e=>e.get_BoundingBox(null)).Where(b=>b!=null).Max(b=>b!.Max.Z),x=right+Implantation.Feet(.65);
   XYZ At(double xx,double z)=>transform.OfPoint(new XYZ(xx,z-transform.Origin.Z,0));
   DetailCurve Tick(double z){var c=doc.Create.NewDetailCurve(view,Line.CreateBound(At(x-Implantation.Feet(.2),z),At(x+Implantation.Feet(.2),z)));made.Add(c);return c;}
   if(top>surface+Implantation.Feet(.1))
@@ -16,9 +17,13 @@ internal static class ElevationAnnotations
    made.Add(doc.Create.NewDimension(view,Line.CreateBound(At(x,surface),At(x,top)),refs,LegalPreferenceStore.Dimension(doc)));
    made.Add(TextNote.Create(doc,view.Id,At(right-Implantation.Feet(.2),top+Implantation.Feet(.4)),"ALTURA TOTAL",LegalStyles.Text(doc,2).Id));
   }
-  var text=!frame.SurfaceMeasured?"BASE: NÍVEL FONTE · TERRENO A CONFERIR":frame.MeasuredAtPerimeter?"BASE: TERRENO DO MODELO (COTA MAIS BAIXA JUNTO À EDIFICAÇÃO)":"BASE: TERRENO DO MODELO (COTA PONTUAL)";
-  made.Add(TextNote.Create(doc,view.Id,At(left,surface-Implantation.Feet(.18)),text,LegalStyles.Text(doc,2).Id));
-  if(!frame.SurfaceMeasured)pending.Add("Altura total referenciada ao nível fonte: não foi encontrada superfície de terreno válida no centro da edificação.");
+  foreach(var segment in profile)
+   if(segment.A.DistanceTo(segment.B)>doc.Application.ShortCurveTolerance)
+    made.Add(doc.Create.NewDetailCurve(view,Line.CreateBound(segment.A,segment.B)));
+  var text=profile.Count==0?"BASE: EDIFICAÇÃO · TERRENO A CONFERIR":"BASE: MENOR COTA DO PERFIL REAL DO TERRENO NESTA VISTA";
+  // Keep the explanation under the crop, clear of the varying terrain profile.
+  made.Add(TextNote.Create(doc,view.Id,At(left,Math.Min(surface,frame.Bottom)-Implantation.Feet(.18)),text,LegalStyles.Text(doc,2).Id));
+  if(profile.Count==0)pending.Add("Não foi encontrado perfil de toposólido neste plano; altura referenciada à base da edificação.");
  }
  internal static void Rooms(Document doc,ViewSection view,ViewPlan source,BuildingFrame frame,List<Element> made,List<string> pending)
  {
@@ -52,6 +57,7 @@ internal static class ElevationAnnotations
     if(span.Right-span.Left>=Implantation.Feet(1.4))
     {var refs=new ReferenceArray();refs.Append(bottom.Ref);refs.Append(top.Ref);doc.Regenerate();double xx=span.Left+Implantation.Feet(.25);made.Add(doc.Create.NewDimension(view,Line.CreateBound(At(xx,baseZ),At(xx,top.Face.Origin.Z)),refs,LegalPreferenceStore.Dimension(doc)));}
    }
+   else if(bottom!=null&&top==null&&!frame.Members.OfType<HostObject>().Where(h=>h is Floor or Ceiling or RoofBase).Any(h=>h.get_BoundingBox(null) is {} b&&b.Min.Z>point.Z&&point.X>=b.Min.X&&point.X<=b.Max.X&&point.Y>=b.Min.Y&&point.Y<=b.Max.Y))caption+="\nDESCOBERTO";
    else{caption+="\nPD a conferir";pending.Add(name+": não há par de faces horizontais de piso/teto na posição do corte para medir pé-direito.");}
    double paperWidth=Math.Min(.045,Implantation.Meters(span.Right-span.Left)/view.Scale*.85);
    made.Add(TextNote.Create(doc,view.Id,At(mid,baseZ+Implantation.Feet(1.15)),Implantation.Feet(paperWidth),caption,new TextNoteOptions(LegalStyles.Text(doc,2).Id){HorizontalAlignment=HorizontalTextAlignment.Center}));

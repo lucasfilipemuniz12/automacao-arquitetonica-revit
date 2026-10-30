@@ -19,7 +19,14 @@ internal sealed class SectionValidation:IExternalApplication
   Document? doc=null;
   try
   {
-   doc=ui.Application.OpenDocumentFile(job.Project); if(job.Mode=="integracao024"){IntegrationValidation.Run(doc,job.Output);doc.Close(false);doc=null;ui.OpenAndActivateDocument(job.Project);File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Integração validada na cópia.");return;} if(job.Mode=="cadastro023"){RegistrationValidation.Run(doc,job.Output);doc.Close(false);doc=null;ui.OpenAndActivateDocument(job.Project);File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Cadastro validado em cópia; projeto aberto para revisão da interface.");return;}
+   doc=ui.Application.OpenDocumentFile(job.Project);
+   if(job.Mode=="ct03r2")
+   {
+    Ct03R2Validation.Run(doc,Path.Combine(job.Output,"CT03"),true);doc.Close(false);doc=null;
+    if(job.Reference!=null){doc=ui.Application.OpenDocumentFile(job.Reference);Ct03R2Validation.Run(doc,Path.Combine(job.Output,"Sobrado"),false);doc.Close(false);doc=null;}
+    ui.OpenAndActivateDocument(job.Project);File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Rodada R2 concluída; conferir os PASSOS.json e os PNG.");return;
+   }
+   if(job.Mode=="integracao024"){IntegrationValidation.Run(doc,job.Output);doc.Close(false);doc=null;ui.OpenAndActivateDocument(job.Project);File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Integração validada na cópia.");return;} if(job.Mode=="cadastro023"){RegistrationValidation.Run(doc,job.Output);doc.Close(false);doc=null;ui.OpenAndActivateDocument(job.Project);File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Cadastro validado em cópia; projeto aberto para revisão da interface.");return;}
    if(job.Mode=="review025"){LegalReviewValidation.Run(doc,job.Output);doc.Close(false);doc=null;var opened=ui.OpenAndActivateDocument(job.Project);opened.RequestViewChange(SheetPlanner.Sheets(opened.Document).First(s=>s.SheetNumber=="LEG-02"));File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Revisão legal 0.5.25 validada em cópia.");return;}
    if(job.Mode=="memoria025"){MemoryAreasValidation.Run(doc,job.Output);doc.Close(false);doc=null;var opened=ui.OpenAndActivateDocument(job.Project);opened.RequestViewChange(SheetPlanner.Sheets(opened.Document).First(s=>s.SheetNumber=="LEG-02"));File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Memória 0.5.25 validada e cópia aberta na LEG-02.");return;}
    if(job.Mode=="openings020"){OpeningSchedulesValidation.Run(doc,job.Output);doc.Close(false);doc=null;File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Quadros validados na cópia.");return;} if(job.Mode=="notas022"){NotesValidation.Run(doc,job.Output);doc.Close(false);doc=null;File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Notas validadas na cópia.");return;} if(job.Mode=="carimbo022"){StampDataValidation.Run(doc,job.Output);doc.Close(false);doc=null;File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Dados do carimbo validados na cópia.");return;} if(job.Mode=="carimbo021"){StampSurvey.Run(doc,job.Output);doc.Close(false);doc=null;File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Levantamento do carimbo sem alterar o modelo.");return;} if(job.Mode=="limpeza021"){CleanViewsValidation.Run(doc,job.Output);doc.Close(false);doc=null;File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Plantas limpas validadas na cópia.");return;} if(job.Mode=="memoria021"){MemoryAreasValidation.Run(doc,job.Output);doc.Close(false);doc=null;File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Memória gráfica validada na cópia.");return;} if(job.Mode=="areas021"){AreaSurvey.Run(doc,job.Output);doc.Close(false);doc=null;File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Levantamento de áreas sem alterar o modelo.");return;} if(job.Mode=="zones018"){SheetZonesSurvey.Run(doc,job.Output);doc.Close(false);doc=null;File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Carimbo medido sem alterar o modelo.");return;}
@@ -71,7 +78,7 @@ internal sealed class SectionValidation:IExternalApplication
    File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Cortes A/B preparados e repetidos; posição, sentido, profundidade, níveis e proteção de edição verificados.\n"+job.Project);
   }
   catch(Exception ex){File.WriteAllText(Path.Combine(job.Output,"ERRO.txt"),ex.ToString());}
-  finally{if(doc?.IsValidObject==true)doc.Close(false);}
+  finally{if(doc?.IsValidObject==true){if(job.Mode=="ct03r2"&&doc.IsModified)ui.OpenAndActivateDocument(doc.PathName);else doc.Close(false);}}
  }
  static void ValidateFacades055(Document doc,string output)
  {

@@ -1,44 +1,39 @@
 using Autodesk.Revit.DB;
+using Autodesk.Revit.DB.Architecture;
 namespace Vebram.Revit;
 
-// Local building context, excluding site solids and remote landscape elements.
 internal sealed record BuildingFrame(List<Element> Members,List<XYZ> Corners,double Bottom,double Top,bool SurfaceMeasured,bool MeasuredAtPerimeter=false)
 {
  public static BuildingFrame Read(Document doc,ViewPlan source,Floor floor,bool wholeSite=false,Level? baseLevel=null)
  {
-  // The frame starts at the base level (ground floor) even when the source plan is an upper floor.
-  double ground=(baseLevel??source.GenLevel).Elevation;
-  var contour=Implantation.GetContour(doc,floor);double x0=contour.Min(p=>p.X),x1=contour.Max(p=>p.X),y0=contour.Min(p=>p.Y),y1=contour.Max(p=>p.Y),buffer=Implantation.Feet(2);
-  bool Terrain(Element e)=>e.Category?.Id.Value==(long)BuiltInCategory.OST_Toposolid||e.GetType().Name=="TopographySurface";
-  var members=new FilteredElementCollector(doc).WhereElementIsNotElementType().Where(e=>!e.ViewSpecific&&(e is HostObject or FamilyInstance or DirectShape)&&!Terrain(e)&&e.get_BoundingBox(null) is {} b&&b.Min.X>=x0-buffer&&b.Max.X<=x1+buffer&&b.Min.Y>=y0-buffer&&b.Max.Y<=y1+buffer&&b.Max.Z>=ground-Implantation.Feet(.7)).ToList();
-  if(!members.Any(e=>e.Id==floor.Id))members.Add(floor);
-  double surface=ground;bool measured=false,perimeter=false;var center=new XYZ((x0+x1)/2,(y0+y1)/2,surface);
-  var topFaces=new List<Face>();
-  foreach(var terrain in new FilteredElementCollector(doc).WhereElementIsNotElementType().OfType<HostObject>().Where(Terrain))
+  var rooms=new FilteredElementCollector(doc).OfClass(typeof(SpatialElement)).OfType<Room>().Where(r=>r.Area>0).ToList();
+  var walls=new FilteredElementCollector(doc).OfClass(typeof(Wall)).Cast<Wall>().ToList();
+  bool BuildingFloor(Floor f)
   {
-   IList<Reference> faces;try{faces=HostObjectUtils.GetTopFaces(terrain);}catch(Autodesk.Revit.Exceptions.ArgumentException){continue;}
-   foreach(var faceRef in faces)if(terrain.GetGeometryObjectFromReference(faceRef) is Face face)topFaces.Add(face);
+   if(f.Id==floor.Id)return true;
+   var b=f.get_BoundingBox(null);if(b==null)return false;
+   string name=f.Name.ToUpperInvariant();if(name.Contains("CALÇADA")||name.Contains("CALCADA")||name.Contains("GRAM")||name.Contains("PASSEIO"))return false;
+   bool Overlap(BoundingBoxXYZ a)=>Math.Min(a.Max.X,b.Max.X)-Math.Max(a.Min.X,b.Min.X)>.01&&Math.Min(a.Max.Y,b.Max.Y)-Math.Max(a.Min.Y,b.Min.Y)>.01;
+   if(rooms.Any(r=>r.get_BoundingBox(null) is {} rb&&Overlap(rb)&&Math.Abs(((Level)doc.GetElement(r.LevelId)).Elevation-b.Max.Z)<Implantation.Feet(.65)))return true;
+   // Slabs supported by walls include uncovered terraces even without a room.
+   return walls.Any(w=>w.get_BoundingBox(null) is {} wb&&Overlap(wb)&&Math.Abs(wb.Max.Z-b.Min.Z)<Implantation.Feet(.4));
   }
-  double? Hit(XYZ point)
-  {
-   foreach(var face in topFaces){var hit=face.Project(point);if(hit!=null&&face.IsInside(hit.UVPoint)&&Math.Abs(hit.XYZPoint.Z-ground)<Implantation.Feet(2))return hit.XYZPoint.Z;}
-   return null;
-  }
-  if(Hit(center) is double centerZ){surface=centerZ;measured=true;}
-  else
-  {
-   // When the terrain is cut under the house there is no surface at the centre.
-   // Sample the ground 0.5 m outside each corner and edge midpoint and keep the lowest
-   // point, which gives the largest (conservative) total height.
-   var samples=new List<XYZ>();
-   for(int i=0;i<contour.Count;i++){var a=contour[i];var b=contour[(i+1)%contour.Count];samples.Add(a);samples.Add((a+b)/2);}
-   var hits=samples.Select(p=>{var d=new XYZ(p.X-center.X,p.Y-center.Y,0);double len=d.GetLength();return len<1e-6?(double?)null:Hit(new XYZ(p.X,p.Y,surface)+d/len*Implantation.Feet(.5));}).Where(h=>h!=null).Select(h=>h!.Value).ToList();
-   if(hits.Count>0){surface=hits.Min();measured=true;perimeter=true;}
-  }
-  var bounds=members.Select(e=>e.get_BoundingBox(null)).Where(b=>b!=null).ToList();double bottom=surface-Implantation.Feet(.5),top=bounds.Max(b=>b!.Max.Z)+Implantation.Feet(.6);
-  var corners=new List<XYZ>();foreach(var b in bounds)foreach(var x in new[]{b!.Min.X,b.Max.X})foreach(var y in new[]{b.Min.Y,b.Max.Y})foreach(var z in new[]{bottom,top})corners.Add(new(x,y,z));
-  foreach(var p in contour){corners.Add(new(p.X,p.Y,bottom));corners.Add(new(p.X,p.Y,top));}
-  if(wholeSite)foreach(var b in new FilteredElementCollector(doc).WhereElementIsNotElementType().Where(Terrain).Select(e=>e.get_BoundingBox(null)).Where(b=>b!=null))foreach(var x in new[]{b!.Min.X,b.Max.X})foreach(var y in new[]{b.Min.Y,b.Max.Y}){corners.Add(new(x,y,bottom));corners.Add(new(x,y,top));}
-  return new(members,corners,bottom,top,measured,perimeter);
+  var candidates=new FilteredElementCollector(doc).WhereElementIsNotElementType()
+   .Where(e=>!e.ViewSpecific&&(e is Wall or RoofBase or Ceiling or Stairs or Railing||e is Floor f&&BuildingFloor(f)))
+   .Where(e=>e.get_BoundingBox(null)!=null).ToList();
+  if(!candidates.Any(e=>e.Id==floor.Id))candidates.Add(floor);
+  var boxes=candidates.Select(e=>e.get_BoundingBox(null)!).ToList();
+  var connected=BuildingEnvelope.Connected(boxes.Select(b=>new BuildingBounds(b.Min.X,b.Min.Y,b.Min.Z,b.Max.X,b.Max.Y,b.Max.Z)).ToList(),candidates.FindIndex(e=>e.Id==floor.Id),Implantation.Feet(.35));
+  var members=connected.Select(i=>candidates[i]).ToList();var bounds=members.Select(e=>e.get_BoundingBox(null)!).ToList();
+  double x0=bounds.Min(b=>b.Min.X),x1=bounds.Max(b=>b.Max.X),y0=bounds.Min(b=>b.Min.Y),y1=bounds.Max(b=>b.Max.Y);
+  // Families follow the building, but cannot expand the envelope to landscape objects.
+  members.AddRange(new FilteredElementCollector(doc).OfClass(typeof(FamilyInstance)).Cast<FamilyInstance>()
+   .Where(e=>!e.ViewSpecific&&e.get_BoundingBox(null) is {} b&&b.Min.X>=x0-.01&&b.Max.X<=x1+.01&&b.Min.Y>=y0-.01&&b.Max.Y<=y1+.01));
+  var terrain=TerrainProfile.Read(doc);var surface=terrain.Points.Where(p=>p.X>=x0-Implantation.Feet(1)&&p.X<=x1+Implantation.Feet(1)&&p.Y>=y0-Implantation.Feet(1)&&p.Y<=y1+Implantation.Feet(1)).ToList();
+  double bottom=Math.Min(bounds.Min(b=>b.Min.Z),surface.Select(p=>p.Z).DefaultIfEmpty(source.GenLevel.Elevation).Min())-Implantation.Feet(.5);
+  double top=Math.Max(bounds.Max(b=>b.Max.Z),surface.Select(p=>p.Z).DefaultIfEmpty(source.GenLevel.Elevation).Max())+Implantation.Feet(.6);
+  var corners=new List<XYZ>();foreach(var x in new[]{x0,x1})foreach(var y in new[]{y0,y1})foreach(var z in new[]{bottom,top})corners.Add(new(x,y,z));
+  if(wholeSite)foreach(var p in terrain.Points){corners.Add(new(p.X,p.Y,Math.Min(bottom,p.Z-Implantation.Feet(.5))));corners.Add(new(p.X,p.Y,top));}
+  return new(members,corners,bottom,top,surface.Count>0,true);
  }
 }
