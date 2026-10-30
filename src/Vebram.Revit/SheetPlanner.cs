@@ -17,11 +17,13 @@ public static partial class SheetPlanner
   foreach(var entry in LegalCatalog.Items)
   {
    var view=LegalCatalog.Reference(views,entry);if(view==null||!LegalCatalog.IsLegal(view)||result.Any(i=>i.ViewId==view.Id.Value))continue;
+   if(entry.Key=="areas-descobertas"&&!new FilteredElementCollector(doc,view.Id).OfClass(typeof(SpatialElement)).OfType<Autodesk.Revit.DB.Architecture.Room>().Any(r=>r.Area>0))continue;
    // Empty reserve views are template references, not deliverables ready to issue.
    bool prepared=view is ViewSchedule||new FilteredElementCollector(doc,view.Id).WhereElementIsNotElementType().Any(e=>e.OwnerViewId==view.Id&&DrawingOwnership.IsAnnotation(e));
    if(!prepared)continue;
    var current=placements.FirstOrDefault(p=>p.ViewId==view.Id)?.SheetId??schedules.FirstOrDefault(s=>s.ScheduleId==view.Id)?.OwnerViewId;
-   result.Add(new(entry.Key,entry.Label.Replace(" — preencher",""),view.Id.Value,view is ViewSchedule,current?.Value));
+   var label=entry.Key.StartsWith("planta-")&&view is ViewPlan plan?"Planta do "+(plan.GenLevel.Name.Contains("inferior",StringComparison.OrdinalIgnoreCase)||plan.GenLevel.Name.Contains("superior",StringComparison.OrdinalIgnoreCase)?"pavimento ":"")+plan.GenLevel.Name.ToLower(Implantation.Pt):entry.Label.Replace(" — preencher","");
+   result.Add(new(entry.Key,label,view.Id.Value,view is ViewSchedule,current?.Value));
   }
   // Area memories of the other floors (one view per floor) go with the ground memory on the plans sheet.
   foreach(var view in MemoryAreas.FloorViews(doc))
@@ -62,6 +64,7 @@ public static partial class SheetPlanner
   if(scaleOverrides!=null&&scaleOverrides.Any(p=>!items.Any(i=>i.ViewId==p.Key&&i.Key=="implantacao")||p.Value is not (50 or 100 or 200)))throw new InvalidOperationException("A escala escolhida deve ser 1:50, 1:100 ou 1:200 para a Implantação selecionada.");
   var sheets=Sheets(doc);var reference=sheets.FirstOrDefault(s=>Title(doc,s)!=null)??throw new InvalidOperationException("É necessária uma folha LEG com carimbo para usar como referência.");
   var zoneProfile=SheetZones.Read(doc,Title(doc,reference)!);
+  var stampProfile=SheetNumberStamp.Read(doc,Title(doc,reference)!);
   var types=new Dictionary<long,ElementId>();var scales=items.Where(i=>!i.Schedule).ToDictionary(i=>i.ViewId,i=>((View)doc.GetElement(new ElementId(i.ViewId))).Scale);
   var pages=new List<PlannerPage>();var warnings=new List<string>();var initialNumbers=sheets.Select(s=>s.SheetNumber).ToHashSet();
   var newSheetDependencies=new Dictionary<long,HashSet<ElementId>>();
@@ -108,7 +111,7 @@ public static partial class SheetPlanner
     {
      HideGuides(doc,target);doc.Regenerate();var area=LegalSheetComposition.Area(doc,target);
      var mapped=SheetZones.Map(doc,target,zoneProfile);
-     var obstacles=new FilteredElementCollector(doc,target.Id).WhereElementIsNotElementType().Where(e=>e.OwnerViewId==target.Id&&!e.IsHidden(target)&&!SheetNotes.IsUnedited(e)&&e.Category?.Id.Value!=(long)BuiltInCategory.OST_TitleBlocks).Select(e=>LegalSheets.Rect(e,target)).Where(r=>r!=null).Select(r=>r!.Value).ToList();
+     var obstacles=new FilteredElementCollector(doc,target.Id).WhereElementIsNotElementType().Where(e=>e.OwnerViewId==target.Id&&!e.IsHidden(target)&&!SheetNotes.IsUnedited(e)&&!SheetNumberStamp.Generated(e)&&e.Category?.Id.Value!=(long)BuiltInCategory.OST_TitleBlocks).Select(e=>LegalSheets.Rect(e,target)).Where(r=>r!=null).Select(r=>r!.Value).ToList();
      var lateral=new List<(PlannerItem Item,PaperPlacement Placement,string Zone)>();
      foreach(var table in remaining.Where(i=>i.Key is "urbanistico" or "areas" or "portas" or "janelas"))
      {
@@ -150,7 +153,8 @@ public static partial class SheetPlanner
     }
     if(groupPageCount>1)warnings.Add(SheetPacking.SheetName(group,profile)+": grupo dividido em "+groupPageCount+" folhas por falta de espaço, mantendo as escalas.");
    }
-   var reserved=optimize?Consolidate(doc,pages,items,sizes,types,sheets,initialNumbers,newSheetDependencies,warnings):new List<string>();if(reserved.Count>0)Compact(pages,sheets,reserved,warnings);
+   var reserved=optimize?Consolidate(doc,pages,items,sizes,types,sheets,initialNumbers,newSheetDependencies,warnings):new List<string>();
+   Renumber(doc,pages,sheets,reserved,warnings,stampProfile);
    RefreshBounds(doc,pages);
    if(scales.Any(p=>((View)doc.GetElement(new ElementId(p.Key))).Scale!=p.Value))throw new InvalidOperationException("Escala alterada; operação revertida.");
    var result=new SheetPlan(profile,ids,pages,warnings,optimize,reserved,scaleOverrides==null?null:new Dictionary<long,int>(scaleOverrides));
@@ -186,6 +190,11 @@ public static partial class SheetPlanner
  {
   var title=Title(doc,reference)!;var sheet=ViewSheet.Create(doc,title.GetTypeId());sheet.SheetNumber=number;sheet.Name="Projeto legal — complementos";
   foreach(var id in new[]{LegalCatalog.StageId,LegalCatalog.FunctionId,LegalCatalog.StatusId})if(sheet.get_Parameter(id) is {IsReadOnly:false} p)p.Set(LegalCatalog.Text(reference,id));
+  foreach(var field in StampData.Fields.Where(f=>!f.Project))
+  {
+   var value=Sheets(doc).Select(s=>s.get_Parameter(field.Parameter)?.AsString()).FirstOrDefault(v=>!string.IsNullOrWhiteSpace(v)&&v!="Projetista"&&v!="A PREENCHER");
+   if(value!=null&&sheet.get_Parameter(field.Parameter) is {IsReadOnly:false} target)target.Set(value);
+  }
   CopySheetCount(reference,sheet);var newTitle=new FilteredElementCollector(doc,sheet.Id).OfCategory(BuiltInCategory.OST_TitleBlocks).WhereElementIsNotElementType().FirstOrDefault();if(newTitle!=null)CopySheetCount(title,newTitle);doc.Regenerate();
   // Revit creates internal sheet elements (including a sketch plane) that a
   // view-scoped collector does not return. Record only this new sheet's initial

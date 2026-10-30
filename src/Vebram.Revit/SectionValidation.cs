@@ -8,7 +8,7 @@ using Vebram.Revit;
 namespace Vebram.Revit;
 internal sealed class SectionValidation:IExternalApplication
 {
- record Job(string Project,string Output,string Mode="sections",string? Template=null,string? Reference=null);
+ record Job(string Project,string Output,string Mode="sections",string? Template=null,string? Reference=null,string? Case04=null,string? Dxf=null);
  string path="";
  public Result OnStartup(UIControlledApplication app){path=Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!,"section-validation-job.json");if(File.Exists(path)){app.Idling+=Run;}return Result.Succeeded;}
  public Result OnShutdown(UIControlledApplication app)=>Result.Succeeded;
@@ -19,7 +19,19 @@ internal sealed class SectionValidation:IExternalApplication
   Document? doc=null;
   try
   {
+   if(job.Mode=="modelct04")
+   {
+    Case04Model.Build(ui,job.Template!,job.Project,job.Dxf!,Path.Combine(job.Output,"CT04_MODELO"));
+    ui.OpenAndActivateDocument(job.Project);File.WriteAllText(Path.Combine(job.Output,"CT04_MODELADA.txt"),"CT04 criada em projeto novo; conferir MODELO_QC.json.");return;
+   }
    doc=ui.Application.OpenDocumentFile(job.Project);
+   if(job.Mode=="legalr3")
+   {
+    LegalR3Validation.Run(doc,Path.Combine(job.Output,"CT03"),true);doc.Close(false);doc=null;
+    if(job.Reference!=null){doc=ui.Application.OpenDocumentFile(job.Reference);LegalR3Validation.Run(doc,Path.Combine(job.Output,"Sobrado"),false);doc.Close(false);doc=null;}
+    if(job.Case04!=null){doc=ui.Application.OpenDocumentFile(job.Case04);Case04Legal.Run(doc,Path.Combine(job.Output,"CT04"));doc.Close(false);doc=null;}
+    ui.OpenAndActivateDocument(job.Project);File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Rodada R3 CT03/Sobrado concluída; conferir PASSOS.json.");return;
+   }
    if(job.Mode=="ct03r2")
    {
     Ct03R2Validation.Run(doc,Path.Combine(job.Output,"CT03"),true);doc.Close(false);doc=null;

@@ -42,6 +42,8 @@ public static class LegalModules
   {
    if(previous!=null){var ids=previous.Elements.Select(s=>doc.GetElement(s.UniqueId)).Where(e=>e!=null&&e.OwnerViewId==target.Id&&DrawingOwnership.IsAnnotation(e)).Select(e=>e!.Id).ToList();if(ids.Count>0){var allowed=ids.ToHashSet();var removed=doc.Delete(ids);if(removed.Any(id=>!allowed.Contains(id)))throw new InvalidOperationException("Há elementos manuais dependentes das marcações geradas. A atualização foi revertida para preservá-los.");}}
    var prefs=LegalPreferenceStore.Read(doc);Preset(doc,target,source,item,prefs.Scale);
+   var cad=new FilteredElementCollector(doc).OfClass(typeof(ImportInstance)).WhereElementIsNotElementType().Where(e=>e.CanBeHidden(target)&&!e.IsHidden(target)).Select(e=>e.Id).ToList();
+   if(cad.Count>0)target.HideElements(cad);
    if(request.Key=="planta")
    {
     // Keep the legal A/B references; hide unrelated teaching/executive section symbols in this view only.

@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -7,11 +7,13 @@ using Autodesk.Revit.DB.ExtensibleStorage;
 
 namespace Vebram.Revit;
 
+public sealed record SitePoint(double X,double Y);
+public sealed record StreetSide(string Side,string Name,double Sidewalk,double Road);
 public sealed record ImplantationOptions(long SourceId, long FootprintId, double LotMinX, double LotMinY,
     double LotWidth, double LotDepth, int Scale, string Front, bool AddStreet, double SidewalkWidth,
     double StreetWidth, string StreetName, double NorthDegrees, bool Study, bool ReplaceEdited = false,
     double? DesignRoofSlope = null, string RoofFlow = "Modelo", List<RoofDrainageChoice>? Drainage = null,
-    List<long>? OccupationExtraIds = null);
+    List<long>? OccupationExtraIds = null,StreetSide? SecondaryStreet=null,List<SitePoint>? LotPolygon=null);
 
 public sealed record ImplantationPlan(ViewPlan Source, Floor Footprint, ViewPlan? Target,
     ImplantationOptions Options, IReadOnlyList<XYZ> Contour, IReadOnlyList<Element> Roofs)
@@ -52,6 +54,11 @@ public static class Implantation
     }
     public static ImplantationPlan Plan(Document doc, ImplantationOptions options)
     {
+        var polygon=options.LotPolygon??TerrainBoundary(doc);
+        if(polygon is {Count:>0} && (polygon.Count!=4||polygon.Where((p,i)=>Math.Abs(p.X-polygon[(i+1)%polygon.Count].X)>.001&&Math.Abs(p.Y-polygon[(i+1)%polygon.Count].Y)>.001).Any()))
+            throw new InvalidOperationException("Este lote não é retangular ("+polygon.Count+" lados). O projeto legal ainda não calcula lotes com chanfro ou divisas inclinadas. O lote e o modelo foram preservados; não use o retângulo envolvente como área do lote.");
+        if(options.SecondaryStreet is {} second && (!new[]{"Direita","Esquerda","Acima","Abaixo"}.Contains(second.Side)||second.Side==options.Front||string.IsNullOrWhiteSpace(second.Name)||!double.IsFinite(second.Sidewalk)||!double.IsFinite(second.Road)||second.Sidewalk<=0||second.Road<=0))
+            throw new InvalidOperationException("Confira lado, nome, passeio e leito da segunda via; ela deve estar em outro lado do lote.");
         if (doc.IsFamilyDocument || doc.IsReadOnly || doc.IsWorkshared || doc.PathName.EndsWith(".rte", StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException("Use um projeto RVT local editável.");
         var source = doc.GetElement(new ElementId(options.SourceId)) as ViewPlan;
@@ -149,32 +156,42 @@ public static class Implantation
             helpers.Dimension([lot[0],Horizontal(fy0),Horizontal(fy1),lot[2]], new(x0-Feet(.95),y0,z), new(x0-Feet(.95),y1,z));
             helpers.Dimension([lot[0],lot[2]], new(x0-Feet(1.95),y0,z), new(x0-Feet(1.95),y1,z));
 
-            double contextX0=x0, contextX1=x1, contextY0=y0, contextY1=y1;
-            if (o.AddStreet)
+            double contextX0=x0, contextX1=x1, contextY0=y0, contextY1=y1;string secondaryNote="";
+            foreach(var side in StreetSides(o))
             {
-                var w=Feet(o.SidewalkWidth); var road=Feet(o.StreetWidth);
+                var streetOptions=o with{Front=side.Side,StreetName=side.Name,SidewalkWidth=side.Sidewalk,StreetWidth=side.Road};
+                var w=Feet(streetOptions.SidewalkWidth); var road=Feet(streetOptions.StreetWidth);
                 var widths=new[]{w,road,w}; var offset=0.0;
                 var bands=new List<List<DetailCurve>>();
                 for(int i=0;i<3;i++)
                 {
                     double a=x0,b=y0,c=x1,d=y1;
-                    if(o.Front=="Direita"){a=x1+offset;c=a+widths[i];}
-                    if(o.Front=="Esquerda"){c=x0-offset;a=c-widths[i];}
-                    if(o.Front=="Acima"){b=y1+offset;d=b+widths[i];}
-                    if(o.Front=="Abaixo"){d=y0-offset;b=d-widths[i];}
+                    if(streetOptions.Front=="Direita"){a=x1+offset;c=a+widths[i];}
+                    if(streetOptions.Front=="Esquerda"){c=x0-offset;a=c-widths[i];}
+                    if(streetOptions.Front=="Acima"){b=y1+offset;d=b+widths[i];}
+                    if(streetOptions.Front=="Abaixo"){d=y0-offset;b=d-widths[i];}
                     bands.Add(helpers.Polygon([new(a,b,z),new(c,b,z),new(c,d,z),new(a,d,z)],1));
                     contextX0=Math.Min(contextX0,a);contextX1=Math.Max(contextX1,c);contextY0=Math.Min(contextY0,b);contextY1=Math.Max(contextY1,d);
-                    if(i==1) helpers.Text(new((a+c)/2,(b+d)/2,z),o.StreetName,true,true,o.Front is "Direita" or "Esquerda"?Math.PI/2:0);
+                    if(i==1) helpers.Text(new((a+c)/2,(b+d)/2,z),streetOptions.StreetName,true,true,streetOptions.Front is "Direita" or "Esquerda"?Math.PI/2:0);
                     offset+=widths[i];
                 }
                 doc.Regenerate();
-                if(o.Front=="Direita") helpers.Dimension([lot[1],bands[0][1],bands[1][1],bands[2][1]],new(x1,y0-Feet(.95),z),new(contextX1,y0-Feet(.95),z));
-                else if(o.Front=="Esquerda") helpers.Dimension([bands[2][3],bands[1][3],bands[0][3],lot[3]],new(contextX0,y0-Feet(.95),z),new(x0,y0-Feet(.95),z));
-                else if(o.Front=="Acima") helpers.Dimension([lot[2],bands[0][2],bands[1][2],bands[2][2]],new(x0-Feet(.95),y1,z),new(x0-Feet(.95),contextY1,z));
+                if(streetOptions.Front=="Direita") helpers.Dimension([lot[1],bands[0][1],bands[1][1],bands[2][1]],new(x1,y0-Feet(.95),z),new(contextX1,y0-Feet(.95),z));
+                else if(streetOptions.Front=="Esquerda") helpers.Dimension([bands[2][3],bands[1][3],bands[0][3],lot[3]],new(contextX0,y0-Feet(.95),z),new(x0,y0-Feet(.95),z));
+                else if(streetOptions.Front=="Acima") helpers.Dimension([lot[2],bands[0][2],bands[1][2],bands[2][2]],new(x0-Feet(.95),y1,z),new(x0-Feet(.95),contextY1,z));
                 else helpers.Dimension([bands[2][0],bands[1][0],bands[0][0],lot[0]],new(x0-Feet(.95),contextY0,z),new(x0-Feet(.95),y0,z));
-                var frontCenter=o.Front switch {"Direita"=>new XYZ(x1,(y0+y1)/2,z),"Esquerda"=>new XYZ(x0,(y0+y1)/2,z),
+                var frontCenter=streetOptions.Front switch {"Direita"=>new XYZ(x1,(y0+y1)/2,z),"Esquerda"=>new XYZ(x0,(y0+y1)/2,z),
                     "Acima"=>new XYZ((x0+x1)/2,y1,z),_=>new XYZ((x0+x1)/2,y0,z)};
-                helpers.Text(frontCenter+new XYZ(Feet(.4),Feet(.5),0),"FRENTE / ACESSO",false,false);
+                if(streetOptions.Front==o.Front)helpers.Text(frontCenter+new XYZ(Feet(.4),Feet(.5),0),"FRENTE / ACESSO",false,false);
+            }
+            if(o.SecondaryStreet is {} secondary)
+            {
+                double distance=secondary.Side switch{"Direita"=>x1-fx1,"Esquerda"=>fx0-x0,"Acima"=>y1-fy1,_=>fy0-y0};
+                if(secondary.Side is "Direita" or "Esquerda")helpers.Dimension(secondary.Side=="Direita"?[Vertical(fx1),lot[1]]:[lot[3],Vertical(fx0)],new(secondary.Side=="Direita"?fx1:x0,y1+Feet(1),z),new(secondary.Side=="Direita"?x1:fx0,y1+Feet(1),z));
+                else helpers.Dimension(secondary.Side=="Acima"?[Horizontal(fy1),lot[2]]:[lot[0],Horizontal(fy0)],new(x1+Feet(1),secondary.Side=="Acima"?fy1:y0,z),new(x1+Feet(1),secondary.Side=="Acima"?y1:fy0,z));
+                var data=ProjectRegistrationStore.Read(doc);string minimum="a verificar";
+                if(ProjectDataIntegration.Matches(data)&&data.Profile!.Rules.TryGetValue("afastamento_frontal_secundario",out var rule)&&double.TryParse(rule.Replace(',','.'),NumberStyles.Float,CultureInfo.InvariantCulture,out var n)&&double.IsFinite(n)&&n>=0)minimum=n.ToString("0.00",Pt)+" m (perfil informado)";
+                secondaryNote="Frente secundária · "+secondary.Name+"\nAfastamento medido: "+Meters(distance).ToString("0.00",Pt)+" m · mínimo: "+minimum;
             }
             var northStart=new XYZ(x0+Feet(1.8),contextY1+Feet(1.6),z);
             double angle=o.NorthDegrees*Math.PI/180;
@@ -201,6 +218,7 @@ public static class Implantation
                 "Cotas parciais: afastamentos desse contorno\nFrente: "+o.Front.ToLower(Pt)+" do desenho\n"+
                 (o.Study?"ESTUDO FICTÍCIO — NÃO PROTOCOLAR":"Dados do lote/norte informados pelo autor");
             var registrationNotes=ProjectDataIntegration.CompactForDrawing(ProjectDataIntegration.Notes(ProjectRegistrationStore.Read(doc)));if(registrationNotes.Length>0)notes+="\n"+registrationNotes;
+            if(secondaryNote.Length>0)notes+="\n"+secondaryNote;
             var extra=LegalPreferenceStore.Read(doc).AdditionalNote;if(!string.IsNullOrWhiteSpace(extra))notes+="\n"+extra;
             doc.Regenerate();
             var annotationBottom=generated.Select(e=>e.get_BoundingBox(view)).Where(b=>b!=null).Select(b=>b!.Min.Y).DefaultIfEmpty(contextY0).Min();
@@ -228,6 +246,16 @@ public static class Implantation
     }
 
     public static IReadOnlyList<XYZ> GetContour(Document doc,Floor floor)=>ExternalContour(doc,floor,FloorContour(doc,floor));
+    internal static IEnumerable<StreetSide> StreetSides(ImplantationOptions o)
+    {if(o.AddStreet)yield return new(o.Front,o.StreetName,o.SidewalkWidth,o.StreetWidth);if(o.SecondaryStreet is {} s)yield return s;}
+    internal static List<SitePoint>? TerrainBoundary(Document doc)
+    {
+        var terrain=new FilteredElementCollector(doc).OfClass(typeof(Toposolid)).Cast<Toposolid>().Where(t=>t.HostTopoId==ElementId.InvalidElementId).OrderByDescending(t=>t.get_Parameter(BuiltInParameter.HOST_AREA_COMPUTED)?.AsDouble()??0).FirstOrDefault();
+        if(terrain==null||doc.GetElement(terrain.SketchId) is not Sketch sketch)return null;
+        var loops=sketch.Profile.Cast<CurveArray>().Select(a=>a.Cast<Curve>().Select(c=>c.GetEndPoint(0)).ToList()).OrderByDescending(p=>LegalMetrics.PolygonArea(p.Select(q=>(q.X,q.Y)).ToArray())).ToList();
+        if(loops.Count==0)return null;
+        var points=loops[0];return points.Where((p,i)=>Math.Abs((p-points[(i+points.Count-1)%points.Count]).CrossProduct(points[(i+1)%points.Count]-p).Z)>1e-6).Select(p=>new SitePoint(Meters(p.X),Meters(p.Y))).ToList();
+    }
     private static IReadOnlyList<XYZ> FloorContour(Document doc, Floor floor)
     {
         if(doc.GetElement(floor.SketchId) is not Sketch sketch)throw new InvalidOperationException("O piso selecionado não fornece um contorno nativo.");

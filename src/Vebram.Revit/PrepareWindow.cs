@@ -23,6 +23,7 @@ public sealed class PrepareWindow : Window
     readonly ComboBox floors=new(){MinHeight=34,DisplayMemberPath=nameof(SourceChoice.Name)};
     readonly Dictionary<string,TextBox> fields=[];
     ComboBox scale=null!,front=null!;
+    ComboBox secondarySide=null!;CheckBox secondaryEnabled=null!;
     CheckBox confirm=null!,study=null!,street=null!,replace=null!;
     readonly List<(long Id,CheckBox Box)> extraBoxes=new();
     List<RoofDrainageChoice>? drainage;
@@ -136,6 +137,10 @@ public sealed class PrepareWindow : Window
         street=new CheckBox{Content="Representar passeio e via com os dados abaixo",IsChecked=saved?.AddStreet??doc.Title.Contains("Casa_Terras",StringComparison.OrdinalIgnoreCase),Margin=new Thickness(0,12,0,6)};right.Children.Add(street);
         Field(right,"Largura do passeio (m)","sidewalk",saved?.SidewalkWidth??1.8);Field(right,"Largura da via (m)","road",saved?.StreetWidth??7);
         right.Children.Add(Label("Nome da via"));var name=new TextBox{Text=saved?.StreetName??"Rua de estudo (fictícia)",MinHeight=32,Padding=new Thickness(6)};fields["streetName"]=name;right.Children.Add(name);
+        secondaryEnabled=new CheckBox{Content="Lote de esquina: representar segunda via",IsChecked=saved?.SecondaryStreet!=null,Margin=new Thickness(0,12,0,6)};right.Children.Add(secondaryEnabled);
+        right.Children.Add(Label("Lado da segunda via"));secondarySide=new ComboBox{ItemsSource=new[]{"Direita","Esquerda","Acima","Abaixo"},SelectedItem=saved?.SecondaryStreet?.Side??"Direita",MinHeight=32};right.Children.Add(secondarySide);
+        right.Children.Add(Label("Nome da segunda via"));var secondaryName=new TextBox{Text=saved?.SecondaryStreet?.Name??"",MinHeight=32};fields["secondaryName"]=secondaryName;right.Children.Add(secondaryName);
+        Field(right,"Passeio da segunda via (m)","secondarySidewalk",saved?.SecondaryStreet?.Sidewalk??0);Field(right,"Leito da segunda via (m)","secondaryRoad",saved?.SecondaryStreet?.Road??0);
         drainage=saved?.Drainage;
         var roofButton=new Button{Content="Configurar caimentos por água →",Padding=new Thickness(12,10,12,10),Margin=new Thickness(0,15,0,6)};content.Children.Add(roofButton);
         roofButton.Click+=(_,_)=>{var roofs=new FilteredElementCollector(doc).OfClass(typeof(RoofBase)).Cast<Element>().OrderBy(r=>r.Id.Value).ToList();var dialog=new RoofDrainageWindow(this,doc,RoofWaters.Read(doc,roofs),saved,drainage);if(dialog.ShowDialog()==true)drainage=dialog.Choices;};
@@ -282,7 +287,8 @@ public sealed class PrepareWindow : Window
             Selection=new(Source.Id.Value,footprint.Id,Number("x"),Number("y"),Number("width"),Number("depth"),int.Parse(((string)scale.SelectedItem).Split(':')[1]),
                 (string)front.SelectedItem,street.IsChecked==true,Number("sidewalk"),Number("road"),fields["streetName"].Text,Number("north"),study.IsChecked==true,replace.IsChecked==true,
                 Implantation.Saved(doc)?.DesignRoofSlope,Implantation.Saved(doc)?.RoofFlow??"Modelo",drainage,
-                extraBoxes.Where(e=>e.Box.IsChecked==true&&e.Id!=footprint.Id).Select(e=>e.Id).ToList() is {Count:>0} extras?extras:null);
+                extraBoxes.Where(e=>e.Box.IsChecked==true&&e.Id!=footprint.Id).Select(e=>e.Id).ToList() is {Count:>0} extras?extras:null,
+                secondaryEnabled.IsChecked==true?new((string)secondarySide.SelectedItem,fields["secondaryName"].Text,Number("secondarySidewalk"),Number("secondaryRoad")):null,Implantation.Saved(doc)?.LotPolygon);
             _=Implantation.Plan(doc,Selection);DialogResult=true;
         }
         catch(Exception e){MessageBox.Show(this,e.Message,"Conferir Implantação",MessageBoxButton.OK,MessageBoxImage.Information);}

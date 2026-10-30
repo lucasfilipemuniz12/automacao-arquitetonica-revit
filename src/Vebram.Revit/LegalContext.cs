@@ -72,13 +72,19 @@ public static class LegalContext
     // At 1:500 a 12 m lot is only 24 mm wide on paper. Keep long identification outside it.
     Wrapped(x+w*.05,y+h*.60,options.LotWidth/view.Scale*.9,"LOTE\n"+area.ToString("0.00",Implantation.Pt)+" m²");
     Wrapped(x-Implantation.Feet(35),y+h*.7,.05,"CONFRONTANTE ESQUERDO\n"+Missing(input.LeftNeighbor));
-    Wrapped(x+w+Implantation.Feet(5),y+h*.7,.05,"CONFRONTANTE DIREITO\n"+Missing(input.RightNeighbor));
+    if(!Implantation.StreetSides(options).Any(s=>s.Side=="Direita"))Wrapped(x+w+Implantation.Feet(5),y+h*.7,.05,"CONFRONTANTE DIREITO\n"+Missing(input.RightNeighbor));
     Wrapped(x,y+h+Implantation.Feet(10),.065,"CONFRONTANTE AO FUNDO\n"+Missing(input.RearNeighbor));
-    var side=options.Front;double offset=Implantation.Feet(options.SidewalkWidth+options.StreetWidth);
-    if(options.AddStreet)
+    foreach(var roadSide in Implantation.StreetSides(options))
     {
-     if(side=="Direita"||side=="Esquerda"){double xx=side=="Direita"?x+w+offset:x-offset;L(P(xx,y-gap),P(xx,y+h+gap));Text(xx+(side=="Direita"?gap:-Implantation.Feet(25)),y-gap-Implantation.Feet(6),"VIA: "+options.StreetName);}
-     else{double yy=side=="Acima"?y+h+offset:y-offset;L(P(x-gap,yy),P(x+w+gap,yy));Text(x,yy+(side=="Acima"?Implantation.Feet(8):-Implantation.Feet(8)),"VIA: "+options.StreetName);}
+     var side=roadSide.Side;double offset=0;
+     foreach(var width in new[]{roadSide.Sidewalk,roadSide.Road,roadSide.Sidewalk})
+     {
+      offset+=Implantation.Feet(width);
+      if(side=="Direita"||side=="Esquerda"){double xx=side=="Direita"?x+w+offset:x-offset;L(P(xx,y),P(xx,y+h));}
+      else{double yy=side=="Acima"?y+h+offset:y-offset;L(P(x,yy),P(x+w,yy));}
+     }
+     if(side=="Direita"||side=="Esquerda"){double xx=side=="Direita"?x+w+offset:x-offset;Wrapped(xx+(side=="Direita"?gap:-Implantation.Feet(25)),y+h*.55,.055,"VIA PÚBLICA\n"+roadSide.Name+"\nLeito "+Number(roadSide.Road)+" m · passeio "+Number(roadSide.Sidewalk)+" m");}
+     else{double yy=side=="Acima"?y+h+offset:y-offset;Wrapped(x,yy+(side=="Acima"?Implantation.Feet(8):-Implantation.Feet(3)),.065,"VIA PÚBLICA: "+roadSide.Name+"\nLeito "+Number(roadSide.Road)+" m · passeio "+Number(roadSide.Sidewalk)+" m");}
     }
     double radians=options.NorthDegrees*Math.PI/180;var north=new XYZ(-Math.Sin(radians),Math.Cos(radians),0);var tail=P(x+w+Implantation.Feet(35),y+h);var tip=tail+north*Implantation.Feet(8);var right=new XYZ(north.Y,-north.X,0);L(tail,tip);L(tip,tip-north*Implantation.Feet(2)+right*Implantation.Feet(1));L(tip,tip-north*Implantation.Feet(2)-right*Implantation.Feet(1));Text(tip.X,tip.Y+Implantation.Feet(3),"N");
     Wrapped(x-Implantation.Feet(35),y-Implantation.Feet(12),.13,"LOTE: "+(string.IsNullOrWhiteSpace(input.Identification)?"identificação não informada":input.Identification));
