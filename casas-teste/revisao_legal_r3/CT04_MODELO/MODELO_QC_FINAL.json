@@ -1,0 +1,286 @@
+{
+  "Status": "base modelada; lacunas da ficha registradas em HIPOTESES_CT04.md",
+  "WarningCount": 0,
+  "WallKinds": [
+    "Basic"
+  ],
+  "Rooms": [
+    {
+      "name": "Entrada / hall",
+      "level": "Térreo",
+      "area_m2": 3.431999999999999
+    },
+    {
+      "name": "Estar / jantar",
+      "level": "Térreo",
+      "area_m2": 25.025000000000006
+    },
+    {
+      "name": "Circulação",
+      "level": "Térreo",
+      "area_m2": 5.962500000000004
+    },
+    {
+      "name": "Cozinha",
+      "level": "Térreo",
+      "area_m2": 14.062499999999995
+    },
+    {
+      "name": "Lavabo",
+      "level": "Térreo",
+      "area_m2": 1.960000000000001
+    },
+    {
+      "name": "Despensa",
+      "level": "Térreo",
+      "area_m2": 1.6099999999999994
+    },
+    {
+      "name": "Escada",
+      "level": "Térreo",
+      "area_m2": 4.927999999999998
+    },
+    {
+      "name": "Suíte",
+      "level": "Superior",
+      "area_m2": 14.377500000000005
+    },
+    {
+      "name": "Quarto 02",
+      "level": "Superior",
+      "area_m2": 8.342500000000005
+    },
+    {
+      "name": "Hall",
+      "level": "Superior",
+      "area_m2": 5.992500000000004
+    },
+    {
+      "name": "Banho social",
+      "level": "Superior",
+      "area_m2": 4.845000000000004
+    },
+    {
+      "name": "Banho suíte",
+      "level": "Superior",
+      "area_m2": 5.227500000000003
+    },
+    {
+      "name": "Rouparia",
+      "level": "Superior",
+      "area_m2": 1.7819999999999991
+    },
+    {
+      "name": "Escada",
+      "level": "Superior",
+      "area_m2": 4.927999999999998
+    },
+    {
+      "name": "Garagem",
+      "level": "Garagem",
+      "area_m2": 14.444999999999995
+    }
+  ],
+  "LinkedDXF": [
+    {
+      "id": 372275,
+      "linked": true,
+      "basis_x": [
+        1,
+        0
+      ],
+      "basis_y": [
+        0,
+        1
+      ]
+    }
+  ],
+  "Terrain": [
+    {
+      "id": 373128,
+      "min_z": -2.2700000000000076,
+      "max_z": 3.708
+    },
+    {
+      "id": 373155,
+      "min_z": -2.2700000000000076,
+      "max_z": -0.22
+    },
+    {
+      "id": 373162,
+      "min_z": -2.2700000000000076,
+      "max_z": -0.07
+    }
+  ],
+  "Slabs": [
+    {
+      "id": 371908,
+      "name": "Laje de fundação de 150 mm",
+      "level": "Térreo",
+      "bottom": -0.22,
+      "top": -0.07,
+      "area_m2": 63.99999999999999
+    },
+    {
+      "id": 371915,
+      "name": "Laje de fundação de 150 mm",
+      "level": "Superior",
+      "bottom": 2.7800000000000002,
+      "top": 2.9300000000000006,
+      "area_m2": 47.071999999999996
+    },
+    {
+      "id": 371928,
+      "name": "CT04 LAJE GARAGEM / 15 cm",
+      "level": "Garagem",
+      "bottom": -0.82,
+      "top": -0.6699999999999999,
+      "area_m2": 16.499999999999993
+    },
+    {
+      "id": 371937,
+      "name": "CT04 INTERNO / 7 cm",
+      "level": "Térreo",
+      "bottom": -0.07,
+      "top": 0,
+      "area_m2": 3.4320000000000013
+    },
+    {
+      "id": 371996,
+      "name": "CT04 INTERNO / 7 cm",
+      "level": "Térreo",
+      "bottom": -0.07,
+      "top": 0,
+      "area_m2": 25.024999999999995
+    },
+    {
+      "id": 372005,
+      "name": "CT04 INTERNO / 7 cm",
+      "level": "Térreo",
+      "bottom": -0.07,
+      "top": 0,
+      "area_m2": 5.962499999999999
+    },
+    {
+      "id": 372014,
+      "name": "CT04 INTERNO / 7 cm",
+      "level": "Térreo",
+      "bottom": -0.07,
+      "top": 0,
+      "area_m2": 14.0625
+    },
+    {
+      "id": 372023,
+      "name": "CT04 INTERNO / 7 cm",
+      "level": "Térreo",
+      "bottom": -0.07,
+      "top": 0,
+      "area_m2": 1.960000000000001
+    },
+    {
+      "id": 372032,
+      "name": "CT04 INTERNO / 7 cm",
+      "level": "Térreo",
+      "bottom": -0.07,
+      "top": 0,
+      "area_m2": 1.610000000000002
+    },
+    {
+      "id": 372042,
+      "name": "CT04 INTERNO / 7 cm",
+      "level": "Superior",
+      "bottom": 2.9300000000000006,
+      "top": 3.0000000000000004,
+      "area_m2": 14.377499999999994
+    },
+    {
+      "id": 372054,
+      "name": "CT04 INTERNO / 7 cm",
+      "level": "Superior",
+      "bottom": 2.9300000000000006,
+      "top": 3.0000000000000004,
+      "area_m2": 8.3425
+    },
+    {
+      "id": 372065,
+      "name": "CT04 INTERNO / 7 cm",
+      "level": "Superior",
+      "bottom": 2.9300000000000006,
+      "top": 3.0000000000000004,
+      "area_m2": 5.9925
+    },
+    {
+      "id": 372078,
+      "name": "CT04 INTERNO / 7 cm",
+      "level": "Superior",
+      "bottom": 2.9300000000000006,
+      "top": 3.0000000000000004,
+      "area_m2": 4.845000000000002
+    },
+    {
+      "id": 372089,
+      "name": "CT04 INTERNO / 7 cm",
+      "level": "Superior",
+      "bottom": 2.9300000000000006,
+      "top": 3.0000000000000004,
+      "area_m2": 5.227499999999999
+    },
+    {
+      "id": 372102,
+      "name": "CT04 INTERNO / 7 cm",
+      "level": "Superior",
+      "bottom": 2.9300000000000006,
+      "top": 3.0000000000000004,
+      "area_m2": 1.7819999999999998
+    },
+    {
+      "id": 372120,
+      "name": "CT04 EXTERNO / 7 cm",
+      "level": "Garagem",
+      "bottom": -0.6699999999999999,
+      "top": -0.6,
+      "area_m2": 14.44499999999999
+    },
+    {
+      "id": 372129,
+      "name": "CT04 CALÇADA / 7 cm",
+      "level": "Garagem",
+      "bottom": -0.6699999999999999,
+      "top": -0.6,
+      "area_m2": 8.999999999999998
+    },
+    {
+      "id": 372136,
+      "name": "CT04 CALÇADA / 7 cm",
+      "level": "Térreo",
+      "bottom": -0.07,
+      "top": 0,
+      "area_m2": 3.6
+    },
+    {
+      "id": 372143,
+      "name": "CT04 EXTERNO / 7 cm",
+      "level": "Térreo",
+      "bottom": -0.07,
+      "top": 0,
+      "area_m2": 15.999999999999998
+    }
+  ],
+  "Unmodeled": [
+    "Boxes sem dimensoes na ficha",
+    "PG1 basculante: familia correspondente nao localizada",
+    "Caixa dagua 1000 L: familia correspondente nao localizada",
+    "Vegetacao especifica e muda sem posicao cotada",
+    "Detalhes dos degraus dos acessos sem piso/posicao suficientes"
+  ],
+  "LotArea": 383.7,
+  "BuildingWithinLot": true,
+  "RampOutsideChamfer_m2": 0.18,
+  "Stairs": [
+    {
+      "risers": 17,
+      "riser_m": 0.17647058823529413,
+      "tread_m": 0.28
+    }
+  ]
+}

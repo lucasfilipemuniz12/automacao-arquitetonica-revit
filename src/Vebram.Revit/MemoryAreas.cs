@@ -155,6 +155,8 @@ public static class MemoryAreas
     throw new InvalidOperationException("Há pisos de classes diferentes sobrepostos na memória. Confira a classificação; nenhuma área foi escolhida ou somada duas vezes.");
    hiddenIds=hiddenIds.Distinct().ToList();
    if(hiddenIds.Count>0)view.HideElements(hiddenIds);
+   if(!ground)
+   {var terrains=new FilteredElementCollector(doc).OfClass(typeof(Toposolid)).Where(e=>e.CanBeHidden(view)&&!e.IsHidden(view)).Select(e=>e.Id).ToList();if(terrains.Count>0){view.HideElements(terrains);hiddenIds.AddRange(terrains);}}
    if(garageRooms.Count>0&&!totals.ContainsKey(Garagem))warnings.Add("Há ambiente de garagem, mas nenhum piso foi identificado sob ele; conferir a classe da garagem.");
    warnings.AddRange(notes);
    // The terrain (toposolid) that shows between the floors is the same grass area as the "Terreno gramado" floors: same class and colour.
@@ -182,6 +184,13 @@ public static class MemoryAreas
    // Legend to the right of the building: swatch + class + area (summed from the same floors painted above).
    var boxes=floors.Select(f=>f.get_BoundingBox(null)).Where(b=>b!=null).ToList();
    double right=boxes.Max(b=>b!.Max.X),top=boxes.Max(b=>b!.Max.Y);int scale=view.Scale;double z=source.GenLevel.Elevation;
+   // Include the entire lot and the visible upper storeys, not just this level's finishes.
+   // On the lower floor the terrace/roof can extend beyond its floors; on the ground memory
+   // the terrain is also part of the drawing and must not sit underneath the legend.
+   doc.Regenerate();
+   var drawingBoxes=new FilteredElementCollector(doc,view.Id).WhereElementIsNotElementType().Where(e=>!e.ViewSpecific&&!e.IsHidden(view)&&e is HostObject or Autodesk.Revit.DB.Architecture.Railing).Select(e=>e.get_BoundingBox(view)).Where(b=>b!=null).ToList();
+   if(drawingBoxes.Count>0){right=Math.Max(right,drawingBoxes.Max(b=>b!.Max.X));top=Math.Max(top,drawingBoxes.Max(b=>b!.Max.Y));}
+   if(ground&&lot!=null){right=Math.Max(right,Implantation.Feet(lot.LotMinX+lot.LotWidth));top=Math.Max(top,Implantation.Feet(lot.LotMinY+lot.LotDepth));}
    double Paper(double meters)=>Implantation.Feet(meters)*scale;
    var x0=right+Paper(.012);double y=top;
    var regionBase=new FilteredElementCollector(doc).OfClass(typeof(FilledRegionType)).Cast<FilledRegionType>().First();

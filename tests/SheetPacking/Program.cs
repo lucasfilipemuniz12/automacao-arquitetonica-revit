@@ -16,4 +16,5 @@ Check(SheetPacking.Grouped(adaptiveArea,[],adaptiveItems.Select(i=>i with{Width=
 Check(SheetPacking.Grouped(adaptiveArea,[],adaptiveItems,12)!.SequenceEqual(combined),"adaptive deterministic");
 var random=new Random(17);for(int trial=0;trial<100;trial++){var items=Enumerable.Range(0,8).Select(i=>new PaperItem(i,random.Next(30,180),random.Next(30,140))).ToList();var packed=SheetPacking.Pack(area,[],items,12);if(packed==null)continue;Check(packed.Count==items.Count&&packed.All(p=>area.Contains(p.Rect,1e-6)),"random bounds");for(int i=0;i<packed.Count;i++)for(int j=i+1;j<packed.Count;j++)Check(!packed[i].Rect.Intersects(packed[j].Rect,12-1e-6),"random collision");}
 Check(SheetPacking.PreferredSheet("memoria","preferencial")==2&&SheetPacking.PreferredSheet("memoria","r20")==2,"memory accompanies plans");
+Check(SheetPacking.PreferredSheet("areas-descobertas","preferencial")==2&&SheetPacking.PreferredSheet("areas-descobertas","r20")==2,"uncovered areas accompany useful area table, outside its sum");
 Console.WriteLine($"{tests} verificações passaram.");

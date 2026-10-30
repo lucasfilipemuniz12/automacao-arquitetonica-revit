@@ -65,18 +65,32 @@ public static partial class SheetPlanner
   // Sheet names always start with a capital letter ("Fachadas", not "fachadas").
   return char.ToUpperInvariant(text[0])+text[1..];
  }
- static void Compact(List<PlannerPage> pages,List<ViewSheet> sheets,List<string> reserved,List<string> warnings)
+ static void Renumber(Document doc,List<PlannerPage> pages,List<ViewSheet> sheets,List<string> reserved,List<string> warnings,NumberStampProfile? stampProfile)
  {
-  // A new sheet numbered after an existing sheet that ended empty takes the lower number.
-  // The existing sheet is not deleted: it only swaps numbers and stays as reserve.
-  foreach(var low in reserved.OrderBy(n=>n,StringComparer.Ordinal).ToList())
+  // Issue all occupied LEG sheets in order, including unselected/manual sheets. Empty references
+  // remain in the document, outside the issued LEG set, so they cannot create holes or inflate its total.
+  bool Occupied(ViewSheet s)=>pages.Any(p=>p.Number==s.SheetNumber)||new FilteredElementCollector(doc,s.Id).WhereElementIsNotElementType().Any(e=>e is Viewport or ScheduleSheetInstance);
+  var issued=sheets.Where(Occupied).OrderBy(s=>s.SheetNumber,StringComparer.Ordinal).ToList();
+  var spare=sheets.Except(issued).ToList();var old=sheets.ToDictionary(s=>s.Id.Value,s=>s.SheetNumber);
+  reserved.Clear();
+  foreach(var s in sheets)s.SheetNumber="VEBRAM-TEMP-"+Guid.NewGuid().ToString("N");
+  foreach(var s in spare){s.SheetNumber="RESERVA-"+old[s.Id.Value]+"-"+s.Id.Value;if(!reserved.Contains(s.SheetNumber))reserved.Add(s.SheetNumber);}
+  for(int i=0;i<issued.Count;i++)
   {
-   var page=pages.Where(p=>p.IsNew&&StringComparer.Ordinal.Compare(p.Number,low)>0).OrderBy(p=>p.Number,StringComparer.Ordinal).FirstOrDefault();if(page==null)continue;
-   var fresh=sheets.First(s=>s.SheetNumber==page.Number);var spare=sheets.First(s=>s.SheetNumber==low);string high=page.Number;
-   spare.SheetNumber="VEBRAM-TEMP-"+Guid.NewGuid().ToString("N");fresh.SheetNumber=low;spare.SheetNumber=high;
-   pages[pages.IndexOf(page)]=page with{Number=low};reserved[reserved.IndexOf(low)]=high;
-   warnings.Add(high+" renumerada para "+low+", que tinha ficado vazia; a folha vazia passou a "+high+" e continua como reserva.");
+   var s=issued[i];s.SheetNumber="LEG-"+(i+1).ToString("00");int index=pages.FindIndex(p=>p.Number==old[s.Id.Value]);
+   if(stampProfile!=null)SheetNumberStamp.Draw(doc,s,stampProfile,issued.Count);
+   if(index>=0)pages[index]=pages[index] with{Number=s.SheetNumber};
+   foreach(var e in new Element?[]{s,Title(doc,s)})if(e!=null)foreach(Parameter p in e.Parameters)
+   {
+    string n=p.Definition.Name.ToLowerInvariant();
+    if(p.IsReadOnly||!(n.Contains("total")&&(n.Contains("folha")||n.Contains("prancha"))||n.Contains("nº de folhas")||n.Contains("n° de folhas")))continue;
+    if(p.StorageType==StorageType.String)p.Set(issued.Count.ToString("00"));else if(p.StorageType==StorageType.Integer)p.Set(issued.Count);
+   }
   }
+  warnings.Add("Folhas emitidas renumeradas em sequência; total "+issued.Count+". Referências vazias preservadas como RESERVA.");
+  var user=SheetNotes.ReadUser(doc);var map=sheets.ToDictionary(s=>old[s.Id.Value],s=>s.SheetNumber);
+  SheetNotes.SaveUser(doc,new(user.General,user.Sheets.ToDictionary(p=>map.GetValueOrDefault(p.Key,p.Key),p=>p.Value)));
+  foreach(var page in pages){var s=sheets.First(s=>s.SheetNumber==page.Number);SheetNotes.ClearUnedited(doc,s.Id);page.Notes?.Clear();SheetNotes.Draw(doc,s,page,warnings);}
   pages.Sort((a,b)=>StringComparer.Ordinal.Compare(a.Number,b.Number));
  }
  static void RefreshBounds(Document doc,List<PlannerPage> pages)

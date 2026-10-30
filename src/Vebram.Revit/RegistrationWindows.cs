@@ -116,7 +116,7 @@ public sealed class ProjectRegistrationWindow:Window
 public sealed class MunicipalProfilesWindow:Window
 {
  sealed record Item(MunicipalProfile Profile){public override string ToString()=>Profile.Title+"\n"+Profile.City+" / "+Profile.State+" · revisão "+Profile.Revision;}
- static readonly (string Key,string Label,bool Percent)[] Parameters=[("to","Ocupação máxima (%)",true),("ca","Aproveitamento máximo (CA)",false),("tp","Permeável mínimo (%)",true),("frente","Afastamento frontal (m)",false),("lateral","Afastamento lateral (m)",false),("fundos","Afastamento de fundos (m)",false),("altura","Altura máxima (m)",false)];
+ static readonly (string Key,string Label,bool Percent)[] Parameters=[("to","Ocupação máxima (%)",true),("ca","Aproveitamento máximo (CA)",false),("tp","Permeável mínimo (%)",true),("frente","Afastamento frontal (m)",false),("afastamento_frontal_secundario","Frontal secundário de esquina (m)",false),("lateral","Afastamento lateral (m)",false),("fundos","Afastamento de fundos (m)",false),("altura","Altura máxima (m)",false)];
  readonly Dictionary<string,TextBox> fields=[];
  readonly ListBox list=new(){MinWidth=215,BorderThickness=new Thickness(0),Background=Brushes.White};
  readonly TextBlock status=new(){Foreground=Brushes.SlateGray,TextWrapping=TextWrapping.Wrap};

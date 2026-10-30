@@ -28,6 +28,7 @@ public static class LegalCatalog
         new Deliverable("fachada-oeste", "Fachada oeste", "FACHADAS", ViewType.Elevation, "LEGAL - Fachada Oeste"),
         new Deliverable("portas", "Quadro de portas", "QUADROS", ViewType.Schedule, OpeningSchedules.Doors), new Deliverable("janelas", "Quadro de janelas", "QUADROS", ViewType.Schedule, OpeningSchedules.Windows), new Deliverable("areas", "Q04 — áreas dos ambientes", "QUADROS", ViewType.Schedule,
             "02 PROJETO LEGAL - Q04 - Áreas dos ambientes", "Q04"),
+        new Deliverable("areas-descobertas", "Áreas descobertas — fora do total útil", "QUADROS", ViewType.Schedule, AreaScheduleTotals.UncoveredName),
         new Deliverable("memoria", "Memória gráfica de áreas", "MEMORIA_AREAS", ViewType.FloorPlan, MemoryAreas.ViewName),
         new Deliverable("urbanistico", "Quadro urbanístico — preencher", "QUADROS", ViewType.DraftingView,
             "LEGAL - Quadro urbanístico / preencher")

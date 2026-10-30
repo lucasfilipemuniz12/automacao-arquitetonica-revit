@@ -1,4 +1,4 @@
-﻿namespace Vebram.Revit;
+namespace Vebram.Revit;
 
 public sealed record PaperItem(long Id,double Width,double Height);
 public sealed record PaperPlacement(long Id,LegalPaperRect Rect);
@@ -66,7 +66,7 @@ public static class SheetPacking
  {
   "situacao" or "urbanistico"=>1,
   "implantacao"=>profile=="r20"?3:1,
-  "planta-1" or "planta-2" or "areas" or "portas" or "janelas" or "memoria"=>2,
+  "planta-1" or "planta-2" or "areas" or "areas-descobertas" or "portas" or "janelas" or "memoria"=>2,
   "cobertura" or "corte-a" or "corte-b"=>3,
   _=>4
  };

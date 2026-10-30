@@ -1,0 +1,296 @@
+{
+  "Aviso": "Levantamento somente leitura. Nada foi alterado no modelo.",
+  "Ambientes": [
+    {
+      "Number": "101",
+      "Nome": "Quarto 01",
+      "Nivel": "Superior",
+      "AreaM2": 14.4,
+      "Departamento": null
+    },
+    {
+      "Number": "102",
+      "Nome": "Suíte",
+      "Nivel": "Superior",
+      "AreaM2": 9.36,
+      "Departamento": null
+    },
+    {
+      "Number": "103",
+      "Nome": "Closet",
+      "Nivel": "Superior",
+      "AreaM2": 5.42,
+      "Departamento": null
+    },
+    {
+      "Number": "104",
+      "Nome": "Banheiro suíte",
+      "Nivel": "Superior",
+      "AreaM2": 5.55,
+      "Departamento": null
+    },
+    {
+      "Number": "105",
+      "Nome": "Hall",
+      "Nivel": "Superior",
+      "AreaM2": 6.68,
+      "Departamento": null
+    },
+    {
+      "Number": "106",
+      "Nome": "Banheiro social",
+      "Nivel": "Superior",
+      "AreaM2": 4.45,
+      "Departamento": null
+    },
+    {
+      "Number": "107",
+      "Nome": "Quarto 02",
+      "Nivel": "Superior",
+      "AreaM2": 16.61,
+      "Departamento": null
+    },
+    {
+      "Number": "001",
+      "Nome": "Abrigo",
+      "Nivel": "Térreo",
+      "AreaM2": 14.62,
+      "Departamento": null
+    },
+    {
+      "Number": "002",
+      "Nome": "Serviço",
+      "Nivel": "Térreo",
+      "AreaM2": 9.36,
+      "Departamento": null
+    },
+    {
+      "Number": "003",
+      "Nome": "Cozinha",
+      "Nivel": "Térreo",
+      "AreaM2": 9.26,
+      "Departamento": null
+    },
+    {
+      "Number": "004",
+      "Nome": "Despensa",
+      "Nivel": "Térreo",
+      "AreaM2": 5.55,
+      "Departamento": null
+    },
+    {
+      "Number": "005",
+      "Nome": "Lavabo",
+      "Nivel": "Térreo",
+      "AreaM2": 1.56,
+      "Departamento": null
+    },
+    {
+      "Number": "006",
+      "Nome": "Estar e jantar",
+      "Nivel": "Térreo",
+      "AreaM2": 23.82,
+      "Departamento": null
+    },
+    {
+      "Number": "007",
+      "Nome": "Escada",
+      "Nivel": "Térreo",
+      "AreaM2": 7.77,
+      "Departamento": null
+    }
+  ],
+  "ParametrosDoAmbiente": [
+    "Acabamento base",
+    "Acabamento da parede",
+    "Acabamento do forro",
+    "Acabamento do piso",
+    "Altura não delimitada",
+    "Área",
+    "Área por pessoa",
+    "Cálculo da altura",
+    "Carga base de iluminação ativada",
+    "Carga base de potência ativada",
+    "Carga de aquecimento calculada por área",
+    "Carga de iluminação especificada",
+    "Carga de iluminação especificada por área",
+    "Carga de potência especificada",
+    "Carga de potência especificada por área",
+    "Carga de potência real",
+    "Carga de potência real por área",
+    "Carga de resfriamento calculada por área",
+    "Carga real de iluminação",
+    "Carga real de iluminação por área",
+    "Categoria",
+    "Ceiling Finish 2",
+    "Ceiling Finish 3",
+    "Comentários",
+    "Contribuição de iluminação do plenum",
+    "Departamento",
+    "Deslocamento da base",
+    "Deslocamento do limite",
+    "Exportar para IFC",
+    "Exportar para IFC como",
+    "Fase",
+    "Floor Finish 2",
+    "Floor Finish 3",
+    "Ganho de calor latente por pessoa",
+    "Ganho de calor sensível por pessoa",
+    "Ganho de calor total por pessoa",
+    "ID de fase",
+    "IfcGUID",
+    "Imagem",
+    "Insuflação de ar calculada por área",
+    "Limite superior",
+    "Nível",
+    "Nome",
+    "Nome da família",
+    "Nome do tipo",
+    "Número",
+    "Número de pessoas",
+    "Ocupação",
+    "Ocupante",
+    "Opção de desenho",
+    "Pé direito",
+    "Perímetro",
+    "Tipo IFC predefinido",
+    "Unidade de ocupação",
+    "Unidades de carga de iluminação",
+    "Unidades de carga de potência",
+    "Valores de carga de aquecimento",
+    "Volume",
+    "Wall Finish 2",
+    "Wall Finish 3"
+  ],
+  "Pisos": [
+    {
+      "Grupo": "Cobertura | VEBRAM LAJE / concreto 10 cm",
+      "Quantidade": 1,
+      "AreaM2": 80.47
+    },
+    {
+      "Grupo": "Superior | PISO BOX / cerâmica 1 cm",
+      "Quantidade": 2,
+      "AreaM2": 3.24
+    },
+    {
+      "Grupo": "Superior | PISO EXTERNO / cimentado 5 cm",
+      "Quantidade": 6,
+      "AreaM2": 0.68
+    },
+    {
+      "Grupo": "Superior | PISO INTERNO / cerâmica e contrapiso 2 cm",
+      "Quantidade": 2,
+      "AreaM2": 6.76
+    },
+    {
+      "Grupo": "Superior | PISO INTERNO / madeira e contrapiso 5 cm",
+      "Quantidade": 5,
+      "AreaM2": 52.46
+    },
+    {
+      "Grupo": "Superior | VEBRAM LAJE / concreto 10 cm",
+      "Quantidade": 1,
+      "AreaM2": 72.06
+    },
+    {
+      "Grupo": "Terreno | CALÇADA / concreto 8 cm",
+      "Quantidade": 4,
+      "AreaM2": 35.18
+    },
+    {
+      "Grupo": "Térreo | PISO EXTERNO / cimentado 5 cm",
+      "Quantidade": 9,
+      "AreaM2": 15.62
+    },
+    {
+      "Grupo": "Térreo | PISO INTERNO / cerâmica e contrapiso 5 cm",
+      "Quantidade": 4,
+      "AreaM2": 25.73
+    },
+    {
+      "Grupo": "Térreo | PISO INTERNO / madeira e contrapiso 5 cm",
+      "Quantidade": 1,
+      "AreaM2": 31.58
+    },
+    {
+      "Grupo": "Térreo | VEBRAM LAJE / concreto 10 cm",
+      "Quantidade": 2,
+      "AreaM2": 0.12
+    },
+    {
+      "Grupo": "Térreo | VEBRAM LAJE / concreto 15 cm",
+      "Quantidade": 2,
+      "AreaM2": 80.47
+    }
+  ],
+  "Coberturas": [
+    {
+      "Grupo": "Cobertura | VEBRAM COB / telha cerâmica sobre suporte",
+      "Quantidade": 1,
+      "AreaM2": 98.5
+    }
+  ],
+  "Topografia": [],
+  "Planta": [],
+  "Vegetacao": [],
+  "Piscina_Deck_Candidatos": [
+    {
+      "Name": "Materiais",
+      "Tipo": null,
+      "Nivel": "(sem nível)",
+      "Value": 529
+    },
+    {
+      "Name": "Componentes de legenda",
+      "Tipo": null,
+      "Nivel": "(sem nível)",
+      "Value": 176937
+    },
+    {
+      "Name": "Componentes de legenda",
+      "Tipo": null,
+      "Nivel": "(sem nível)",
+      "Value": 176983
+    }
+  ],
+  "EsquemasDeArea": [
+    "Área construída",
+    "Alugável"
+  ],
+  "AreasDefinidas": [],
+  "PlantasDeArea": [],
+  "PreenchimentosExistentes": [
+    "Vertical",
+    "Preto sólido",
+    "Hachura cruzada de origem",
+    "Horizontal",
+    "Diagonal ascendente",
+    "Diagonal descendente - Transparente",
+    "Diagonal descendente",
+    "Hachura cruzada diagonal - Transparente",
+    "Hachura cruzada diagonal",
+    "Madeira 1",
+    "Madeira 2",
+    "VEBRAM Memória - Área externa",
+    "VEBRAM Memória - Área interna"
+  ],
+  "Niveis": [
+    {
+      "Name": "Terreno",
+      "ElevacaoM": 0
+    },
+    {
+      "Name": "Térreo",
+      "ElevacaoM": 0.1
+    },
+    {
+      "Name": "Superior",
+      "ElevacaoM": 2.7
+    },
+    {
+      "Name": "Cobertura",
+      "ElevacaoM": 5.3
+    }
+  ]
+}

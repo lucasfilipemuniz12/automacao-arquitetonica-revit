@@ -16,6 +16,8 @@ Check(Near(LegalMetrics.PolygonArea(new[]{(0d,0d),(20d,0d),(20d,30d),(0d,30d)}),
 Check(Near(LegalMetrics.PolygonArea(new[]{(0d,30d),(20d,30d),(20d,0d),(0d,0d)}),600),"Orientação invertida conserva área");
 Check(Near(LegalMetrics.PolygonArea(new[]{(0d,0d),(10d,0d),(10d,5d),(5d,5d),(5d,10d),(0d,10d)}),75),"Contorno ortogonal côncavo = 75 m²");
 Check(Near(LegalMetrics.PolygonArea(new[]{(1e9,1e9),(1e9+20,1e9),(1e9+20,1e9+30),(1e9,1e9+30)}),600),"Coordenadas distantes sem perda por cancelamento");
+Check(Near(LegalMetrics.PolygonArea(new[]{(0d,0d),(12d,0d),(14.5,2.5),(15.2,26d),(-1d,24.5)}),383.7),"CT04: área do polígono real com chanfro = 383,70 m²");
+Check(!Near(LegalMetrics.PolygonArea(new[]{(0d,0d),(12d,0d),(14.5,2.5),(15.2,26d),(-1d,24.5)}),16.2*26),"Retângulo envolvente não substitui área do lote irregular");
 Check(Near(LegalMetrics.Ratio(150,600,true),25),"TO 150 / 600 = 25%");
 Check(Near(LegalMetrics.Ratio(900,600,false),1.5),"CA 900 / 600 = 1,5");
 Check(Near(LegalMetrics.Ratio(120,600,true),20),"TP 120 / 600 = 20%");

@@ -1,0 +1,3142 @@
+{
+  "Aviso": "Levantamento somente leitura. Nada foi alterado no modelo.",
+  "InformacoesDoProjeto": [
+    {
+      "Nome": "Autor",
+      "Valor": "A PREENCHER",
+      "SoLeitura": false
+    },
+    {
+      "Nome": "Categoria",
+      "Valor": "Informações do projeto",
+      "SoLeitura": true
+    },
+    {
+      "Nome": "Categoria",
+      "Valor": "Informações do projeto",
+      "SoLeitura": true
+    },
+    {
+      "Nome": "Data de emissão do projeto",
+      "Valor": "Data de emissão",
+      "SoLeitura": false
+    },
+    {
+      "Nome": "Endereço do projeto",
+      "Valor": "Rua dos Ipês do Vale, 160 / Lote 12, Quadra 07 / Jardim das Acácias / Belo Horizonte-MG",
+      "SoLeitura": false
+    },
+    {
+      "Nome": "Nome do cliente",
+      "Valor": "Marina Andrade e Rafael Costa",
+      "SoLeitura": false
+    },
+    {
+      "Nome": "Nome do projeto",
+      "Valor": "Residência Ipê / Sobrado Teste 02",
+      "SoLeitura": false
+    },
+    {
+      "Nome": "Número do projeto",
+      "Valor": "ST02-2026",
+      "SoLeitura": false
+    },
+    {
+      "Nome": "Opção de desenho",
+      "Valor": "-1",
+      "SoLeitura": true
+    },
+    {
+      "Nome": "Status do projeto",
+      "Valor": "Status do projeto",
+      "SoLeitura": false
+    }
+  ],
+  "Folhas": [
+    {
+      "SheetNumber": "A0-BASE",
+      "Name": "Reserva de composição A0",
+      "Parametros": [
+        {
+          "Nome": "Altura da folha",
+          "Valor": "0,84",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Aparece na lista de folhas",
+          "Valor": "1",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Aprovado por",
+          "Valor": "A PREENCHER",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ARQ Etapa",
+          "Valor": "09 APOIO",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ARQ Funcao",
+          "Valor": "FOLHA",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ARQ Status",
+          "Valor": "MODELO - PREENCHER",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Caminho do arquivo",
+          "Valor": "C:\\Users\\lucas\\Desktop\\ARQ TESTE\\codex-legal-r3\\validation\\r3-01\\R3_TESTE_Sobrado.rvt",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Categoria",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Categoria",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Coleção de folhas",
+          "Valor": "<Nenhuma>",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Coleção de folhas",
+          "Valor": "<Nenhuma>",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Coleção de folhas de referência",
+          "Valor": "<Nenhuma>",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Data de emissão da folha",
+          "Valor": "A PREENCHER",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Dependência",
+          "Valor": "Independente",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Desenhadas por",
+          "Valor": "A PREENCHER",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Eixo guia",
+          "Valor": "<Nenhum>",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Família",
+          "Valor": "Folha",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família",
+          "Valor": "Folha",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Família e tipo",
+          "Valor": "Folha: Folha",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família e tipo",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família e tipo",
+          "Valor": "Folha: Folha",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ID de tipo",
+          "Valor": "49561",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Largura da folha",
+          "Valor": "1,19",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Modelo de vista",
+          "Valor": "Nenhum",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Nenhum",
+          "Valor": "350779",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Nome da folha",
+          "Valor": "Reserva de composição A0",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Nome da folha",
+          "Valor": "Reserva de composição A0",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Número da folha",
+          "Valor": "A0-BASE",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Opção de desenho",
+          "Valor": "-1",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Projetado por",
+          "Valor": "Projetista",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Revisão atual emitida",
+          "Valor": "0",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Substituição da escala (vários valores)",
+          "Valor": "Como indicada",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Tipo",
+          "Valor": "Folha",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Tipo",
+          "Valor": "Folha",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Verificado por",
+          "Valor": "A PREENCHER",
+          "SoLeitura": false
+        }
+      ],
+      "Carimbo": [
+        {
+          "Familia": "ARQ Carimbo A0",
+          "Tipo": "ARQ Carimbo A0",
+          "Parametros": [
+            {
+              "Nome": "Altura da folha",
+              "Valor": "0,84",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Aprovado por",
+              "Valor": "A PREENCHER",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Bloco de margens e carimbo principal",
+              "Valor": "1",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Caminho do arquivo",
+              "Valor": "C:\\Users\\lucas\\Desktop\\ARQ TESTE\\codex-legal-r3\\validation\\r3-01\\R3_TESTE_Sobrado.rvt",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Categoria",
+              "Valor": "Blocos de margens e carimbo",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Categoria",
+              "Valor": "Blocos de margens e carimbo",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Coleção de folhas",
+              "Valor": "<Nenhuma>",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Data de emissão da folha",
+              "Valor": "A PREENCHER",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Desenhadas por",
+              "Valor": "A PREENCHER",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Família",
+              "Valor": "ARQ Carimbo A0",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Família e tipo",
+              "Valor": "ARQ Carimbo A0: ARQ Carimbo A0",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "ID de hospedeiro",
+              "Valor": "-1",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "ID de tipo",
+              "Valor": "345529",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Impressão de data/hora",
+              "Valor": "10/08/26",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Largura da folha",
+              "Valor": "1,19",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Nome da folha",
+              "Valor": "Reserva de composição A0",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Número da folha",
+              "Valor": "A0-BASE",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Opção de desenho",
+              "Valor": "-1",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Projetado por",
+              "Valor": "Projetista",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Substituição da escala (vários valores)",
+              "Valor": "Como indicada",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Tipo",
+              "Valor": "ARQ Carimbo A0",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Verificado por",
+              "Valor": "A PREENCHER",
+              "SoLeitura": false
+            }
+          ]
+        }
+      ],
+      "Quantidade": 5
+    },
+    {
+      "SheetNumber": "EX-01",
+      "Name": "Construção / cotas / esquadrias",
+      "Parametros": [
+        {
+          "Nome": "Altura da folha",
+          "Valor": "0,60",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Aparece na lista de folhas",
+          "Valor": "1",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Aprovado por",
+          "Valor": "A PREENCHER",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ARQ Etapa",
+          "Valor": "03 PROJETO EXECUTIVO",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ARQ Funcao",
+          "Valor": "FOLHA",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ARQ Status",
+          "Valor": "MODELO - PREENCHER",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Caminho do arquivo",
+          "Valor": "C:\\Users\\lucas\\Desktop\\ARQ TESTE\\codex-legal-r3\\validation\\r3-01\\R3_TESTE_Sobrado.rvt",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Categoria",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Categoria",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Coleção de folhas",
+          "Valor": "<Nenhuma>",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Coleção de folhas",
+          "Valor": "<Nenhuma>",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Coleção de folhas de referência",
+          "Valor": "<Nenhuma>",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Data de emissão da folha",
+          "Valor": "A PREENCHER",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Dependência",
+          "Valor": "Independente",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Desenhadas por",
+          "Valor": "A PREENCHER",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Eixo guia",
+          "Valor": "<Nenhum>",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Família",
+          "Valor": "Folha",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família",
+          "Valor": "Folha",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Família e tipo",
+          "Valor": "Folha: Folha",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família e tipo",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família e tipo",
+          "Valor": "Folha: Folha",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ID de tipo",
+          "Valor": "49561",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Largura da folha",
+          "Valor": "0,84",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Modelo de vista",
+          "Valor": "Nenhum",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Nenhum",
+          "Valor": "350767",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Nome da folha",
+          "Valor": "Construção / cotas / esquadrias",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Nome da folha",
+          "Valor": "Construção / cotas / esquadrias",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Número da folha",
+          "Valor": "EX-01",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Opção de desenho",
+          "Valor": "-1",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Projetado por",
+          "Valor": "Projetista",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Revisão atual emitida",
+          "Valor": "0",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Substituição da escala (vários valores)",
+          "Valor": "Como indicada",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Tipo",
+          "Valor": "Folha",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Tipo",
+          "Valor": "Folha",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Verificado por",
+          "Valor": "A PREENCHER",
+          "SoLeitura": false
+        }
+      ],
+      "Carimbo": [
+        {
+          "Familia": "ARQ Carimbo A1",
+          "Tipo": "ARQ Carimbo A1",
+          "Parametros": [
+            {
+              "Nome": "Altura da folha",
+              "Valor": "0,60",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Aprovado por",
+              "Valor": "A PREENCHER",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Bloco de margens e carimbo principal",
+              "Valor": "1",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Caminho do arquivo",
+              "Valor": "C:\\Users\\lucas\\Desktop\\ARQ TESTE\\codex-legal-r3\\validation\\r3-01\\R3_TESTE_Sobrado.rvt",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Categoria",
+              "Valor": "Blocos de margens e carimbo",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Categoria",
+              "Valor": "Blocos de margens e carimbo",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Coleção de folhas",
+              "Valor": "<Nenhuma>",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Data de emissão da folha",
+              "Valor": "A PREENCHER",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Desenhadas por",
+              "Valor": "A PREENCHER",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Família",
+              "Valor": "ARQ Carimbo A1",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Família e tipo",
+              "Valor": "ARQ Carimbo A1: ARQ Carimbo A1",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "ID de hospedeiro",
+              "Valor": "-1",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "ID de tipo",
+              "Valor": "344982",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Impressão de data/hora",
+              "Valor": "10/08/26",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Largura da folha",
+              "Valor": "0,84",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Nome da folha",
+              "Valor": "Construção / cotas / esquadrias",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Número da folha",
+              "Valor": "EX-01",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Opção de desenho",
+              "Valor": "-1",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Projetado por",
+              "Valor": "Projetista",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Substituição da escala (vários valores)",
+              "Valor": "Como indicada",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Tipo",
+              "Valor": "ARQ Carimbo A1",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Verificado por",
+              "Valor": "A PREENCHER",
+              "SoLeitura": false
+            }
+          ]
+        }
+      ],
+      "Quantidade": 18
+    },
+    {
+      "SheetNumber": "EX-02",
+      "Name": "Cobertura / cortes / fachadas",
+      "Parametros": [
+        {
+          "Nome": "Altura da folha",
+          "Valor": "0,60",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Aparece na lista de folhas",
+          "Valor": "1",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Aprovado por",
+          "Valor": "Aprovador",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ARQ Etapa",
+          "Valor": "03 PROJETO EXECUTIVO",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ARQ Funcao",
+          "Valor": "FOLHA",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ARQ Status",
+          "Valor": "MODELO - PREENCHER",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Caminho do arquivo",
+          "Valor": "C:\\Users\\lucas\\Desktop\\ARQ TESTE\\codex-legal-r3\\validation\\r3-01\\R3_TESTE_Sobrado.rvt",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Categoria",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Categoria",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Coleção de folhas",
+          "Valor": "<Nenhuma>",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Coleção de folhas",
+          "Valor": "<Nenhuma>",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Coleção de folhas de referência",
+          "Valor": "<Nenhuma>",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Data de emissão da folha",
+          "Valor": "10/10/26",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Dependência",
+          "Valor": "Independente",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Desenhadas por",
+          "Valor": "Autor",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Eixo guia",
+          "Valor": "<Nenhum>",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Família",
+          "Valor": "Folha",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família",
+          "Valor": "Folha",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Família e tipo",
+          "Valor": "Folha: Folha",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família e tipo",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família e tipo",
+          "Valor": "Folha: Folha",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ID de tipo",
+          "Valor": "49561",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Largura da folha",
+          "Valor": "0,84",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Modelo de vista",
+          "Valor": "Nenhum",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Nenhum",
+          "Valor": "351146",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Nome da folha",
+          "Valor": "Cobertura / cortes / fachadas",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Nome da folha",
+          "Valor": "Cobertura / cortes / fachadas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Número da folha",
+          "Valor": "EX-02",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Opção de desenho",
+          "Valor": "-1",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Projetado por",
+          "Valor": "Projetista",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Revisão atual emitida",
+          "Valor": "0",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Substituição da escala (vários valores)",
+          "Valor": "Como indicada",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Tipo",
+          "Valor": "Folha",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Tipo",
+          "Valor": "Folha",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Verificado por",
+          "Valor": "Verificador",
+          "SoLeitura": false
+        }
+      ],
+      "Carimbo": [
+        {
+          "Familia": "ARQ Carimbo A1",
+          "Tipo": "ARQ Carimbo A1",
+          "Parametros": [
+            {
+              "Nome": "Altura da folha",
+              "Valor": "0,60",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Aprovado por",
+              "Valor": "Aprovador",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Bloco de margens e carimbo principal",
+              "Valor": "1",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Caminho do arquivo",
+              "Valor": "C:\\Users\\lucas\\Desktop\\ARQ TESTE\\codex-legal-r3\\validation\\r3-01\\R3_TESTE_Sobrado.rvt",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Categoria",
+              "Valor": "Blocos de margens e carimbo",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Categoria",
+              "Valor": "Blocos de margens e carimbo",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Coleção de folhas",
+              "Valor": "<Nenhuma>",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Data de emissão da folha",
+              "Valor": "10/10/26",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Desenhadas por",
+              "Valor": "Autor",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Família",
+              "Valor": "ARQ Carimbo A1",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Família e tipo",
+              "Valor": "ARQ Carimbo A1: ARQ Carimbo A1",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "ID de hospedeiro",
+              "Valor": "-1",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "ID de tipo",
+              "Valor": "344982",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Impressão de data/hora",
+              "Valor": "10/10/26",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Largura da folha",
+              "Valor": "0,84",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Nome da folha",
+              "Valor": "Cobertura / cortes / fachadas",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Número da folha",
+              "Valor": "EX-02",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Opção de desenho",
+              "Valor": "-1",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Projetado por",
+              "Valor": "Projetista",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Substituição da escala (vários valores)",
+              "Valor": "Como indicada",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Tipo",
+              "Valor": "ARQ Carimbo A1",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Verificado por",
+              "Valor": "Verificador",
+              "SoLeitura": false
+            }
+          ]
+        }
+      ],
+      "Quantidade": 41
+    },
+    {
+      "SheetNumber": "EX-03",
+      "Name": "Pisos / forros / acabamentos",
+      "Parametros": [
+        {
+          "Nome": "Altura da folha",
+          "Valor": "0,60",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Aparece na lista de folhas",
+          "Valor": "1",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Aprovado por",
+          "Valor": "Aprovador",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ARQ Etapa",
+          "Valor": "03 PROJETO EXECUTIVO",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ARQ Funcao",
+          "Valor": "FOLHA",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ARQ Status",
+          "Valor": "MODELO - PREENCHER",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Caminho do arquivo",
+          "Valor": "C:\\Users\\lucas\\Desktop\\ARQ TESTE\\codex-legal-r3\\validation\\r3-01\\R3_TESTE_Sobrado.rvt",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Categoria",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Categoria",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Coleção de folhas",
+          "Valor": "<Nenhuma>",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Coleção de folhas",
+          "Valor": "<Nenhuma>",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Coleção de folhas de referência",
+          "Valor": "<Nenhuma>",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Data de emissão da folha",
+          "Valor": "10/10/26",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Dependência",
+          "Valor": "Independente",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Desenhadas por",
+          "Valor": "Autor",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Eixo guia",
+          "Valor": "<Nenhum>",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Família",
+          "Valor": "Folha",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família",
+          "Valor": "Folha",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Família e tipo",
+          "Valor": "Folha: Folha",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família e tipo",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família e tipo",
+          "Valor": "Folha: Folha",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ID de tipo",
+          "Valor": "49561",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Largura da folha",
+          "Valor": "0,84",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Modelo de vista",
+          "Valor": "Nenhum",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Nenhum",
+          "Valor": "351192",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Nome da folha",
+          "Valor": "Pisos / forros / acabamentos",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Nome da folha",
+          "Valor": "Pisos / forros / acabamentos",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Número da folha",
+          "Valor": "EX-03",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Opção de desenho",
+          "Valor": "-1",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Projetado por",
+          "Valor": "Projetista",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Revisão atual emitida",
+          "Valor": "0",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Substituição da escala (vários valores)",
+          "Valor": "Como indicada",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Tipo",
+          "Valor": "Folha",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Tipo",
+          "Valor": "Folha",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Verificado por",
+          "Valor": "Verificador",
+          "SoLeitura": false
+        }
+      ],
+      "Carimbo": [
+        {
+          "Familia": "ARQ Carimbo A1",
+          "Tipo": "ARQ Carimbo A1",
+          "Parametros": [
+            {
+              "Nome": "Altura da folha",
+              "Valor": "0,60",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Aprovado por",
+              "Valor": "Aprovador",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Bloco de margens e carimbo principal",
+              "Valor": "1",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Caminho do arquivo",
+              "Valor": "C:\\Users\\lucas\\Desktop\\ARQ TESTE\\codex-legal-r3\\validation\\r3-01\\R3_TESTE_Sobrado.rvt",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Categoria",
+              "Valor": "Blocos de margens e carimbo",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Categoria",
+              "Valor": "Blocos de margens e carimbo",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Coleção de folhas",
+              "Valor": "<Nenhuma>",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Data de emissão da folha",
+              "Valor": "10/10/26",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Desenhadas por",
+              "Valor": "Autor",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Família",
+              "Valor": "ARQ Carimbo A1",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Família e tipo",
+              "Valor": "ARQ Carimbo A1: ARQ Carimbo A1",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "ID de hospedeiro",
+              "Valor": "-1",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "ID de tipo",
+              "Valor": "344982",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Impressão de data/hora",
+              "Valor": "10/10/26",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Largura da folha",
+              "Valor": "0,84",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Nome da folha",
+              "Valor": "Pisos / forros / acabamentos",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Número da folha",
+              "Valor": "EX-03",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Opção de desenho",
+              "Valor": "-1",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Projetado por",
+              "Valor": "Projetista",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Substituição da escala (vários valores)",
+              "Valor": "Como indicada",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Tipo",
+              "Valor": "ARQ Carimbo A1",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Verificado por",
+              "Valor": "Verificador",
+              "SoLeitura": false
+            }
+          ]
+        }
+      ],
+      "Quantidade": 16
+    },
+    {
+      "SheetNumber": "EX-04",
+      "Name": "Ampliações / detalhes construtivos",
+      "Parametros": [
+        {
+          "Nome": "Altura da folha",
+          "Valor": "0,60",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Aparece na lista de folhas",
+          "Valor": "1",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Aprovado por",
+          "Valor": "Aprovador",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ARQ Etapa",
+          "Valor": "03 PROJETO EXECUTIVO",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ARQ Funcao",
+          "Valor": "FOLHA",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ARQ Status",
+          "Valor": "MODELO - PREENCHER",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Caminho do arquivo",
+          "Valor": "C:\\Users\\lucas\\Desktop\\ARQ TESTE\\codex-legal-r3\\validation\\r3-01\\R3_TESTE_Sobrado.rvt",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Categoria",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Categoria",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Coleção de folhas",
+          "Valor": "<Nenhuma>",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Coleção de folhas",
+          "Valor": "<Nenhuma>",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Coleção de folhas de referência",
+          "Valor": "<Nenhuma>",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Data de emissão da folha",
+          "Valor": "10/10/26",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Dependência",
+          "Valor": "Independente",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Desenhadas por",
+          "Valor": "Autor",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Eixo guia",
+          "Valor": "<Nenhum>",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Família",
+          "Valor": "Folha",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família",
+          "Valor": "Folha",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Família e tipo",
+          "Valor": "Folha: Folha",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família e tipo",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família e tipo",
+          "Valor": "Folha: Folha",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ID de tipo",
+          "Valor": "49561",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Largura da folha",
+          "Valor": "0,84",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Modelo de vista",
+          "Valor": "Nenhum",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Nenhum",
+          "Valor": "351213",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Nome da folha",
+          "Valor": "Ampliações / detalhes construtivos",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Nome da folha",
+          "Valor": "Ampliações / detalhes construtivos",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Número da folha",
+          "Valor": "EX-04",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Opção de desenho",
+          "Valor": "-1",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Projetado por",
+          "Valor": "Projetista",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Revisão atual emitida",
+          "Valor": "0",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Substituição da escala (vários valores)",
+          "Valor": "Como indicada",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Tipo",
+          "Valor": "Folha",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Tipo",
+          "Valor": "Folha",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Verificado por",
+          "Valor": "Verificador",
+          "SoLeitura": false
+        }
+      ],
+      "Carimbo": [
+        {
+          "Familia": "ARQ Carimbo A1",
+          "Tipo": "ARQ Carimbo A1",
+          "Parametros": [
+            {
+              "Nome": "Altura da folha",
+              "Valor": "0,60",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Aprovado por",
+              "Valor": "Aprovador",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Bloco de margens e carimbo principal",
+              "Valor": "1",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Caminho do arquivo",
+              "Valor": "C:\\Users\\lucas\\Desktop\\ARQ TESTE\\codex-legal-r3\\validation\\r3-01\\R3_TESTE_Sobrado.rvt",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Categoria",
+              "Valor": "Blocos de margens e carimbo",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Categoria",
+              "Valor": "Blocos de margens e carimbo",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Coleção de folhas",
+              "Valor": "<Nenhuma>",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Data de emissão da folha",
+              "Valor": "10/10/26",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Desenhadas por",
+              "Valor": "Autor",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Família",
+              "Valor": "ARQ Carimbo A1",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Família e tipo",
+              "Valor": "ARQ Carimbo A1: ARQ Carimbo A1",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "ID de hospedeiro",
+              "Valor": "-1",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "ID de tipo",
+              "Valor": "344982",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Impressão de data/hora",
+              "Valor": "10/10/26",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Largura da folha",
+              "Valor": "0,84",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Nome da folha",
+              "Valor": "Ampliações / detalhes construtivos",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Número da folha",
+              "Valor": "EX-04",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Opção de desenho",
+              "Valor": "-1",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Projetado por",
+              "Valor": "Projetista",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Substituição da escala (vários valores)",
+              "Valor": "Como indicada",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Tipo",
+              "Valor": "ARQ Carimbo A1",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Verificado por",
+              "Valor": "Verificador",
+              "SoLeitura": false
+            }
+          ]
+        }
+      ],
+      "Quantidade": 26
+    },
+    {
+      "SheetNumber": "LEG-01",
+      "Name": "Implantação, situação e quadros",
+      "Parametros": [
+        {
+          "Nome": "Altura da folha",
+          "Valor": "0,60",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Aparece na lista de folhas",
+          "Valor": "1",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Aprovado por",
+          "Valor": "A PREENCHER",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ARQ Etapa",
+          "Valor": "02 PROJETO LEGAL",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ARQ Funcao",
+          "Valor": "FOLHA",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ARQ Status",
+          "Valor": "MODELO - PREENCHER",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Caminho do arquivo",
+          "Valor": "C:\\Users\\lucas\\Desktop\\ARQ TESTE\\codex-legal-r3\\validation\\r3-01\\R3_TESTE_Sobrado.rvt",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Categoria",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Categoria",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Coleção de folhas",
+          "Valor": "<Nenhuma>",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Coleção de folhas",
+          "Valor": "<Nenhuma>",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Coleção de folhas de referência",
+          "Valor": "<Nenhuma>",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Data de emissão da folha",
+          "Valor": "A PREENCHER",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Dependência",
+          "Valor": "Independente",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Desenhadas por",
+          "Valor": "A PREENCHER",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Eixo guia",
+          "Valor": "<Nenhum>",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Escala",
+          "Valor": "Como indicada",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família",
+          "Valor": "Folha",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família",
+          "Valor": "Folha",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Família e tipo",
+          "Valor": "Folha: Folha",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família e tipo",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família e tipo",
+          "Valor": "Folha: Folha",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ID de tipo",
+          "Valor": "49561",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Largura da folha",
+          "Valor": "0,84",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Modelo de vista",
+          "Valor": "Nenhum",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Nenhum",
+          "Valor": "350755",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Nome da folha",
+          "Valor": "Implantação, situação e quadros",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Nome da folha",
+          "Valor": "Implantação, situação e quadros",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Número da folha",
+          "Valor": "LEG-01",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Opção de desenho",
+          "Valor": "-1",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Projetado por",
+          "Valor": "Projetista",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Revisão atual emitida",
+          "Valor": "0",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Substituição da escala (vários valores)",
+          "Valor": "Como indicada",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Tipo",
+          "Valor": "Folha",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Tipo",
+          "Valor": "Folha",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Verificado por",
+          "Valor": "A PREENCHER",
+          "SoLeitura": false
+        }
+      ],
+      "Carimbo": [
+        {
+          "Familia": "ARQ Carimbo A1",
+          "Tipo": "ARQ Carimbo A1",
+          "Parametros": [
+            {
+              "Nome": "Altura da folha",
+              "Valor": "0,60",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Aprovado por",
+              "Valor": "A PREENCHER",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Bloco de margens e carimbo principal",
+              "Valor": "1",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Caminho do arquivo",
+              "Valor": "C:\\Users\\lucas\\Desktop\\ARQ TESTE\\codex-legal-r3\\validation\\r3-01\\R3_TESTE_Sobrado.rvt",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Categoria",
+              "Valor": "Blocos de margens e carimbo",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Categoria",
+              "Valor": "Blocos de margens e carimbo",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Coleção de folhas",
+              "Valor": "<Nenhuma>",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Data de emissão da folha",
+              "Valor": "A PREENCHER",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Desenhadas por",
+              "Valor": "A PREENCHER",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Escala",
+              "Valor": "Como indicada",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Família",
+              "Valor": "ARQ Carimbo A1",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Família e tipo",
+              "Valor": "ARQ Carimbo A1: ARQ Carimbo A1",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "ID de hospedeiro",
+              "Valor": "-1",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "ID de tipo",
+              "Valor": "344982",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Impressão de data/hora",
+              "Valor": "10/08/26",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Largura da folha",
+              "Valor": "0,84",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Nome da folha",
+              "Valor": "Implantação, situação e quadros",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Número da folha",
+              "Valor": "LEG-01",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Opção de desenho",
+              "Valor": "-1",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Projetado por",
+              "Valor": "Projetista",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Substituição da escala (vários valores)",
+              "Valor": "Como indicada",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Tipo",
+              "Valor": "ARQ Carimbo A1",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Verificado por",
+              "Valor": "A PREENCHER",
+              "SoLeitura": false
+            }
+          ]
+        }
+      ],
+      "Quantidade": 6
+    },
+    {
+      "SheetNumber": "LEG-02",
+      "Name": "Plantas legais e áreas",
+      "Parametros": [
+        {
+          "Nome": "Altura da folha",
+          "Valor": "0,60",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Aparece na lista de folhas",
+          "Valor": "1",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Aprovado por",
+          "Valor": "Aprovador",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ARQ Etapa",
+          "Valor": "02 PROJETO LEGAL",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ARQ Funcao",
+          "Valor": "FOLHA",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ARQ Status",
+          "Valor": "MODELO - PREENCHER",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Caminho do arquivo",
+          "Valor": "C:\\Users\\lucas\\Desktop\\ARQ TESTE\\codex-legal-r3\\validation\\r3-01\\R3_TESTE_Sobrado.rvt",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Categoria",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Categoria",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Coleção de folhas",
+          "Valor": "<Nenhuma>",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Coleção de folhas",
+          "Valor": "<Nenhuma>",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Coleção de folhas de referência",
+          "Valor": "<Nenhuma>",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Data de emissão da folha",
+          "Valor": "10/10/26",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Dependência",
+          "Valor": "Independente",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Desenhadas por",
+          "Valor": "Autor",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Eixo guia",
+          "Valor": "<Nenhum>",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Escala",
+          "Valor": " 1 : 100",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família",
+          "Valor": "Folha",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família",
+          "Valor": "Folha",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Família e tipo",
+          "Valor": "Folha: Folha",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família e tipo",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família e tipo",
+          "Valor": "Folha: Folha",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ID de tipo",
+          "Valor": "49561",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Largura da folha",
+          "Valor": "0,84",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Modelo de vista",
+          "Valor": "Nenhum",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Nenhum",
+          "Valor": "351083",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Nome da folha",
+          "Valor": "Plantas legais e áreas",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Nome da folha",
+          "Valor": "Plantas legais e áreas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Número da folha",
+          "Valor": "LEG-02",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Opção de desenho",
+          "Valor": "-1",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Projetado por",
+          "Valor": "Projetista",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Revisão atual emitida",
+          "Valor": "0",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Substituição da escala (vários valores)",
+          "Valor": "Como indicada",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Tipo",
+          "Valor": "Folha",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Tipo",
+          "Valor": "Folha",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Verificado por",
+          "Valor": "Verificador",
+          "SoLeitura": false
+        }
+      ],
+      "Carimbo": [
+        {
+          "Familia": "ARQ Carimbo A1",
+          "Tipo": "ARQ Carimbo A1",
+          "Parametros": [
+            {
+              "Nome": "Altura da folha",
+              "Valor": "0,60",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Aprovado por",
+              "Valor": "Aprovador",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Bloco de margens e carimbo principal",
+              "Valor": "1",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Caminho do arquivo",
+              "Valor": "C:\\Users\\lucas\\Desktop\\ARQ TESTE\\codex-legal-r3\\validation\\r3-01\\R3_TESTE_Sobrado.rvt",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Categoria",
+              "Valor": "Blocos de margens e carimbo",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Categoria",
+              "Valor": "Blocos de margens e carimbo",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Coleção de folhas",
+              "Valor": "<Nenhuma>",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Data de emissão da folha",
+              "Valor": "10/10/26",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Desenhadas por",
+              "Valor": "Autor",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Escala",
+              "Valor": " 1 : 100",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Família",
+              "Valor": "ARQ Carimbo A1",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Família e tipo",
+              "Valor": "ARQ Carimbo A1: ARQ Carimbo A1",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "ID de hospedeiro",
+              "Valor": "-1",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "ID de tipo",
+              "Valor": "344982",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Impressão de data/hora",
+              "Valor": "10/10/26",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Largura da folha",
+              "Valor": "0,84",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Nome da folha",
+              "Valor": "Plantas legais e áreas",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Número da folha",
+              "Valor": "LEG-02",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Opção de desenho",
+              "Valor": "-1",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Projetado por",
+              "Valor": "Projetista",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Substituição da escala (vários valores)",
+              "Valor": "Como indicada",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Tipo",
+              "Valor": "ARQ Carimbo A1",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Verificado por",
+              "Valor": "Verificador",
+              "SoLeitura": false
+            }
+          ]
+        }
+      ],
+      "Quantidade": 10
+    },
+    {
+      "SheetNumber": "LEG-03",
+      "Name": "Cobertura, cortes e fachadas",
+      "Parametros": [
+        {
+          "Nome": "Altura da folha",
+          "Valor": "0,60",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Aparece na lista de folhas",
+          "Valor": "1",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Aprovado por",
+          "Valor": "Aprovador",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ARQ Etapa",
+          "Valor": "02 PROJETO LEGAL",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ARQ Funcao",
+          "Valor": "FOLHA",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ARQ Status",
+          "Valor": "MODELO - PREENCHER",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Caminho do arquivo",
+          "Valor": "C:\\Users\\lucas\\Desktop\\ARQ TESTE\\codex-legal-r3\\validation\\r3-01\\R3_TESTE_Sobrado.rvt",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Categoria",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Categoria",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Coleção de folhas",
+          "Valor": "<Nenhuma>",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Coleção de folhas",
+          "Valor": "<Nenhuma>",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Coleção de folhas de referência",
+          "Valor": "<Nenhuma>",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Data de emissão da folha",
+          "Valor": "10/19/26",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Dependência",
+          "Valor": "Independente",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Desenhadas por",
+          "Valor": "Autor",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Eixo guia",
+          "Valor": "<Nenhum>",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Escala",
+          "Valor": " 1 : 100",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família",
+          "Valor": "Folha",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família",
+          "Valor": "Folha",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Família e tipo",
+          "Valor": "Folha: Folha",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família e tipo",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família e tipo",
+          "Valor": "Folha: Folha",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ID de tipo",
+          "Valor": "49561",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Largura da folha",
+          "Valor": "0,84",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Modelo de vista",
+          "Valor": "Nenhum",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Nenhum",
+          "Valor": "378552",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Nome da folha",
+          "Valor": "Cobertura, cortes e fachadas",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Nome da folha",
+          "Valor": "Cobertura, cortes e fachadas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Número da folha",
+          "Valor": "LEG-03",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Opção de desenho",
+          "Valor": "-1",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Projetado por",
+          "Valor": "Projetista",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Revisão atual emitida",
+          "Valor": "0",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Substituição da escala (vários valores)",
+          "Valor": "Como indicada",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Tipo",
+          "Valor": "Folha",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Tipo",
+          "Valor": "Folha",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Verificado por",
+          "Valor": "Verificador",
+          "SoLeitura": false
+        }
+      ],
+      "Carimbo": [
+        {
+          "Familia": "ARQ Carimbo A1",
+          "Tipo": "ARQ Carimbo A1",
+          "Parametros": [
+            {
+              "Nome": "Altura da folha",
+              "Valor": "0,60",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Aprovado por",
+              "Valor": "Aprovador",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Bloco de margens e carimbo principal",
+              "Valor": "1",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Caminho do arquivo",
+              "Valor": "C:\\Users\\lucas\\Desktop\\ARQ TESTE\\codex-legal-r3\\validation\\r3-01\\R3_TESTE_Sobrado.rvt",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Categoria",
+              "Valor": "Blocos de margens e carimbo",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Categoria",
+              "Valor": "Blocos de margens e carimbo",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Coleção de folhas",
+              "Valor": "<Nenhuma>",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Data de emissão da folha",
+              "Valor": "10/19/26",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Desenhadas por",
+              "Valor": "Autor",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Escala",
+              "Valor": " 1 : 100",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Família",
+              "Valor": "ARQ Carimbo A1",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Família e tipo",
+              "Valor": "ARQ Carimbo A1: ARQ Carimbo A1",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "ID de hospedeiro",
+              "Valor": "-1",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "ID de tipo",
+              "Valor": "344982",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Impressão de data/hora",
+              "Valor": "10/19/26",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Largura da folha",
+              "Valor": "0,84",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Nome da folha",
+              "Valor": "Cobertura, cortes e fachadas",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Número da folha",
+              "Valor": "LEG-03",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Opção de desenho",
+              "Valor": "-1",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Projetado por",
+              "Valor": "Projetista",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Substituição da escala (vários valores)",
+              "Valor": "Como indicada",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Tipo",
+              "Valor": "ARQ Carimbo A1",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Verificado por",
+              "Valor": "Verificador",
+              "SoLeitura": false
+            }
+          ]
+        }
+      ],
+      "Quantidade": 11
+    },
+    {
+      "SheetNumber": "PRE-01",
+      "Name": "Estudo preliminar / layout e volumetria",
+      "Parametros": [
+        {
+          "Nome": "Altura da folha",
+          "Valor": "0,60",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Aparece na lista de folhas",
+          "Valor": "1",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Aprovado por",
+          "Valor": "A PREENCHER",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ARQ Etapa",
+          "Valor": "01 PRE-PROJETO",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ARQ Funcao",
+          "Valor": "FOLHA",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ARQ Status",
+          "Valor": "MODELO - PREENCHER",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Caminho do arquivo",
+          "Valor": "C:\\Users\\lucas\\Desktop\\ARQ TESTE\\codex-legal-r3\\validation\\r3-01\\R3_TESTE_Sobrado.rvt",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Categoria",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Categoria",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Coleção de folhas",
+          "Valor": "<Nenhuma>",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Coleção de folhas",
+          "Valor": "<Nenhuma>",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Coleção de folhas de referência",
+          "Valor": "<Nenhuma>",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Data de emissão da folha",
+          "Valor": "A PREENCHER",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Dependência",
+          "Valor": "Independente",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Desenhadas por",
+          "Valor": "A PREENCHER",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Eixo guia",
+          "Valor": "<Nenhum>",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Família",
+          "Valor": "Folha",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família",
+          "Valor": "Folha",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Família e tipo",
+          "Valor": "Folha: Folha",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família e tipo",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família e tipo",
+          "Valor": "Folha: Folha",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ID de tipo",
+          "Valor": "49561",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Largura da folha",
+          "Valor": "0,84",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Modelo de vista",
+          "Valor": "Nenhum",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Nenhum",
+          "Valor": "350743",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Nome da folha",
+          "Valor": "Estudo preliminar / layout e volumetria",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Nome da folha",
+          "Valor": "Estudo preliminar / layout e volumetria",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Número da folha",
+          "Valor": "PRE-01",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Opção de desenho",
+          "Valor": "-1",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Projetado por",
+          "Valor": "Projetista",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Revisão atual emitida",
+          "Valor": "0",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Substituição da escala (vários valores)",
+          "Valor": "Como indicada",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Tipo",
+          "Valor": "Folha",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Tipo",
+          "Valor": "Folha",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Verificado por",
+          "Valor": "A PREENCHER",
+          "SoLeitura": false
+        }
+      ],
+      "Carimbo": [
+        {
+          "Familia": "ARQ Carimbo A1",
+          "Tipo": "ARQ Carimbo A1",
+          "Parametros": [
+            {
+              "Nome": "Altura da folha",
+              "Valor": "0,60",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Aprovado por",
+              "Valor": "A PREENCHER",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Bloco de margens e carimbo principal",
+              "Valor": "1",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Caminho do arquivo",
+              "Valor": "C:\\Users\\lucas\\Desktop\\ARQ TESTE\\codex-legal-r3\\validation\\r3-01\\R3_TESTE_Sobrado.rvt",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Categoria",
+              "Valor": "Blocos de margens e carimbo",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Categoria",
+              "Valor": "Blocos de margens e carimbo",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Coleção de folhas",
+              "Valor": "<Nenhuma>",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Data de emissão da folha",
+              "Valor": "A PREENCHER",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Desenhadas por",
+              "Valor": "A PREENCHER",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Família",
+              "Valor": "ARQ Carimbo A1",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Família e tipo",
+              "Valor": "ARQ Carimbo A1: ARQ Carimbo A1",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "ID de hospedeiro",
+              "Valor": "-1",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "ID de tipo",
+              "Valor": "344982",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Impressão de data/hora",
+              "Valor": "10/08/26",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Largura da folha",
+              "Valor": "0,84",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Nome da folha",
+              "Valor": "Estudo preliminar / layout e volumetria",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Número da folha",
+              "Valor": "PRE-01",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Opção de desenho",
+              "Valor": "-1",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Projetado por",
+              "Valor": "Projetista",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Substituição da escala (vários valores)",
+              "Valor": "Como indicada",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Tipo",
+              "Valor": "ARQ Carimbo A1",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Verificado por",
+              "Valor": "A PREENCHER",
+              "SoLeitura": false
+            }
+          ]
+        }
+      ],
+      "Quantidade": 21
+    },
+    {
+      "SheetNumber": "RESERVA-LEG-03-378265",
+      "Name": "Reserva — sem entregáveis selecionados",
+      "Parametros": [
+        {
+          "Nome": "Altura da folha",
+          "Valor": "0,60",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Aparece na lista de folhas",
+          "Valor": "1",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Aprovado por",
+          "Valor": "Aprovador",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ARQ Etapa",
+          "Valor": "02 PROJETO LEGAL",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ARQ Funcao",
+          "Valor": "FOLHA",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ARQ Status",
+          "Valor": "MODELO - PREENCHER",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Caminho do arquivo",
+          "Valor": "C:\\Users\\lucas\\Desktop\\ARQ TESTE\\codex-legal-r3\\validation\\r3-01\\R3_TESTE_Sobrado.rvt",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Categoria",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Categoria",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Coleção de folhas",
+          "Valor": "<Nenhuma>",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Coleção de folhas",
+          "Valor": "<Nenhuma>",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Coleção de folhas de referência",
+          "Valor": "<Nenhuma>",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Data de emissão da folha",
+          "Valor": "10/19/26",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Dependência",
+          "Valor": "Independente",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Desenhadas por",
+          "Valor": "Autor",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Eixo guia",
+          "Valor": "<Nenhum>",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Família",
+          "Valor": "Folha",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família",
+          "Valor": "Folha",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Família e tipo",
+          "Valor": "Folha: Folha",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família e tipo",
+          "Valor": "Folhas",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Família e tipo",
+          "Valor": "Folha: Folha",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "ID de tipo",
+          "Valor": "49561",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Largura da folha",
+          "Valor": "0,84",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Modelo de vista",
+          "Valor": "Nenhum",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Nenhum",
+          "Valor": "378269",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Nome da folha",
+          "Valor": "Reserva — sem entregáveis selecionados",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Nome da folha",
+          "Valor": "Reserva — sem entregáveis selecionados",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Número da folha",
+          "Valor": "RESERVA-LEG-03-378265",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Opção de desenho",
+          "Valor": "-1",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Projetado por",
+          "Valor": "Projetista",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Revisão atual emitida",
+          "Valor": "0",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Substituição da escala (vários valores)",
+          "Valor": "Como indicada",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Tipo",
+          "Valor": "Folha",
+          "SoLeitura": true
+        },
+        {
+          "Nome": "Tipo",
+          "Valor": "Folha",
+          "SoLeitura": false
+        },
+        {
+          "Nome": "Verificado por",
+          "Valor": "Verificador",
+          "SoLeitura": false
+        }
+      ],
+      "Carimbo": [
+        {
+          "Familia": "ARQ Carimbo A1",
+          "Tipo": "ARQ Carimbo A1",
+          "Parametros": [
+            {
+              "Nome": "Altura da folha",
+              "Valor": "0,60",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Aprovado por",
+              "Valor": "Aprovador",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Bloco de margens e carimbo principal",
+              "Valor": "1",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Caminho do arquivo",
+              "Valor": "C:\\Users\\lucas\\Desktop\\ARQ TESTE\\codex-legal-r3\\validation\\r3-01\\R3_TESTE_Sobrado.rvt",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Categoria",
+              "Valor": "Blocos de margens e carimbo",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Categoria",
+              "Valor": "Blocos de margens e carimbo",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Coleção de folhas",
+              "Valor": "<Nenhuma>",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Data de emissão da folha",
+              "Valor": "10/19/26",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Desenhadas por",
+              "Valor": "Autor",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Família",
+              "Valor": "ARQ Carimbo A1",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Família e tipo",
+              "Valor": "ARQ Carimbo A1: ARQ Carimbo A1",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "ID de hospedeiro",
+              "Valor": "-1",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "ID de tipo",
+              "Valor": "344982",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Impressão de data/hora",
+              "Valor": "10/19/26",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Largura da folha",
+              "Valor": "0,84",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Nome da folha",
+              "Valor": "Reserva — sem entregáveis selecionados",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Número da folha",
+              "Valor": "RESERVA-LEG-03-378265",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Opção de desenho",
+              "Valor": "-1",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Projetado por",
+              "Valor": "Projetista",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Substituição da escala (vários valores)",
+              "Valor": "Como indicada",
+              "SoLeitura": true
+            },
+            {
+              "Nome": "Tipo",
+              "Valor": "ARQ Carimbo A1",
+              "SoLeitura": false
+            },
+            {
+              "Nome": "Verificado por",
+              "Valor": "Verificador",
+              "SoLeitura": false
+            }
+          ]
+        }
+      ],
+      "Quantidade": 1
+    }
+  ],
+  "FamiliasDeCarimbo": [
+    "A1 métrico : A1 métrico",
+    "ARQ Carimbo A0 : ARQ Carimbo A0",
+    "ARQ Carimbo A1 : ARQ Carimbo A1"
+  ]
+}
