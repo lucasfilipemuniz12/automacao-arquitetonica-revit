@@ -224,7 +224,18 @@ public static partial class SheetPlanner
    caption.Set(item.Label.Replace(" — "," · "));
   if(item.Key=="urbanistico")
   {const string name="VEBRAM — quadro sem título duplicado";var source=(ElementType)doc.GetElement(vp.GetTypeId());var style=new FilteredElementCollector(doc).OfClass(typeof(ElementType)).Cast<ElementType>().FirstOrDefault(t=>t.Name==name&&t.get_Parameter(BuiltInParameter.VIEWPORT_ATTR_SHOW_LABEL)!=null)??source.Duplicate(name);style.get_Parameter(BuiltInParameter.VIEWPORT_ATTR_SHOW_LABEL).Set(0);vp.ChangeTypeId(style.Id);}
-  AssignDetailNumber(doc,vp,99);doc.Regenerate();if(item.Key!="urbanistico")LegalSheetComposition.CenterLabel(doc,vp);return vp;
+  AssignDetailNumber(doc,vp,99);doc.Regenerate();if(item.Key!="urbanistico"){LegalSheetComposition.CenterLabel(doc,vp);KeepTitleOnOneLine(doc,vp,item);}return vp;
+ }
+ /// <summary>
+ /// The viewport title family wraps long titles onto a second line that collides with the scale.
+ /// Measure the native label; if "pavimento" makes it wrap, use the usual abbreviation "pav." (scale untouched).
+ /// </summary>
+ static void KeepTitleOnOneLine(Document doc,Viewport vp,PlannerItem item)
+ {
+  if(!item.Label.Contains(" pavimento ",StringComparison.Ordinal)||doc.GetElement(new ElementId(item.ViewId)) is not View view||view.get_Parameter(BuiltInParameter.VIEW_DESCRIPTION) is not {IsReadOnly:false} caption)return;
+  string full=caption.AsString();double Height(){doc.Regenerate();var o=vp.GetLabelOutline();return o.MaximumPoint.Y-o.MinimumPoint.Y;}
+  caption.Set("Planta");double single=Height();caption.Set(full);double actual=Height();
+  if(actual>single+Implantation.Feet(.002)){caption.Set(full.Replace(" pavimento "," pav. "));doc.Regenerate();LegalSheetComposition.CenterLabel(doc,vp);}
  }
  static int AssignDetailNumber(Document doc,Viewport viewport,int first)
  {

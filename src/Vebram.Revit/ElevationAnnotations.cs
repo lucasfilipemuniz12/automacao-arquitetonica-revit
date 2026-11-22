@@ -4,7 +4,7 @@ namespace Vebram.Revit;
 internal static class ElevationAnnotations
 {
  // Explicit reference height; never labels a flat line as surveyed natural terrain.
- internal static void Total(Document doc,ViewSection view,BuildingFrame frame,List<Element> made,List<string> pending)
+ internal static void Total(Document doc,ViewSection view,BuildingFrame frame,List<Element> made,List<string> pending,string? extraNote=null)
  {
   var transform=view.CropBox.Transform;var inv=transform.Inverse;double right=frame.Corners.Max(p=>inv.OfPoint(p).X),left=frame.Corners.Min(p=>inv.OfPoint(p).X);
   var profile=TerrainProfile.Read(doc).Slice(view,frame);
@@ -21,6 +21,7 @@ internal static class ElevationAnnotations
    if(segment.A.DistanceTo(segment.B)>doc.Application.ShortCurveTolerance)
     made.Add(doc.Create.NewDetailCurve(view,Line.CreateBound(segment.A,segment.B)));
   var text=profile.Count==0?"BASE: EDIFICAÇÃO · TERRENO A CONFERIR":"BASE: MENOR COTA DO PERFIL REAL DO TERRENO NESTA VISTA";
+  if(!string.IsNullOrWhiteSpace(extraNote))text+="\n"+extraNote;
   // Keep the explanation under the crop, clear of the varying terrain profile.
   made.Add(TextNote.Create(doc,view.Id,At(left,Math.Min(surface,frame.Bottom)-Implantation.Feet(.18)),text,LegalStyles.Text(doc,2).Id));
   if(profile.Count==0)pending.Add("Não foi encontrado perfil de toposólido neste plano; altura referenciada à base da edificação.");

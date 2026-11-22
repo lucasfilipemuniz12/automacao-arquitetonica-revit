@@ -69,12 +69,21 @@ public static partial class SheetPlanner
  {
   // Issue all occupied LEG sheets in order, including unselected/manual sheets. Empty references
   // remain in the document, outside the issued LEG set, so they cannot create holes or inflate its total.
-  bool Occupied(ViewSheet s)=>pages.Any(p=>p.Number==s.SheetNumber)||new FilteredElementCollector(doc,s.Id).WhereElementIsNotElementType().Any(e=>e is Viewport or ScheduleSheetInstance);
+  // The unfilled urbanistic fixture of the template is a reference, not a deliverable: a sheet that
+  // only holds it (e.g. LEG-01 when Implantação/Situação/Quadro could not be prepared) stays as RESERVA.
+  bool Occupied(ViewSheet s)=>pages.Any(p=>p.Number==s.SheetNumber)||new FilteredElementCollector(doc,s.Id).WhereElementIsNotElementType().Any(e=>e is ScheduleSheetInstance||e is Viewport vp&&!UrbanisticReference.IsUnfilled(doc,vp.ViewId));
   var issued=sheets.Where(Occupied).OrderBy(s=>s.SheetNumber,StringComparer.Ordinal).ToList();
   var spare=sheets.Except(issued).ToList();var old=sheets.ToDictionary(s=>s.Id.Value,s=>s.SheetNumber);
   reserved.Clear();
   foreach(var s in sheets)s.SheetNumber="VEBRAM-TEMP-"+Guid.NewGuid().ToString("N");
-  foreach(var s in spare){s.SheetNumber="RESERVA-"+old[s.Id.Value]+"-"+s.Id.Value;if(!reserved.Contains(s.SheetNumber))reserved.Add(s.SheetNumber);}
+  foreach(var s in spare)
+  {
+   s.SheetNumber="RESERVA-"+old[s.Id.Value]+"-"+s.Id.Value;if(!reserved.Contains(s.SheetNumber))reserved.Add(s.SheetNumber);
+   // A reserve is outside the issued set: no generated "number/total" or history line may remain on it.
+   foreach(var note in new FilteredElementCollector(doc,s.Id).OfClass(typeof(TextNote)).Where(SheetNumberStamp.Generated).ToList())doc.Delete(note.Id);
+   bool siteSheet=old[s.Id.Value]=="LEG-01"&&!pages.Any(p=>p.Drawings.Any(d=>d.Label is "Implantação" or "Situação"));
+   warnings.Add(old[s.Id.Value]+" sem entregáveis preparados: mantida como RESERVA, fora do conjunto emitido e do total."+(siteSheet?" Implantação, Situação e Quadro urbanístico não puderam ser preparados; nenhum índice foi calculado.":""));
+  }
   for(int i=0;i<issued.Count;i++)
   {
    var s=issued[i];s.SheetNumber="LEG-"+(i+1).ToString("00");int index=pages.FindIndex(p=>p.Number==old[s.Id.Value]);

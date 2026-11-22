@@ -73,6 +73,16 @@ public static class LegalSections
    ElevationAnnotations.Total(doc,target,frame,made,pending);
    ElevationAnnotations.Rooms(doc,target,source,frame,made,pending);
    if(!string.IsNullOrWhiteSpace(prefs.AdditionalNote))made.Add(TextNote.Create(doc,target.Id,At(buildingLeft,noteElevation),prefs.AdditionalNote,textType.Id));
+   doc.Regenerate();
+   // A face-referenced height that Revit cannot resolve in this cut would roll back the whole section:
+   // drop only that dimension (the "PD" text stays) and report it.
+   foreach(var dimension in made.OfType<Dimension>().ToList())
+   {
+    double? value;try{value=dimension.Value;}catch(Autodesk.Revit.Exceptions.ApplicationException){value=null;}
+    if(value is > 0)continue;
+    made.Remove(dimension);doc.Delete(dimension.Id);pending.Add("Uma cota de pé-direito não pôde ser referenciada às faces neste corte e foi omitida; o texto PD permanece.");
+   }
+   tx.SetFailureHandlingOptions(tx.GetFailureHandlingOptions().SetFailuresPreprocessor(new DropInvalidDimensions(made,pending)));
    doc.Regenerate();foreach(var element in made)DrawingOwnership.MarkAnnotation(element);Write(target,new(source.UniqueId,made.Select(e=>new ElementStamp(e.UniqueId,DrawingOwnership.Fingerprint(e))).ToList(),ViewState(target)));
    if(tx.Commit()!=TransactionStatus.Committed)throw new InvalidOperationException("Operação revertida pelo Revit.");
    return new(target.Id.Value,made.OfType<Dimension>().Count(),made.Count,$"{item.Label} preparado na mesma vista do V02.\nPosição: {request.Position:0.##}%; profundidade: {request.DepthMeters:0.##} m.\n{levels.Count} níveis identificados; {made.OfType<Dimension>().Count()} cota vertical entre faces reais.\n"+string.Join("\n",pending)+"\nNão há detalhamento construtivo nem cotagem completa automática. Revise o corte antes de colocá-lo na folha.");
@@ -119,3 +129,21 @@ public static class LegalSections
  static void Write(View view,SectionStamp state){var s=Schema();var e=new Entity(s);e.Set(s.GetField("Json"),JsonSerializer.Serialize(state));view.SetEntity(e);}
 }
 
+
+/// <summary>Deletes generated dimensions whose face references Revit rejects at commit, instead of rolling back the section.</summary>
+internal sealed class DropInvalidDimensions(List<Element> made,List<string> pending):IFailuresPreprocessor
+{
+ public FailureProcessingResult PreprocessFailures(FailuresAccessor accessor)
+ {
+  var generated=made.OfType<Dimension>().Select(d=>d.Id).ToHashSet();var drop=new List<ElementId>();
+  foreach(var message in accessor.GetFailureMessages())
+  {
+   if(message.GetSeverity()!=FailureSeverity.Error)continue;var ids=message.GetFailingElementIds();
+   if(ids.Count>0&&ids.All(generated.Contains))drop.AddRange(ids);
+  }
+  if(drop.Count==0)return FailureProcessingResult.Continue;
+  accessor.DeleteElements(drop.Distinct().ToList());made.RemoveAll(e=>drop.Contains(e.Id));
+  pending.Add(drop.Distinct().Count()+" cota(s) de pé-direito sem referência válida neste corte foram omitidas; o texto PD permanece.");
+  return FailureProcessingResult.ProceedWithCommit;
+ }
+}

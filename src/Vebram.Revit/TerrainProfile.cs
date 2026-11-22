@@ -18,12 +18,22 @@ internal sealed class TerrainProfile
  }
  internal List<(XYZ A,XYZ B)> Slice(ViewSection view,BuildingFrame frame)
  {
-  var normal=view.ViewDirection;var origin=view.Origin;var inv=view.CropBox.Transform.Inverse;
-  if(view.ViewType==ViewType.Elevation)
-  {
-   double edge=frame.Corners.Max(p=>p.DotProduct(normal));
-   origin+=normal*(edge-origin.DotProduct(normal)+Implantation.Feet(.05));
-  }
+  var normal=view.ViewDirection;var origin=view.Origin;
+  if(view.ViewType!=ViewType.Elevation)return SliceAt(view,frame,origin);
+  // Elevation: profile just in front of the nearest face of the frame. When the frame reaches the lot
+  // boundary (front walls/fences on the divisa) that plane lies outside the toposolid and finds nothing;
+  // then the profile is taken just in front of the building itself (its rooms), where the ground meets the facade.
+  double edge=frame.Corners.Max(p=>p.DotProduct(normal));
+  var segments=SliceAt(view,frame,origin+normal*(edge-origin.DotProduct(normal)+Implantation.Feet(.05)));
+  if(segments.Count>0)return segments;
+  var rooms=new FilteredElementCollector(view.Document).OfClass(typeof(SpatialElement)).OfType<Autodesk.Revit.DB.Architecture.Room>().Where(r=>r.Area>0).Select(r=>r.get_BoundingBox(null)).Where(b=>b!=null).ToList();
+  if(rooms.Count==0)return segments;
+  double house=rooms.SelectMany(b=>new[]{b!.Min,b.Max,new XYZ(b.Min.X,b.Max.Y,0),new XYZ(b.Max.X,b.Min.Y,0)}).Max(p=>p.X*normal.X+p.Y*normal.Y);
+  return SliceAt(view,frame,origin+normal*(house-origin.DotProduct(normal)+Implantation.Feet(.05)));
+ }
+ List<(XYZ A,XYZ B)> SliceAt(ViewSection view,BuildingFrame frame,XYZ origin)
+ {
+  var normal=view.ViewDirection;var inv=view.CropBox.Transform.Inverse;
   double left=frame.Corners.Min(p=>inv.OfPoint(p).X)-Implantation.Feet(1),right=frame.Corners.Max(p=>inv.OfPoint(p).X)+Implantation.Feet(1);
   var segments=new List<(XYZ A,XYZ B)>();
   TerrainPoint P(XYZ p)=>new(p.X,p.Y,p.Z);

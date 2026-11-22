@@ -188,7 +188,23 @@ public static class MemoryAreas
    // On the lower floor the terrace/roof can extend beyond its floors; on the ground memory
    // the terrain is also part of the drawing and must not sit underneath the legend.
    doc.Regenerate();
-   var drawingBoxes=new FilteredElementCollector(doc,view.Id).WhereElementIsNotElementType().Where(e=>!e.ViewSpecific&&!e.IsHidden(view)&&e is HostObject or Autodesk.Revit.DB.Architecture.Railing).Select(e=>e.get_BoundingBox(view)).Where(b=>b!=null).ToList();
+   // Memories other than the confirmed ground/lot one keep the legend beside the building itself. Site objects
+   // seen from this level (boundary walls, fences, CAD, terrain) do not push the legend away; the ones that
+   // would cross it are hidden in this view only (model untouched).
+   bool compact=!ground;
+   var roomBoxes=new FilteredElementCollector(doc).OfClass(typeof(SpatialElement)).OfType<Autodesk.Revit.DB.Architecture.Room>().Where(r=>r.Area>0).Select(r=>r.get_BoundingBox(null)).Where(b=>b!=null).Select(b=>b!).ToList();
+   // House extent = all rooms (every level) plus 1 m; a boundary wall/fence runs well beyond it even when it
+   // touches the house (a house built on the side boundary), the house's own walls and guards do not.
+   double hx0=roomBoxes.Select(b=>b.Min.X).DefaultIfEmpty(0).Min()-Implantation.Feet(1),hx1=roomBoxes.Select(b=>b.Max.X).DefaultIfEmpty(0).Max()+Implantation.Feet(1);
+   double hy0=roomBoxes.Select(b=>b.Min.Y).DefaultIfEmpty(0).Min()-Implantation.Feet(1),hy1=roomBoxes.Select(b=>b.Max.Y).DefaultIfEmpty(0).Max()+Implantation.Feet(1);
+   bool Site(Element e)
+   {
+    if(e is ImportInstance or Toposolid)return true;
+    if(e is not (Wall or Autodesk.Revit.DB.Architecture.Railing or Autodesk.Revit.DB.Architecture.TopRail or Autodesk.Revit.DB.Architecture.HandRail)&&!(e is FamilyInstance fi&&fi.Category?.Id.Value is (long)BuiltInCategory.OST_GenericModel or (long)BuiltInCategory.OST_Site or (long)BuiltInCategory.OST_Planting))return false;
+    var b=e.get_BoundingBox(null);if(b==null||roomBoxes.Count==0)return false;
+    return b.Min.X<hx0||b.Max.X>hx1||b.Min.Y<hy0||b.Max.Y>hy1;
+   }
+   var drawingBoxes=new FilteredElementCollector(doc,view.Id).WhereElementIsNotElementType().Where(e=>!e.ViewSpecific&&!e.IsHidden(view)&&e is HostObject or Autodesk.Revit.DB.Architecture.Railing&&!(compact&&Site(e))).Select(e=>e.get_BoundingBox(view)).Where(b=>b!=null).ToList();
    if(drawingBoxes.Count>0){right=Math.Max(right,drawingBoxes.Max(b=>b!.Max.X));top=Math.Max(top,drawingBoxes.Max(b=>b!.Max.Y));}
    if(ground&&lot!=null){right=Math.Max(right,Implantation.Feet(lot.LotMinX+lot.LotWidth));top=Math.Max(top,Implantation.Feet(lot.LotMinY+lot.LotDepth));}
    double Paper(double meters)=>Implantation.Feet(meters)*scale;
@@ -217,6 +233,13 @@ public static class MemoryAreas
     {var middle=new XYZ((fb.Min.X+fb.Max.X)/2,(fb.Min.Y+fb.Max.Y)/2,z);
      Mark(TextNote.Create(doc,view.Id,middle,ClassId(pair.Key),new TextNoteOptions(LegalStyles.Text(doc,3,true).Id){HorizontalAlignment=HorizontalTextAlignment.Center,VerticalAlignment=VerticalTextAlignment.Middle}));items++;}
    doc.Regenerate();
+   if(compact)
+   {
+    var column=legend.Select(e=>e.get_BoundingBox(view)).Where(b=>b!=null).ToList();double pad=Paper(.004);
+    double l=column.Min(b=>b!.Min.X)-pad,r=column.Max(b=>b!.Max.X)+pad,bo=column.Min(b=>b!.Min.Y)-pad,t=column.Max(b=>b!.Max.Y)+pad;
+    var crossing=new FilteredElementCollector(doc,view.Id).WhereElementIsNotElementType().Where(e=>(!e.ViewSpecific||e is ImportInstance)&&e.CanBeHidden(view)&&!e.IsHidden(view)&&Site(e)&&e.get_BoundingBox(view) is {} b&&b.Max.X>l&&b.Min.X<r&&b.Max.Y>bo&&b.Min.Y<t).Select(e=>e.Id).ToList();
+    if(crossing.Count>0){view.HideElements(crossing);hiddenIds.AddRange(crossing);warnings.Add(crossing.Count+" elemento(s) do terreno/divisa (muros, gradis, DXF) que cruzavam o título ou a legenda ficaram ocultos nesta vista; elementos preservados no modelo.");doc.Regenerate();}
+   }
    var bounds=floors.Select(f=>f.get_BoundingBox(view)??f.get_BoundingBox(null)).Concat(new FilteredElementCollector(doc,view.Id).WhereElementIsNotElementType().Where(e=>e.OwnerViewId==view.Id&&e is TextNote or FilledRegion).Select(e=>e.get_BoundingBox(view))).Where(b=>b!=null).ToList();
    var crop=view.CropBox;var inv=crop.Transform.Inverse;var points=bounds.SelectMany(b=>new[]{inv.OfPoint(b!.Min),inv.OfPoint(b.Max)}).ToList();double margin=Paper(.006);
    crop.Min=new XYZ(points.Min(p=>p.X)-margin,points.Min(p=>p.Y)-margin,crop.Min.Z);crop.Max=new XYZ(points.Max(p=>p.X)+margin,points.Max(p=>p.Y)+margin,crop.Max.Z);view.CropBox=crop;view.CropBoxActive=true;view.CropBoxVisible=false;
