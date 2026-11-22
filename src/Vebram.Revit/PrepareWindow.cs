@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -15,7 +15,7 @@ using Panel=System.Windows.Controls.Panel;
 using WpfLine=System.Windows.Shapes.Line;
 namespace Vebram.Revit;
 public sealed record SourceChoice(long Id,string Name){public override string ToString()=>Name;}
-public sealed class PrepareWindow : Window
+public sealed partial class PrepareWindow : Window
 {
     readonly Document doc;
     readonly Grid root=new(){Margin=new Thickness(26)};
@@ -29,6 +29,7 @@ public sealed class PrepareWindow : Window
     List<RoofDrainageChoice>? drainage;
     public ImplantationOptions? Selection{get;private set;}
     public ModuleSelection? Module{get;private set;}
+    public IReadOnlyList<ModuleSelection>? FloorModules{get;private set;}
     public SectionSelection? Section{get;private set;}
     public ContextSelection? Context{get;private set;}
     public FacadeSelection? Facades{get;private set;}
@@ -155,17 +156,18 @@ public sealed class PrepareWindow : Window
     void Field(Panel parent,string label,string key,double value){parent.Children.Add(Label(label));var field=new TextBox{Text=value.ToString("0.###",Implantation.Pt),MinHeight=32,Padding=new Thickness(6)};fields[key]=field;parent.Children.Add(field);}
     void ChooseModule(string key)
     {
+        if(key is "planta" or "memoria"){ChooseFloorModules(key);return;}
         if(Source==null){MessageBox.Show(this,"Escolha sua planta de modelagem.");return;}
-        var title=key=="planta"?"Planta legal":key=="cobertura"?"Cobertura":key=="memoria"?"Memória gráfica de áreas":"Áreas dos ambientes";
+        var title=key=="cobertura"?"Cobertura":"Áreas dos ambientes";
         var dialog=new Window{Owner=this,Title=title,Width=620,Height=350,WindowStartupLocation=WindowStartupLocation.CenterOwner};
         var body=new StackPanel{Margin=new Thickness(24)};dialog.Content=body;
         body.Children.Add(new TextBlock{Text=title,FontSize=22,Margin=new Thickness(0,0,0,10)});
         body.Children.Add(new TextBlock{Text="Fonte: "+Source.Name,TextWrapping=TextWrapping.Wrap});
         var candidates=Implantation.Footprints(doc,Source);var bases=new ComboBox{ItemsSource=candidates.Select(f=>new SourceChoice(f.Id.Value,f.Name)).ToList(),MinHeight=32,Margin=new Thickness(0,10,0,10)};
-        if(candidates.Count>0)bases.SelectedIndex=0;if(key is not ("areas" or "memoria")){body.Children.Add(Label("Piso base do nível escolhido"));body.Children.Add(bases);}
+        if(candidates.Count>0)bases.SelectedIndex=0;if(key!="areas"){body.Children.Add(Label("Piso base do nível escolhido"));body.Children.Add(bases);}
         var edited=new CheckBox{Content="Refazer marcas do gerador que editei manualmente",Margin=new Thickness(0,12,0,12)};if(key!="areas")body.Children.Add(edited);
-        body.Children.Add(new TextBlock{Text=key=="memoria"?"Cores e classes pelo nome dos tipos de piso. Confira a classificação; terreno em verde não equivale a área permeável medida. A legenda editada exige autorização para ser refeita. Memórias antigas precisam dessa autorização na primeira atualização. A vista entra em Organizar folhas na escala das Preferências legais.":key=="planta"?"Cotas gerais e internas entre acabamentos; nomes e áreas priorizados dentro dos ambientes. Identificações de portas e janelas usam a Marca existente; execute novamente após alterar os códigos. Espessuras e larguras de esquadrias opcionais nas preferências. Cotas sem espaço ou referência válida são relatadas.":key=="cobertura"?"Lê inclinação e sentido das águas modeladas. Nas lajes planas, usa os caimentos configurados na Implantação; sem dados, indica caimento a definir. Após alterar a Implantação, prepare a Cobertura novamente.":"Abrir o quadro Q04 existente, que acompanha as áreas do modelo.",TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,0,0,12)});
-        var apply=new Button{Content="Preparar "+title,Padding=new Thickness(15,8,15,8),HorizontalAlignment=HorizontalAlignment.Right};body.Children.Add(apply);apply.Click+=(_,_)=>{if(key is not ("areas" or "memoria")&&bases.SelectedItem==null){MessageBox.Show(dialog,"Este nível não possui piso base disponível.");return;}dialog.DialogResult=true;};
+        body.Children.Add(new TextBlock{Text=key=="cobertura"?"Lê inclinação e sentido das águas modeladas. Nas lajes planas, usa os caimentos configurados na Implantação; sem dados, indica caimento a definir. Após alterar a Implantação, prepare a Cobertura novamente.":"Abrir o quadro Q04 existente, que acompanha as áreas do modelo.",TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,0,0,12)});
+        var apply=new Button{Content="Preparar "+title,Padding=new Thickness(15,8,15,8),HorizontalAlignment=HorizontalAlignment.Right};body.Children.Add(apply);apply.Click+=(_,_)=>{if(key!="areas"&&bases.SelectedItem==null){MessageBox.Show(dialog,"Este nível não possui piso base disponível.");return;}dialog.DialogResult=true;};
         LegalGuide.Attach(dialog,body,key);
         if(dialog.ShowDialog()==true){Module=new(key,Source.Id.Value,(bases.SelectedItem as SourceChoice)?.Id??0,edited.IsChecked==true);DialogResult=true;}
     }
@@ -191,7 +193,7 @@ public sealed class PrepareWindow : Window
     }
     void ChoosePlan()
     {
-        var window=new SheetPlannerWindow(SheetPlanner.Items(doc),(profile,ids,optimize)=>SheetPlanner.Preview(doc,profile,ids,optimize),SheetPlanner.Unprepared(doc),(profile,ids,optimize,scales)=>SheetPlanner.Preview(doc,profile,ids,optimize,scales)){Owner=this};
+        var window=new SheetPlannerWindow(SheetPlanner.Items(doc),(profile,ids,optimize)=>SheetPlanner.Preview(doc,profile,ids,optimize),SheetPlanner.Unprepared(doc),(profile,ids,optimize,scales)=>SheetPlanner.Preview(doc,profile,ids,optimize,scales),(profile,ids,optimize,scales,moves)=>SheetPlanner.Preview(doc,profile,ids,optimize,scales,moves)){Owner=this};
         if(window.ShowDialog()==true){Plan=window.Result;DialogResult=true;}
     }
     void ChooseNotes()

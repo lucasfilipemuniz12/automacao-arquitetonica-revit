@@ -88,7 +88,7 @@ public static partial class SheetPlanner
   {
    var s=issued[i];s.SheetNumber="LEG-"+(i+1).ToString("00");int index=pages.FindIndex(p=>p.Number==old[s.Id.Value]);
    if(stampProfile!=null)SheetNumberStamp.Draw(doc,s,stampProfile,issued.Count);
-   if(index>=0)pages[index]=pages[index] with{Number=s.SheetNumber};
+   if(index>=0)pages[index]=pages[index] with{Number=s.SheetNumber,LayoutKey=old[s.Id.Value]};
    foreach(var e in new Element?[]{s,Title(doc,s)})if(e!=null)foreach(Parameter p in e.Parameters)
    {
     string n=p.Definition.Name.ToLowerInvariant();

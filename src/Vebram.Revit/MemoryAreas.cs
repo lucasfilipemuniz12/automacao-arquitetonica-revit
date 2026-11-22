@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Text;
 using Autodesk.Revit.DB;
 namespace Vebram.Revit;
@@ -50,7 +50,7 @@ public static class MemoryAreas
   .Where(v=>!v.IsTemplate&&v.Name.StartsWith(ViewName+" — ",StringComparison.Ordinal)&&MemoryAreaState.Read(v)!=null).OrderBy(v=>v.GenLevel?.Elevation??0).ToList();
  static string Number(double value)=>value.ToString("0.00",CultureInfo.GetCultureInfo("pt-BR"));
 
- public static ModuleResult Apply(Document doc,ViewPlan source,bool replaceEdited=false)
+ public static ModuleResult Apply(Document doc,ViewPlan source,bool replaceEdited=false,int? requestedScale=null)
  {
   if(doc.IsReadOnly||doc.IsFamilyDocument||doc.IsWorkshared)throw new InvalidOperationException("Use um RVT local editável.");
   var warnings=new List<string>();
@@ -94,7 +94,7 @@ public static class MemoryAreas
    if(view.ViewTemplateId!=ElementId.InvalidElementId)view.ViewTemplateId=ElementId.InvalidElementId;
    foreach(var pair in new[]{(LegalCatalog.StageId,LegalCatalog.Stage),(LegalCatalog.FunctionId,"MEMORIA_AREAS")})
    {var p=view.get_Parameter(pair.Item1);if(p==null||p.IsReadOnly)throw new InvalidOperationException("Classificação ARQ indisponível na memória gráfica.");p.Set(pair.Item2);}
-   if(initialize)view.Scale=LegalPreferenceStore.Read(doc).Scale;
+   if(requestedScale.HasValue||initialize)view.Scale=requestedScale??LegalPreferenceStore.Read(doc).Scale;
    Ownership.Write(view,"legal-v02/memoria",source.UniqueId);
    view.get_Parameter(BuiltInParameter.VIEW_DESCRIPTION)?.Set(ground?"Memória gráfica de áreas":"Memória de áreas — "+source.GenLevel.Name);
    // Navigation clutter inherited from the source plan (grids, elevation/section/callout marks) is hidden in this view only.

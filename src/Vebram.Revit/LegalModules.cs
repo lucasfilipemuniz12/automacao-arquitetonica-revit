@@ -1,20 +1,46 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.DB.ExtensibleStorage;
 namespace Vebram.Revit;
-public sealed record ModuleSelection(string Key,long SourceId,long FloorId=0,bool ReplaceEdited=false);
+public sealed record ModuleSelection(string Key,long SourceId,long FloorId=0,bool ReplaceEdited=false,int? Scale=null);
 public sealed record ModuleResult(long ViewId,int Dimensions,int Annotations,string Report);
 record ModuleStamp(string Source,List<ElementStamp> Elements);
 public static class LegalModules
 {
  static readonly Guid SchemaId=new("20b3b538-6c86-4ef5-b245-56849fbf0480");
+ internal static IReadOnlyList<ModuleResult> ApplyBatch(Document doc,IReadOnlyList<ModuleSelection> requests)
+ {
+  if(requests.Count==1)return [Apply(doc,requests[0])];
+  if(requests.Count==0)throw new InvalidOperationException("Escolha pelo menos um pavimento.");
+  using var group=new TransactionGroup(doc,"VEBRAM — preparar pavimentos");
+  group.Start();
+  var results=new List<ModuleResult>();
+  foreach(var request in requests)
+  {
+   try{results.Add(Apply(doc,request));}
+   catch(InvalidOperationException ex)
+   {
+    var source=doc.GetElement(new ElementId(request.SourceId)) as ViewPlan;
+    throw new InvalidOperationException((source?.GenLevel?.Name??"Pavimento")+": "+ex.Message,ex);
+   }
+  }
+  if(group.Assimilate()!=TransactionStatus.Committed)throw new InvalidOperationException("O Revit reverteu a geração dos pavimentos.");
+  return results;
+ }
+ internal static ViewPlan? PlanReference(Document doc,ElementId levelId)
+ {
+  var views=LegalCatalog.Views(doc);
+  return LegalCatalog.Items.Where(i=>i.Key is "planta-1" or "planta-2")
+   .Select(i=>LegalCatalog.Reference(views,i)).OfType<ViewPlan>().FirstOrDefault(p=>p.GenLevel.Id==levelId);
+ }
+ internal static string? PreviousPlanSource(ViewPlan? reference)=>reference==null?null:Read(reference)?.Source;
  public static ModuleResult Apply(Document doc,ModuleSelection request)
  {
   if(doc.IsFamilyDocument||doc.IsReadOnly||doc.IsWorkshared||doc.PathName.EndsWith(".rte",StringComparison.OrdinalIgnoreCase))throw new InvalidOperationException("Use um RVT local editável.");
   var source=doc.GetElement(new ElementId(request.SourceId)) as ViewPlan??throw new InvalidOperationException("Escolha a planta de modelagem.");
   if(source.IsTemplate||source.ViewType!=ViewType.FloorPlan)throw new InvalidOperationException("Fonte de planta inválida.");
-  if(request.Key=="memoria")return MemoryAreas.Apply(doc,source,request.ReplaceEdited);
+  if(request.Key=="memoria")return MemoryAreas.Apply(doc,source,request.ReplaceEdited,request.Scale);
   if(request.Key=="esquadrias")return OpeningSchedules.Apply(doc,source); if(request.Key=="areas")
   {
    var schedule=LegalCatalog.Reference(LegalCatalog.Views(doc),LegalCatalog.Items.First(i=>i.Key=="areas")) as ViewSchedule??throw new InvalidOperationException("Q04 do V02 não encontrado. Use o template compatível.");
@@ -41,7 +67,7 @@ public static class LegalModules
   try
   {
    if(previous!=null){var ids=previous.Elements.Select(s=>doc.GetElement(s.UniqueId)).Where(e=>e!=null&&e.OwnerViewId==target.Id&&DrawingOwnership.IsAnnotation(e)).Select(e=>e!.Id).ToList();if(ids.Count>0){var allowed=ids.ToHashSet();var removed=doc.Delete(ids);if(removed.Any(id=>!allowed.Contains(id)))throw new InvalidOperationException("Há elementos manuais dependentes das marcações geradas. A atualização foi revertida para preservá-los.");}}
-   var prefs=LegalPreferenceStore.Read(doc);Preset(doc,target,source,item,prefs.Scale);
+   var prefs=LegalPreferenceStore.Read(doc);Preset(doc,target,source,item,request.Scale??prefs.Scale);
    var cad=new FilteredElementCollector(doc).OfClass(typeof(ImportInstance)).WhereElementIsNotElementType().Where(e=>e.CanBeHidden(target)&&!e.IsHidden(target)).Select(e=>e.Id).ToList();
    if(cad.Count>0)target.HideElements(cad);
    if(request.Key=="planta")
