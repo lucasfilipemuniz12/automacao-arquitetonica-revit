@@ -95,6 +95,14 @@ public sealed class PrepareLegalCommand : IExternalCommand
                 data.Application.ActiveUIDocument.GetOpenUIViews().FirstOrDefault(v=>v.ViewId.Value==prepared.ViewId)?.ZoomToFit();
                 TaskDialog.Show("VEBRAM — corte preparado",prepared.Report);return Result.Succeeded;
             }
+            if(form.FloorModules is { } floorModules)
+            {
+                var prepared=LegalModules.ApplyBatch(doc,floorModules);
+                OpenModuleResult(data.Application.ActiveUIDocument!,prepared[0].ViewId);
+                TaskDialog.Show("VEBRAM — resultado",string.Join("\n\n",floorModules.Zip(prepared,
+                    (request,result)=>((ViewPlan)doc.GetElement(new ElementId(request.SourceId))).GenLevel.Name+"\n"+result.Report)));
+                return Result.Succeeded;
+            }
             if(form.Module is { } module)
             {
                 var prepared=LegalModules.Apply(doc,module);
