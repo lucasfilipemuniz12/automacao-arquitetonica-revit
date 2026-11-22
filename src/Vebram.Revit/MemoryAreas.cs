@@ -237,7 +237,8 @@ public static class MemoryAreas
    {
     var column=legend.Select(e=>e.get_BoundingBox(view)).Where(b=>b!=null).ToList();double pad=Paper(.004);
     double l=column.Min(b=>b!.Min.X)-pad,r=column.Max(b=>b!.Max.X)+pad,bo=column.Min(b=>b!.Min.Y)-pad,t=column.Max(b=>b!.Max.Y)+pad;
-    var crossing=new FilteredElementCollector(doc,view.Id).WhereElementIsNotElementType().Where(e=>(!e.ViewSpecific||e is ImportInstance)&&e.CanBeHidden(view)&&!e.IsHidden(view)&&Site(e)&&e.get_BoundingBox(view) is {} b&&b.Max.X>l&&b.Min.X<r&&b.Max.Y>bo&&b.Min.Y<t).Select(e=>e.Id).ToList();
+    // Whole document, not the view collector: the legend sits outside the inherited crop, which only grows below.
+    var crossing=new FilteredElementCollector(doc).WhereElementIsNotElementType().Where(e=>(!e.ViewSpecific||e is ImportInstance&&e.OwnerViewId==view.Id)&&e.CanBeHidden(view)&&!e.IsHidden(view)&&Site(e)&&(e.get_BoundingBox(view)??e.get_BoundingBox(null)) is {} b&&b.Max.X>l&&b.Min.X<r&&b.Max.Y>bo&&b.Min.Y<t).Select(e=>e.Id).ToList();
     if(crossing.Count>0){view.HideElements(crossing);hiddenIds.AddRange(crossing);warnings.Add(crossing.Count+" elemento(s) do terreno/divisa (muros, gradis, DXF) que cruzavam o título ou a legenda ficaram ocultos nesta vista; elementos preservados no modelo.");doc.Regenerate();}
    }
    var bounds=floors.Select(f=>f.get_BoundingBox(view)??f.get_BoundingBox(null)).Concat(new FilteredElementCollector(doc,view.Id).WhereElementIsNotElementType().Where(e=>e.OwnerViewId==view.Id&&e is TextNote or FilledRegion).Select(e=>e.get_BoundingBox(view))).Where(b=>b!=null).ToList();
