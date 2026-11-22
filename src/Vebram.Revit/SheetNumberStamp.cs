@@ -9,8 +9,12 @@ internal static class SheetNumberStamp
  const string Marker="VEBRAM-NUMERO-TOTAL";
  internal const string HistoryMarker="VEBRAM-HISTORICO";
  /// <summary>Generated identification on the stamp (number/total or history line); never manual content.</summary>
- internal static bool Generated(Element e)=>e is TextNote&&e.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS)?.AsString() is Marker or HistoryMarker;
- static bool IsNumber(Element e)=>e is TextNote&&e.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS)?.AsString()==Marker;
+ // Text notes have no Comments parameter: generated notes are identified by their dedicated text types.
+ internal const string NumberType="VEBRAM — identificação número/total",HistoryType="VEBRAM — histórico de revisão";
+ static string? TypeName(Element e)=>e is TextNote n?n.Document.GetElement(n.GetTypeId())?.Name:null;
+ internal static bool Generated(Element e)=>TypeName(e) is NumberType or HistoryType||e is TextNote&&e.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS)?.AsString() is Marker or HistoryMarker;
+ static bool IsNumber(Element e)=>TypeName(e)==NumberType||e is TextNote&&e.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS)?.AsString()==Marker;
+ internal static bool IsHistory(Element e)=>TypeName(e)==HistoryType||e is TextNote&&e.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS)?.AsString()==HistoryMarker;
  internal static NumberStampProfile? Read(Document doc,FamilyInstance title)
  {
   var family=doc.EditFamily(title.Symbol.Family);
@@ -26,7 +30,7 @@ internal static class SheetNumberStamp
  {
   foreach(var note in new FilteredElementCollector(doc,sheet.Id).OfClass(typeof(TextNote)).Where(IsNumber).ToList())doc.Delete(note.Id);
   var type=LegalStyles.Text(doc,profile.Size*.3048*1000,profile.Bold);
-  const string name="VEBRAM — identificação número/total";
+  const string name=NumberType;
   var stampType=new FilteredElementCollector(doc).OfClass(typeof(TextNoteType)).Cast<TextNoteType>().FirstOrDefault(t=>t.Name==name)??(TextNoteType)type.Duplicate(name);
   stampType.get_Parameter(BuiltInParameter.TEXT_FONT).Set(profile.Font);stampType.get_Parameter(BuiltInParameter.TEXT_STYLE_ITALIC).Set(profile.Italic?1:0);
   stampType.get_Parameter(BuiltInParameter.TEXT_BACKGROUND).Set(0);
@@ -61,10 +65,11 @@ internal static class SheetHistory
   using var tx=new Transaction(doc,"VEBRAM — histórico de revisões das folhas emitidas");tx.Start();
   try
   {
-   var type=LegalStyles.Text(doc,2);int count=0;
+   var baseType=LegalStyles.Text(doc,2);int count=0;
+   var type=new FilteredElementCollector(doc).OfClass(typeof(TextNoteType)).Cast<TextNoteType>().FirstOrDefault(t=>t.Name==SheetNumberStamp.HistoryType)??(TextNoteType)baseType.Duplicate(SheetNumberStamp.HistoryType);
    foreach(var sheet in sheets)
    {
-    foreach(var old in new FilteredElementCollector(doc,sheet.Id).OfClass(typeof(TextNote)).Where(e=>e.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS)?.AsString()==SheetNumberStamp.HistoryMarker).ToList())doc.Delete(old.Id);
+    foreach(var old in new FilteredElementCollector(doc,sheet.Id).OfClass(typeof(TextNote)).Where(SheetNumberStamp.IsHistory).ToList())doc.Delete(old.Id);
     // The template's "00 | Folha-base" reminder occupies the same box; hide it on issued sheets only.
     var placeholder=new FilteredElementCollector(doc,sheet.Id).OfClass(typeof(TextNote)).Cast<TextNote>().Where(n=>n.OwnerViewId==sheet.Id&&!n.IsHidden(sheet)&&n.Text.StartsWith("00 | Folha-base")).Select(n=>n.Id).ToList();
     if(placeholder.Count>0)sheet.HideElements(placeholder);
