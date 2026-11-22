@@ -4,9 +4,10 @@ namespace Vebram.Revit;
 internal sealed record TitleZoneProfile(List<PlannerZone> LocalZones,bool Recognized);
 internal static class SheetZones
 {
- internal static TitleZoneProfile Read(Document doc,FamilyInstance title)
+ internal static TitleZoneProfile Read(Document doc,FamilyInstance title)=>Read(doc,title.Symbol);
+ internal static TitleZoneProfile Read(Document doc,FamilySymbol symbol)
  {
-  var family=doc.EditFamily(title.Symbol.Family);
+  var family=doc.EditFamily(symbol.Family);
   try
   {
    var lines=new FilteredElementCollector(family).OfClass(typeof(CurveElement)).Cast<CurveElement>().Select(c=>c.GeometryCurve).OfType<Line>().ToList();
@@ -27,9 +28,18 @@ internal static class SheetZones
  internal static (LegalPaperRect Paper,List<PlannerZone> Zones) Map(Document doc,ViewSheet sheet,TitleZoneProfile profile)
  {
   var title=new FilteredElementCollector(doc,sheet.Id).OfCategory(BuiltInCategory.OST_TitleBlocks).WhereElementIsNotElementType().OfType<FamilyInstance>().First();var box=title.get_BoundingBox(sheet);var paper=new LegalPaperRect(box.Min.X,box.Min.Y,box.Max.X,box.Max.Y);var transform=title.GetTransform();
-  var zones=new List<PlannerZone>{new("desenhos","DESENHOS",LegalSheetComposition.Area(doc,sheet))};
+  var zones=new List<PlannerZone>();
   if(profile.Recognized)foreach(var zone in profile.LocalZones)
   {var corners=new[]{new XYZ(zone.Rect.Left,zone.Rect.Bottom,0),new XYZ(zone.Rect.Right,zone.Rect.Bottom,0),new XYZ(zone.Rect.Left,zone.Rect.Top,0),new XYZ(zone.Rect.Right,zone.Rect.Top,0)}.Select(transform.OfPoint).ToList();zones.Add(zone with{Rect=new(corners.Min(p=>p.X),corners.Min(p=>p.Y),corners.Max(p=>p.X),corners.Max(p=>p.Y))});}
+  double width=paper.Right-paper.Left,height=paper.Top-paper.Bottom;
+  double margin=Math.Min(Implantation.Feet(.035),Math.Min(width,height)*.065);
+  var notes=zones.ToList();
+  double right=notes.Count>0?notes.Min(z=>z.Rect.Left)-Implantation.Feet(.015):paper.Right-width*.32;
+  double bottom=notes.Count>0?paper.Bottom+margin:paper.Bottom+height*.22;
+  bool legacyA1=Math.Abs(width*304.8-841)<25&&Math.Abs(height*304.8-594)<25;
+  var drawingArea=legacyA1?LegalSheetComposition.Area(doc,sheet):new LegalPaperRect(paper.Left+margin,bottom,right,paper.Top-margin);
+  zones.Insert(0,new("desenhos","DESENHOS",drawingArea));
+  if(notes.Count==0)zones.Add(new("identificacao","RESERVA PARA CARIMBO",new(right,paper.Bottom,paper.Right,paper.Top),false));
   if(zones.Any(z=>z.Key=="legendas")){var lateral=zones.Where(z=>z.Key!="desenhos").ToList();zones.Add(new("identificacao","CARIMBO / HISTÓRICO",new(lateral.Min(z=>z.Rect.Left),paper.Bottom+Implantation.Feet(.01),lateral.Max(z=>z.Rect.Right),lateral.Min(z=>z.Rect.Bottom)-Implantation.Feet(.005)),false));}
   return(paper,zones);
  }

@@ -4,8 +4,8 @@ namespace Vebram.Revit;
 public sealed record PlannerItem(string Key,string Label,long ViewId,bool Schedule,long? CurrentSheetId);
 public sealed record PlannerZone(string Key,string Label,LegalPaperRect Rect,bool Writable=true);
 public sealed record PlannerDrawing(long ViewId,string Label,int Scale,LegalPaperRect Rect,string Zone="desenhos");
-public sealed record PlannerPage(string Number,string Name,bool IsNew,LegalPaperRect Area,List<PlannerDrawing> Drawings,List<LegalPaperRect> Obstacles,LegalPaperRect? SheetBounds=null,List<PlannerZone>? Zones=null,List<string>? Notes=null,string? LayoutKey=null);
-public sealed record SheetPlan(string Profile,List<long> ViewIds,List<PlannerPage> Pages,List<string> Warnings,bool Optimize=true,List<string>? ReservedSheets=null,Dictionary<long,int>? ScaleOverrides=null,List<PlannerMove>? Moves=null);
+public sealed record PlannerPage(string Number,string Name,bool IsNew,LegalPaperRect Area,List<PlannerDrawing> Drawings,List<LegalPaperRect> Obstacles,LegalPaperRect? SheetBounds=null,List<PlannerZone>? Zones=null,List<string>? Notes=null,string? LayoutKey=null,long? FormatSymbolId=null);
+public sealed record SheetPlan(string Profile,List<long> ViewIds,List<PlannerPage> Pages,List<string> Warnings,bool Optimize=true,List<string>? ReservedSheets=null,Dictionary<long,int>? ScaleOverrides=null,List<PlannerMove>? Moves=null,bool ManualLayout=false);
 
 public sealed record PlannerMove(long ViewId,string TargetPage,double X,double Y,long? SwapWith=null);
 
@@ -67,6 +67,19 @@ public static partial class SheetPlanner
   var sheets=Sheets(doc);var reference=sheets.FirstOrDefault(s=>Title(doc,s)!=null)??throw new InvalidOperationException("É necessária uma folha LEG com carimbo para usar como referência.");
   var zoneProfile=SheetZones.Read(doc,Title(doc,reference)!);
   var stampProfile=SheetNumberStamp.Read(doc,Title(doc,reference)!);
+  var profiles=new Dictionary<long,TitleZoneProfile>();
+  var stamps=new Dictionary<long,NumberStampProfile?>();
+  var referenceType=Title(doc,reference)!.GetTypeId().Value;
+  profiles[referenceType]=zoneProfile;
+  stamps[referenceType]=stampProfile;
+  var requestedTypes=expected?.Pages.Select(p=>p.FormatSymbolId)??[];
+  foreach(var id in sheets.Select(s=>Title(doc,s)?.GetTypeId().Value).Concat(requestedTypes).OfType<long>().Distinct())
+  {
+   if(id==referenceType)continue;
+   var symbol=doc.GetElement(new ElementId(id)) as FamilySymbol??throw new InvalidOperationException("O tipo de carimbo mudou desde a prévia.");
+   profiles[id]=SheetZones.Read(doc,symbol);
+   stamps[id]=SheetNumberStamp.Read(doc,symbol);
+  }
   var types=new Dictionary<long,ElementId>();var scales=items.Where(i=>!i.Schedule).ToDictionary(i=>i.ViewId,i=>((View)doc.GetElement(new ElementId(i.ViewId))).Scale);
   var pages=new List<PlannerPage>();var warnings=new List<string>();var initialNumbers=sheets.Select(s=>s.SheetNumber).ToHashSet();
   var newSheetDependencies=new Dictionary<long,HashSet<ElementId>>();
@@ -76,7 +89,15 @@ public static partial class SheetPlanner
    foreach(var pair in scaleOverrides??new())
    {
     var view=(View)doc.GetElement(new ElementId(pair.Key));var label=items.Single(i=>i.ViewId==pair.Key).Label;
-    if(view.get_Parameter(BuiltInParameter.VIEW_SCALE) is {IsReadOnly:true})throw new InvalidOperationException(label+": a escala está bloqueada pelo modelo de vista.");
+    if(view.get_Parameter(BuiltInParameter.VIEW_SCALE) is {IsReadOnly:true}&&
+       doc.GetElement(view.ViewTemplateId) is View preset&&preset.Name=="ARQ VT - IMPLANTACAO - VEBRAM")
+    {
+     var free=preset.GetNonControlledTemplateParameterIds().ToHashSet();
+     free.UnionWith(preset.GetTemplateParameterIds().Where(id=>((BuiltInParameter)id.Value).ToString().StartsWith("VIEW_SCALE",StringComparison.Ordinal)));
+     preset.SetNonControlledTemplateParameterIds(free.ToList());
+     doc.Regenerate();
+    }
+    if(view.get_Parameter(BuiltInParameter.VIEW_SCALE) is {IsReadOnly:true})throw new InvalidOperationException(label+": libere a escala no modelo de vista para aplicar esta alteração.");
     view.Scale=pair.Value;
     if(view.Scale!=pair.Value)throw new InvalidOperationException(label+": o Revit não aceitou a escala escolhida.");
     scales[pair.Key]=pair.Value;
@@ -96,6 +117,16 @@ public static partial class SheetPlanner
     {if(doc.GetElement(si.OwnerViewId) is not ViewSheet sh||!LegalSheets.IsLegalSheet(sh))continue;if(si.Pinned)throw new InvalidOperationException(item.Label+": tabela fixada.");if(((ViewSchedule)doc.GetElement(si.ScheduleId)).IsSplit())throw new InvalidOperationException(item.Label+": reúna os segmentos da tabela antes de organizar.");DeletePlacement(doc,si);}
    }
    doc.Regenerate();
+   if(expected?.ManualLayout==true)
+   {
+    PlaceManualPages(doc,expected,sheets,reference,items,types,profiles,pages);
+    var spare=new List<string>();
+    Renumber(doc,pages,sheets,spare,warnings,stampProfile,stamps);
+    RefreshBounds(doc,pages);
+    if(scales.Any(p=>((View)doc.GetElement(new ElementId(p.Key))).Scale!=p.Value))throw new InvalidOperationException("O Revit não manteve as escalas solicitadas.");
+    if(tx.Commit()!=TransactionStatus.Committed)throw new InvalidOperationException("Distribuição revertida pelo Revit.");
+    return expected with{Pages=pages,Warnings=warnings,ReservedSheets=spare};
+   }
    // Real native bounds include annotation and viewport titles, measured in a temporary sheet.
    var measuring=NewSheet(doc,reference,"VEBRAM-TEMP-"+Guid.NewGuid().ToString("N"));var sizes=new Dictionary<long,PaperItem>();
    foreach(var item in items)
@@ -113,8 +144,8 @@ public static partial class SheetPlanner
     var target=GetSheet(group);
     while(remaining.Count>0)
     {
-     HideGuides(doc,target);doc.Regenerate();var area=LegalSheetComposition.Area(doc,target);
-     var mapped=SheetZones.Map(doc,target,zoneProfile);
+     HideGuides(doc,target);doc.Regenerate();
+     var mapped=SheetZones.Map(doc,target,profiles[Title(doc,target)!.GetTypeId().Value]);var area=mapped.Zones.First(z=>z.Key=="desenhos").Rect;
      var obstacles=new FilteredElementCollector(doc,target.Id).WhereElementIsNotElementType().Where(e=>e.OwnerViewId==target.Id&&!e.IsHidden(target)&&!SheetNotes.IsUnedited(e)&&!SheetNumberStamp.Generated(e)&&e.Category?.Id.Value!=(long)BuiltInCategory.OST_TitleBlocks).Select(e=>LegalSheets.Rect(e,target)).Where(r=>r!=null).Select(r=>r!.Value).ToList();
      var lateral=new List<(PlannerItem Item,PaperPlacement Placement,string Zone)>();
      foreach(var table in remaining.Where(i=>i.Key is "urbanistico" or "areas" or "portas" or "janelas"))
@@ -140,7 +171,7 @@ public static partial class SheetPlanner
       }
      }
      batch.AddRange(lateral.Select(l=>l.Item));layout!.AddRange(lateral.Select(l=>l.Placement));
-     var page=new PlannerPage(target.SheetNumber,SheetPacking.SheetName(group,profile)+(groupPageCount>0?" — continuação":""),!initialNumbers.Contains(target.SheetNumber),area,[],obstacles,mapped.Paper,mapped.Zones,[]);
+     var page=new PlannerPage(target.SheetNumber,SheetPacking.SheetName(group,profile)+(groupPageCount>0?" — continuação":""),!initialNumbers.Contains(target.SheetNumber),area,[],obstacles,mapped.Paper,mapped.Zones,[],FormatSymbolId:Title(doc,target)?.GetTypeId().Value);
      int detail=1;
      foreach(var item in batch)
      {
@@ -159,7 +190,7 @@ public static partial class SheetPlanner
    }
    var reserved=optimize?Consolidate(doc,pages,items,sizes,types,sheets,initialNumbers,newSheetDependencies,warnings):new List<string>();
    if(moves?.Count>0)ApplyPreviewMoves(doc,pages,sheets,items,types,moves);
-   Renumber(doc,pages,sheets,reserved,warnings,stampProfile);
+   Renumber(doc,pages,sheets,reserved,warnings,stampProfile,stamps);
    RefreshBounds(doc,pages);
    if(scales.Any(p=>((View)doc.GetElement(new ElementId(p.Key))).Scale!=p.Value))throw new InvalidOperationException("Escala alterada; operação revertida.");
    var result=new SheetPlan(profile,ids,pages,warnings,optimize,reserved,scaleOverrides==null?null:new Dictionary<long,int>(scaleOverrides),moves?.ToList());

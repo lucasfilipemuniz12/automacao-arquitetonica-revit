@@ -13,11 +13,12 @@ internal static class SheetNumberStamp
  internal const string NumberType="VEBRAM — identificação número/total",HistoryType="VEBRAM — histórico de revisão";
  static string? TypeName(Element e)=>e is TextNote n?n.Document.GetElement(n.GetTypeId())?.Name:null;
  internal static bool Generated(Element e)=>TypeName(e) is NumberType or HistoryType||e is TextNote&&e.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS)?.AsString() is Marker or HistoryMarker;
- static bool IsNumber(Element e)=>TypeName(e)==NumberType||e is TextNote&&e.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS)?.AsString()==Marker;
+ internal static bool IsNumber(Element e)=>TypeName(e)==NumberType||e is TextNote&&e.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS)?.AsString()==Marker;
  internal static bool IsHistory(Element e)=>TypeName(e)==HistoryType||e is TextNote&&e.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS)?.AsString()==HistoryMarker;
- internal static NumberStampProfile? Read(Document doc,FamilyInstance title)
+ internal static NumberStampProfile? Read(Document doc,FamilyInstance title)=>Read(doc,title.Symbol);
+ internal static NumberStampProfile? Read(Document doc,FamilySymbol symbol)
  {
-  var family=doc.EditFamily(title.Symbol.Family);
+  var family=doc.EditFamily(symbol.Family);
   try
   {
    var label=new FilteredElementCollector(family).OfClass(typeof(TextElement)).Cast<TextElement>().FirstOrDefault(e=>e is not TextNote&&e.Parameters.Cast<Parameter>().Any(p=>p.StorageType==StorageType.String&&p.AsString()?.Trim() is "01/" or "1/"));
