@@ -1,0 +1,293 @@
+{
+  "Aviso": "Levantamento somente leitura. Nada foi alterado no modelo.",
+  "Ambientes": [
+    {
+      "Number": "15",
+      "Nome": "Garagem",
+      "Nivel": "Garagem",
+      "AreaM2": 14.44,
+      "Departamento": null
+    },
+    {
+      "Number": "08",
+      "Nome": "Suíte",
+      "Nivel": "Superior",
+      "AreaM2": 14.38,
+      "Departamento": null
+    },
+    {
+      "Number": "09",
+      "Nome": "Quarto 02",
+      "Nivel": "Superior",
+      "AreaM2": 8.34,
+      "Departamento": null
+    },
+    {
+      "Number": "10",
+      "Nome": "Hall",
+      "Nivel": "Superior",
+      "AreaM2": 5.99,
+      "Departamento": null
+    },
+    {
+      "Number": "11",
+      "Nome": "Banho social",
+      "Nivel": "Superior",
+      "AreaM2": 4.85,
+      "Departamento": null
+    },
+    {
+      "Number": "12",
+      "Nome": "Banho suíte",
+      "Nivel": "Superior",
+      "AreaM2": 5.23,
+      "Departamento": null
+    },
+    {
+      "Number": "13",
+      "Nome": "Rouparia",
+      "Nivel": "Superior",
+      "AreaM2": 1.78,
+      "Departamento": null
+    },
+    {
+      "Number": "14",
+      "Nome": "Escada",
+      "Nivel": "Superior",
+      "AreaM2": 4.93,
+      "Departamento": null
+    },
+    {
+      "Number": "01",
+      "Nome": "Entrada / hall",
+      "Nivel": "Térreo",
+      "AreaM2": 3.43,
+      "Departamento": null
+    },
+    {
+      "Number": "02",
+      "Nome": "Estar / jantar",
+      "Nivel": "Térreo",
+      "AreaM2": 25.03,
+      "Departamento": null
+    },
+    {
+      "Number": "03",
+      "Nome": "Circulação",
+      "Nivel": "Térreo",
+      "AreaM2": 5.96,
+      "Departamento": null
+    },
+    {
+      "Number": "04",
+      "Nome": "Cozinha",
+      "Nivel": "Térreo",
+      "AreaM2": 14.06,
+      "Departamento": null
+    },
+    {
+      "Number": "05",
+      "Nome": "Lavabo",
+      "Nivel": "Térreo",
+      "AreaM2": 1.96,
+      "Departamento": null
+    },
+    {
+      "Number": "06",
+      "Nome": "Despensa",
+      "Nivel": "Térreo",
+      "AreaM2": 1.61,
+      "Departamento": null
+    },
+    {
+      "Number": "07",
+      "Nome": "Escada",
+      "Nivel": "Térreo",
+      "AreaM2": 4.93,
+      "Departamento": null
+    }
+  ],
+  "ParametrosDoAmbiente": [
+    "Acabamento base",
+    "Acabamento da parede",
+    "Acabamento do forro",
+    "Acabamento do piso",
+    "Altura não delimitada",
+    "Área",
+    "Área por pessoa",
+    "Cálculo da altura",
+    "Carga base de iluminação ativada",
+    "Carga base de potência ativada",
+    "Carga de aquecimento calculada por área",
+    "Carga de iluminação especificada",
+    "Carga de iluminação especificada por área",
+    "Carga de potência especificada",
+    "Carga de potência especificada por área",
+    "Carga de potência real",
+    "Carga de potência real por área",
+    "Carga de resfriamento calculada por área",
+    "Carga real de iluminação",
+    "Carga real de iluminação por área",
+    "Categoria",
+    "Ceiling Finish 2",
+    "Ceiling Finish 3",
+    "Comentários",
+    "Contribuição de iluminação do plenum",
+    "Departamento",
+    "Deslocamento da base",
+    "Deslocamento do limite",
+    "Exportar para IFC",
+    "Exportar para IFC como",
+    "Fase",
+    "Floor Finish 2",
+    "Floor Finish 3",
+    "Ganho de calor latente por pessoa",
+    "Ganho de calor sensível por pessoa",
+    "Ganho de calor total por pessoa",
+    "ID de fase",
+    "IfcGUID",
+    "Imagem",
+    "Insuflação de ar calculada por área",
+    "Limite superior",
+    "Nível",
+    "Nome",
+    "Nome da família",
+    "Nome do tipo",
+    "Número",
+    "Número de pessoas",
+    "Ocupação",
+    "Ocupante",
+    "Opção de desenho",
+    "Pé direito",
+    "Perímetro",
+    "Tipo IFC predefinido",
+    "Unidade de ocupação",
+    "Unidades de carga de iluminação",
+    "Unidades de carga de potência",
+    "Valores de carga de aquecimento",
+    "Volume",
+    "Wall Finish 2",
+    "Wall Finish 3"
+  ],
+  "Pisos": [
+    {
+      "Grupo": "Garagem | CT04 CALÇADA / 7 cm",
+      "Quantidade": 1,
+      "AreaM2": 9
+    },
+    {
+      "Grupo": "Garagem | CT04 EXTERNO / 7 cm",
+      "Quantidade": 1,
+      "AreaM2": 14.44
+    },
+    {
+      "Grupo": "Garagem | CT04 LAJE GARAGEM / 15 cm",
+      "Quantidade": 1,
+      "AreaM2": 16.5
+    },
+    {
+      "Grupo": "Superior | CT04 INTERNO / 7 cm",
+      "Quantidade": 6,
+      "AreaM2": 40.57
+    },
+    {
+      "Grupo": "Térreo | CT04 CALÇADA / 7 cm",
+      "Quantidade": 1,
+      "AreaM2": 3.6
+    },
+    {
+      "Grupo": "Térreo | CT04 EXTERNO / 7 cm",
+      "Quantidade": 1,
+      "AreaM2": 16
+    },
+    {
+      "Grupo": "Térreo | CT04 INTERNO / 7 cm",
+      "Quantidade": 6,
+      "AreaM2": 52.05
+    }
+  ],
+  "Coberturas": [
+    {
+      "Grupo": "Cobertura | VEBRAM COB / telha cerâmica sobre suporte",
+      "Quantidade": 1,
+      "AreaM2": 73.96
+    },
+    {
+      "Grupo": "Garagem | CT04 LAJE IMPERMEABILIZADA / concreto 15 cm",
+      "Quantidade": 1,
+      "AreaM2": 16.5
+    },
+    {
+      "Grupo": "Superior | CT04 LAJE IMPERMEABILIZADA / concreto 15 cm",
+      "Quantidade": 1,
+      "AreaM2": 12
+    }
+  ],
+  "Topografia": [],
+  "Planta": [],
+  "Vegetacao": [],
+  "Piscina_Deck_Candidatos": [
+    {
+      "Name": "Materiais",
+      "Tipo": null,
+      "Nivel": "(sem nível)",
+      "Value": 529
+    },
+    {
+      "Name": "Componentes de legenda",
+      "Tipo": null,
+      "Nivel": "(sem nível)",
+      "Value": 176937
+    },
+    {
+      "Name": "Componentes de legenda",
+      "Tipo": null,
+      "Nivel": "(sem nível)",
+      "Value": 176983
+    }
+  ],
+  "EsquemasDeArea": [
+    "Área construída",
+    "Alugável"
+  ],
+  "AreasDefinidas": [],
+  "PlantasDeArea": [],
+  "PreenchimentosExistentes": [
+    "Vertical",
+    "Preto sólido",
+    "Hachura cruzada de origem",
+    "Horizontal",
+    "Diagonal ascendente",
+    "Diagonal descendente - Transparente",
+    "Diagonal descendente",
+    "Hachura cruzada diagonal - Transparente",
+    "Hachura cruzada diagonal",
+    "Madeira 1",
+    "Madeira 2",
+    "VEBRAM Memória - Área externa",
+    "VEBRAM Memória - Área interna",
+    "VEBRAM Memória - Calçada e passeio (impermeável)"
+  ],
+  "Niveis": [
+    {
+      "Name": "Garagem",
+      "ElevacaoM": -0.6
+    },
+    {
+      "Name": "Térreo",
+      "ElevacaoM": 0
+    },
+    {
+      "Name": "Quintal",
+      "ElevacaoM": 1
+    },
+    {
+      "Name": "Superior",
+      "ElevacaoM": 3
+    },
+    {
+      "Name": "Cobertura",
+      "ElevacaoM": 6
+    }
+  ]
+}

@@ -10,7 +10,7 @@ internal static class AreaSurvey
  internal static void Run(Document doc,string output)
  {
   string Name(Element e)=>e.Name??"";
-  double M2(double feet)=>Math.Round(feet*0.09290304,2);
+  double M2(double feet)=>Math.Round(feet*0.09290304,2,MidpointRounding.AwayFromZero); // same rounding as the Revit schedule (14,445 -> 14,45)
   string LevelName(ElementId id)=>doc.GetElement(id)?.Name??"(sem nível)";
   var rooms=new FilteredElementCollector(doc).OfClass(typeof(SpatialElement)).OfType<Room>().Where(r=>r.Area>0)
    .Select(r=>new{r.Number,Nome=r.get_Parameter(BuiltInParameter.ROOM_NAME)?.AsString(),Nivel=LevelName(r.LevelId),AreaM2=M2(r.Area),

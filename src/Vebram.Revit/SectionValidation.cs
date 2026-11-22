@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Reflection;
 using System.Text.Json;
 using Autodesk.Revit.DB;
@@ -25,6 +25,13 @@ internal sealed class SectionValidation:IExternalApplication
     ui.OpenAndActivateDocument(job.Project);File.WriteAllText(Path.Combine(job.Output,"CT04_MODELADA.txt"),"CT04 criada em projeto novo; conferir MODELO_QC.json.");return;
    }
    doc=ui.Application.OpenDocumentFile(job.Project);
+   if(job.Mode=="ct04r3")
+   {
+    Case04Legal.Run(doc,job.Output);doc.Close(false);doc=null;
+    ui.OpenAndActivateDocument(job.Project);
+    File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Rodada CT04 executada. Confira PASSOS.json e as folhas.");
+    return;
+   }
    if(job.Mode=="legalr3")
    {
     LegalR3Validation.Run(doc,Path.Combine(job.Output,"CT03"),true);doc.Close(false);doc=null;
@@ -90,7 +97,7 @@ internal sealed class SectionValidation:IExternalApplication
    File.WriteAllText(Path.Combine(job.Output,"CONCLUIDO.txt"),"Cortes A/B preparados e repetidos; posição, sentido, profundidade, níveis e proteção de edição verificados.\n"+job.Project);
   }
   catch(Exception ex){File.WriteAllText(Path.Combine(job.Output,"ERRO.txt"),ex.ToString());}
-  finally{if(doc?.IsValidObject==true){if(job.Mode=="ct03r2"&&doc.IsModified)ui.OpenAndActivateDocument(doc.PathName);else doc.Close(false);}}
+  finally{if(doc?.IsValidObject==true){if((job.Mode=="ct03r2"||job.Mode=="ct04r3")&&doc.IsModified)ui.OpenAndActivateDocument(doc.PathName);else doc.Close(false);}}
  }
  static void ValidateFacades055(Document doc,string output)
  {

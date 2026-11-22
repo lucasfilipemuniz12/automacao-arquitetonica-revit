@@ -10,6 +10,14 @@ internal static class UrbanisticReference
   "Área do terreno (m²)       ____         ____\nÁrea computável (m²)       ____         ____\nProjeção da edificação      ____         ____\nTaxa de ocupação (%)       ____         ____\nCoef. aproveitamento       ____         ____\nPermeabilidade (%)         ____         ____\nAfastamentos (m)            ____         ____",
   "Registrar município, zoneamento e critério de área.\nPreencher após consultar a legislação do terreno."
  ];
+ /// <summary>True for the exact unfilled V02 urbanistic fixture: a template reference, not an issued deliverable.</summary>
+ internal static bool IsUnfilled(Document doc,ElementId viewId)
+ {
+  var item=LegalCatalog.Items.First(i=>i.Key=="urbanistico");
+  if(doc.GetElement(viewId) is not View view||view.Name!=item.ReferenceName)return false;
+  var texts=new FilteredElementCollector(doc,view.Id).OfClass(typeof(TextNote)).Cast<TextNote>().Select(t=>LegalCatalog.Normalize(t.Text)).Order(StringComparer.Ordinal).ToList();
+  return texts.SequenceEqual(EmptyTexts.Select(LegalCatalog.Normalize).Order(StringComparer.Ordinal));
+ }
  internal static int RemoveUnfilledPlacement(Document doc)
  {
   var item=LegalCatalog.Items.First(i=>i.Key=="urbanistico");

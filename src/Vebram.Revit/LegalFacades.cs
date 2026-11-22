@@ -140,7 +140,9 @@ public static class LegalFacades
     }
     // Same arrangement as the sections: heads off the building, close levels staggered, values unchanged.
     LevelHeads.Arrange(doc,target,placedHeads,left,Implantation.Feet(.6),pending);
-    ElevationAnnotations.Total(doc,target,frame,made,pending);
+    // Boundary walls/fences entirely in front of the building hide the facade itself: hide them in this view only.
+    int omitted=HideFrontSite(doc,target,frame,pending);
+    ElevationAnnotations.Total(doc,target,frame,made,pending,omitted>0?"MUROS E GRADIS DA DIVISA À FRENTE DA EDIFICAÇÃO OMITIDOS NESTA VISTA":null);
     var note=LegalPreferenceStore.Read(doc).AdditionalNote;if(!string.IsNullOrWhiteSpace(note))made.Add(TextNote.Create(doc,target.Id,box.Transform.OfPoint(new(left,corners.Min(p=>p.Y)+Implantation.Feet(.12),0)),note,LegalContext.TextType(doc).Id));
     // Keep the original graphic template, excluding parameters this module has to control.
     if(savedTemplate!=ElementId.InvalidElementId)
@@ -154,6 +156,28 @@ public static class LegalFacades
    if(tx.Commit()!=TransactionStatus.Committed)throw new InvalidOperationException("Operação revertida.");return results;
   }
   catch{if(tx.GetStatus()==TransactionStatus.Started)tx.RollBack();throw;}
+ }
+ /// <summary>
+ /// Walls, railings and generic site objects standing entirely at least 1 m in front of the building (no overlap with
+ /// any room, slab or roof of the building), overlapping it horizontally: the lot's front wall/fence seen between the
+ /// observer and the facade. They are hidden in this elevation only; the model is never changed. Balconies and guards
+ /// of the building itself (over its slabs or roofs) are kept.
+ /// </summary>
+ static int HideFrontSite(Document doc,ViewSection view,BuildingFrame frame,List<string> pending)
+ {
+  var rooms=new FilteredElementCollector(doc).OfClass(typeof(SpatialElement)).OfType<Autodesk.Revit.DB.Architecture.Room>().Where(r=>r.Area>0).ToList();
+  var boxes=rooms.Select(r=>r.get_BoundingBox(null)).Where(b=>b!=null).Select(b=>b!).ToList();if(boxes.Count==0)return 0;
+  var n=view.ViewDirection;var side=view.RightDirection;
+  IEnumerable<XYZ> Corners(BoundingBoxXYZ b)=>new[]{new XYZ(b.Min.X,b.Min.Y,0),new XYZ(b.Max.X,b.Min.Y,0),new XYZ(b.Min.X,b.Max.Y,0),new XYZ(b.Max.X,b.Max.Y,0)};
+  double front=boxes.SelectMany(Corners).Max(p=>p.DotProduct(n)),hmin=boxes.SelectMany(Corners).Min(p=>p.DotProduct(side)),hmax=boxes.SelectMany(Corners).Max(p=>p.DotProduct(side));
+  var slabs=frame.Members.Where(e=>e is Floor or RoofBase).Select(e=>e.get_BoundingBox(null)).Where(b=>b!=null).Select(b=>b!).ToList();
+  bool Overlaps(BoundingBoxXYZ a,BoundingBoxXYZ b)=>Math.Min(a.Max.X,b.Max.X)>Math.Max(a.Min.X,b.Min.X)&&Math.Min(a.Max.Y,b.Max.Y)>Math.Max(a.Min.Y,b.Min.Y);
+  var matches=new FilteredElementCollector(doc).WhereElementIsNotElementType().Where(e=>!e.ViewSpecific&&(e is Wall or Autodesk.Revit.DB.Architecture.Railing||e is FamilyInstance fi&&fi.Category?.Id.Value is (long)BuiltInCategory.OST_GenericModel or (long)BuiltInCategory.OST_Site))
+   .Where(e=>e.get_BoundingBox(null) is {} b&&!boxes.Concat(slabs).Any(r=>Overlaps(r,b))&&Corners(b).Min(p=>p.DotProduct(n))>=front+Implantation.Feet(1)&&Corners(b).Max(p=>p.DotProduct(side))>hmin&&Corners(b).Min(p=>p.DotProduct(side))<hmax)
+   .Where(e=>e.CanBeHidden(view)).ToList();
+  var hide=matches.Where(e=>!e.IsHidden(view)).Select(e=>e.Id).ToList();if(hide.Count>0)view.HideElements(hide);
+  if(matches.Count>0)pending.Add(matches.Count+" muro(s)/gradil(is) da divisa à frente da edificação ocultos nesta vista para mostrar a fachada; elementos preservados no modelo.");
+  return matches.Count;
  }
  static string Frame(ViewSection v){var b=v.CropBox;return string.Join("/",new[]{v.Origin.X,v.Origin.Y,v.Origin.Z,v.ViewDirection.X,v.ViewDirection.Y,b.Min.X,b.Min.Y,b.Max.X,b.Max.Y,v.Scale}.Select(n=>Math.Round(n,6).ToString(System.Globalization.CultureInfo.InvariantCulture)));}
  static Schema Schema(){var s=Autodesk.Revit.DB.ExtensibleStorage.Schema.Lookup(SchemaId);if(s!=null)return s;var b=new SchemaBuilder(SchemaId);b.SetSchemaName("VebramLegalFacades05");b.AddSimpleField("Json",typeof(string));return b.Finish();}
