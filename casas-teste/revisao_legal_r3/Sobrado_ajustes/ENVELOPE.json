@@ -1,0 +1,503 @@
+{
+  "Bottom": -0.7,
+  "Top": 7.534403065089098,
+  "Members": [
+    {
+      "Id": 365422,
+      "Class": "Floor",
+      "Name": "VEBRAM LAJE / concreto 15 cm"
+    },
+    {
+      "Id": 364947,
+      "Class": "Wall",
+      "Name": "VEBRAM PAR-15 / cer\u00E2mico revestido"
+    },
+    {
+      "Id": 364948,
+      "Class": "Wall",
+      "Name": "VEBRAM PAR-15 / cer\u00E2mico revestido"
+    },
+    {
+      "Id": 364949,
+      "Class": "Wall",
+      "Name": "VEBRAM PAR-15 / cer\u00E2mico revestido"
+    },
+    {
+      "Id": 364950,
+      "Class": "Wall",
+      "Name": "VEBRAM PAR-15 / cer\u00E2mico revestido"
+    },
+    {
+      "Id": 364951,
+      "Class": "Wall",
+      "Name": "VEBRAM PAR-15 / cer\u00E2mico revestido"
+    },
+    {
+      "Id": 364952,
+      "Class": "Wall",
+      "Name": "VEBRAM PAR-15 / cer\u00E2mico revestido"
+    },
+    {
+      "Id": 364953,
+      "Class": "Wall",
+      "Name": "VEBRAM PAR-15 / cer\u00E2mico revestido"
+    },
+    {
+      "Id": 364954,
+      "Class": "Wall",
+      "Name": "VEBRAM PAR-15 / cer\u00E2mico revestido"
+    },
+    {
+      "Id": 364955,
+      "Class": "Wall",
+      "Name": "VEBRAM PAR-15 / cer\u00E2mico revestido"
+    },
+    {
+      "Id": 364956,
+      "Class": "Wall",
+      "Name": "VEBRAM PAR-15 / cer\u00E2mico revestido"
+    },
+    {
+      "Id": 365431,
+      "Class": "Floor",
+      "Name": "VEBRAM LAJE / concreto 15 cm"
+    },
+    {
+      "Id": 365456,
+      "Class": "Floor",
+      "Name": "PISO EXTERNO / cimentado 5 cm"
+    },
+    {
+      "Id": 365464,
+      "Class": "Floor",
+      "Name": "PISO INTERNO / cer\u00E2mica e contrapiso 5 cm"
+    },
+    {
+      "Id": 365471,
+      "Class": "Floor",
+      "Name": "PISO INTERNO / cer\u00E2mica e contrapiso 5 cm"
+    },
+    {
+      "Id": 365480,
+      "Class": "Floor",
+      "Name": "PISO INTERNO / cer\u00E2mica e contrapiso 5 cm"
+    },
+    {
+      "Id": 365487,
+      "Class": "Floor",
+      "Name": "PISO INTERNO / cer\u00E2mica e contrapiso 5 cm"
+    },
+    {
+      "Id": 366930,
+      "Class": "Stairs",
+      "Name": "Escada"
+    },
+    {
+      "Id": 366973,
+      "Class": "Railing",
+      "Name": "1100mm"
+    },
+    {
+      "Id": 366977,
+      "Class": "Railing",
+      "Name": "1100mm"
+    },
+    {
+      "Id": 368774,
+      "Class": "Floor",
+      "Name": "PISO EXTERNO / cimentado 5 cm"
+    },
+    {
+      "Id": 376802,
+      "Class": "Floor",
+      "Name": "PISO INTERNO / madeira e contrapiso 5 cm"
+    },
+    {
+      "Id": 364957,
+      "Class": "Wall",
+      "Name": "VEBRAM PAR-15 / cer\u00E2mico revestido"
+    },
+    {
+      "Id": 364958,
+      "Class": "Wall",
+      "Name": "VEBRAM PAR-15 / cer\u00E2mico revestido"
+    },
+    {
+      "Id": 364961,
+      "Class": "Wall",
+      "Name": "VEBRAM PAR-15 / cer\u00E2mico revestido"
+    },
+    {
+      "Id": 364966,
+      "Class": "Wall",
+      "Name": "VEBRAM PAR-15 / cer\u00E2mico revestido"
+    },
+    {
+      "Id": 365438,
+      "Class": "Floor",
+      "Name": "VEBRAM LAJE / concreto 10 cm"
+    },
+    {
+      "Id": 365514,
+      "Class": "Floor",
+      "Name": "PISO INTERNO / madeira e contrapiso 5 cm"
+    },
+    {
+      "Id": 365560,
+      "Class": "Floor",
+      "Name": "PISO INTERNO / madeira e contrapiso 5 cm"
+    },
+    {
+      "Id": 375819,
+      "Class": "Floor",
+      "Name": "PISO BOX / cer\u00E2mica 1 cm"
+    },
+    {
+      "Id": 364959,
+      "Class": "Wall",
+      "Name": "VEBRAM PAR-15 / cer\u00E2mico revestido"
+    },
+    {
+      "Id": 364963,
+      "Class": "Wall",
+      "Name": "VEBRAM PAR-15 / cer\u00E2mico revestido"
+    },
+    {
+      "Id": 364965,
+      "Class": "Wall",
+      "Name": "VEBRAM PAR-15 / cer\u00E2mico revestido"
+    },
+    {
+      "Id": 375833,
+      "Class": "Floor",
+      "Name": "PISO BOX / cer\u00E2mica 1 cm"
+    },
+    {
+      "Id": 364960,
+      "Class": "Wall",
+      "Name": "VEBRAM PAR-15 / cer\u00E2mico revestido"
+    },
+    {
+      "Id": 364964,
+      "Class": "Wall",
+      "Name": "VEBRAM PAR-15 / cer\u00E2mico revestido"
+    },
+    {
+      "Id": 365522,
+      "Class": "Floor",
+      "Name": "PISO INTERNO / madeira e contrapiso 5 cm"
+    },
+    {
+      "Id": 365530,
+      "Class": "Floor",
+      "Name": "PISO INTERNO / madeira e contrapiso 5 cm"
+    },
+    {
+      "Id": 368809,
+      "Class": "Floor",
+      "Name": "PISO EXTERNO / cimentado 5 cm"
+    },
+    {
+      "Id": 368816,
+      "Class": "Floor",
+      "Name": "PISO EXTERNO / cimentado 5 cm"
+    },
+    {
+      "Id": 375826,
+      "Class": "Floor",
+      "Name": "PISO INTERNO / cer\u00E2mica e contrapiso 2 cm"
+    },
+    {
+      "Id": 364962,
+      "Class": "Wall",
+      "Name": "VEBRAM PAR-15 / cer\u00E2mico revestido"
+    },
+    {
+      "Id": 366915,
+      "Class": "Floor",
+      "Name": "PISO INTERNO / madeira e contrapiso 5 cm"
+    },
+    {
+      "Id": 368781,
+      "Class": "Floor",
+      "Name": "PISO EXTERNO / cimentado 5 cm"
+    },
+    {
+      "Id": 368788,
+      "Class": "Floor",
+      "Name": "PISO EXTERNO / cimentado 5 cm"
+    },
+    {
+      "Id": 368795,
+      "Class": "Floor",
+      "Name": "PISO EXTERNO / cimentado 5 cm"
+    },
+    {
+      "Id": 375812,
+      "Class": "Floor",
+      "Name": "PISO INTERNO / cer\u00E2mica e contrapiso 2 cm"
+    },
+    {
+      "Id": 365449,
+      "Class": "Floor",
+      "Name": "VEBRAM LAJE / concreto 10 cm"
+    },
+    {
+      "Id": 367058,
+      "Class": "FootPrintRoof",
+      "Name": "VEBRAM COB / telha cer\u00E2mica sobre suporte"
+    },
+    {
+      "Id": 367073,
+      "Class": "Wall",
+      "Name": "VEBRAM PAR-15 / cer\u00E2mico revestido"
+    },
+    {
+      "Id": 367102,
+      "Class": "Wall",
+      "Name": "VEBRAM PAR-15 / cer\u00E2mico revestido"
+    },
+    {
+      "Id": 367131,
+      "Class": "Wall",
+      "Name": "VEBRAM PAR-15 / cer\u00E2mico revestido"
+    },
+    {
+      "Id": 367132,
+      "Class": "Wall",
+      "Name": "VEBRAM PAR-15 / cer\u00E2mico revestido"
+    },
+    {
+      "Id": 365384,
+      "Class": "FamilyInstance",
+      "Name": "VEBRAM Madeira / 80 x 210"
+    },
+    {
+      "Id": 365385,
+      "Class": "FamilyInstance",
+      "Name": "VEBRAM Madeira / 80 x 210"
+    },
+    {
+      "Id": 365386,
+      "Class": "FamilyInstance",
+      "Name": "VEBRAM Madeira / 70 x 210"
+    },
+    {
+      "Id": 365387,
+      "Class": "FamilyInstance",
+      "Name": "VEBRAM Madeira / 80 x 210"
+    },
+    {
+      "Id": 365388,
+      "Class": "FamilyInstance",
+      "Name": "VEBRAM Madeira / 80 x 210"
+    },
+    {
+      "Id": 365389,
+      "Class": "FamilyInstance",
+      "Name": "VEBRAM Madeira / 70 x 210"
+    },
+    {
+      "Id": 365390,
+      "Class": "FamilyInstance",
+      "Name": "VEBRAM Madeira / 70 x 210"
+    },
+    {
+      "Id": 365391,
+      "Class": "FamilyInstance",
+      "Name": "VEBRAM Madeira / 80 x 210"
+    },
+    {
+      "Id": 365392,
+      "Class": "FamilyInstance",
+      "Name": "VEBRAM Madeira / 80 x 210"
+    },
+    {
+      "Id": 365393,
+      "Class": "FamilyInstance",
+      "Name": "VEBRAM Madeira / 70 x 210"
+    },
+    {
+      "Id": 365394,
+      "Class": "FamilyInstance",
+      "Name": "VEBRAM Madeira / 80 x 210"
+    },
+    {
+      "Id": 365395,
+      "Class": "FamilyInstance",
+      "Name": "VEBRAM Madeira / 70 x 210"
+    },
+    {
+      "Id": 365396,
+      "Class": "FamilyInstance",
+      "Name": "VEBRAM Madeira / 70 x 210"
+    },
+    {
+      "Id": 365401,
+      "Class": "FamilyInstance",
+      "Name": "220 x 120"
+    },
+    {
+      "Id": 365402,
+      "Class": "FamilyInstance",
+      "Name": "220 x 120"
+    },
+    {
+      "Id": 365403,
+      "Class": "FamilyInstance",
+      "Name": "220 x 120"
+    },
+    {
+      "Id": 365405,
+      "Class": "FamilyInstance",
+      "Name": "150 x 90"
+    },
+    {
+      "Id": 365407,
+      "Class": "FamilyInstance",
+      "Name": "255 x 90"
+    },
+    {
+      "Id": 365409,
+      "Class": "FamilyInstance",
+      "Name": "200 x 90"
+    },
+    {
+      "Id": 365411,
+      "Class": "FamilyInstance",
+      "Name": "90 x 60"
+    },
+    {
+      "Id": 365412,
+      "Class": "FamilyInstance",
+      "Name": "220 x 120"
+    },
+    {
+      "Id": 365414,
+      "Class": "FamilyInstance",
+      "Name": "90 x 60"
+    },
+    {
+      "Id": 365415,
+      "Class": "FamilyInstance",
+      "Name": "220 x 120"
+    },
+    {
+      "Id": 365416,
+      "Class": "FamilyInstance",
+      "Name": "220 x 120"
+    },
+    {
+      "Id": 365417,
+      "Class": "FamilyInstance",
+      "Name": "255 x 90"
+    },
+    {
+      "Id": 365418,
+      "Class": "FamilyInstance",
+      "Name": "200 x 90"
+    },
+    {
+      "Id": 372354,
+      "Class": "FamilyInstance",
+      "Name": "Compacta / representa\u00E7\u00E3o arquitet\u00F4nica"
+    },
+    {
+      "Id": 372355,
+      "Class": "FamilyInstance",
+      "Name": "55 x 45 cm / altura 85 cm"
+    },
+    {
+      "Id": 372356,
+      "Class": "FamilyInstance",
+      "Name": "Compacta / representa\u00E7\u00E3o arquitet\u00F4nica"
+    },
+    {
+      "Id": 372357,
+      "Class": "FamilyInstance",
+      "Name": "55 x 45 cm / altura 85 cm"
+    },
+    {
+      "Id": 372358,
+      "Class": "FamilyInstance",
+      "Name": "CT Chuveiro e registro arquitet\u00F4nicos"
+    },
+    {
+      "Id": 372359,
+      "Class": "FamilyInstance",
+      "Name": "CT Ralo arquitet\u00F4nico 100mm"
+    },
+    {
+      "Id": 372360,
+      "Class": "FamilyInstance",
+      "Name": "Compacta / representa\u00E7\u00E3o arquitet\u00F4nica"
+    },
+    {
+      "Id": 372361,
+      "Class": "FamilyInstance",
+      "Name": "55 x 45 cm / altura 85 cm"
+    },
+    {
+      "Id": 372362,
+      "Class": "FamilyInstance",
+      "Name": "CT Chuveiro e registro arquitet\u00F4nicos"
+    },
+    {
+      "Id": 372363,
+      "Class": "FamilyInstance",
+      "Name": "CT Ralo arquitet\u00F4nico 100mm"
+    },
+    {
+      "Id": 375881,
+      "Class": "FamilyInstance",
+      "Name": "130 x 190 cm"
+    },
+    {
+      "Id": 375882,
+      "Class": "FamilyInstance",
+      "Name": "190 x 190 cm"
+    }
+  ],
+  "Corners": [
+    [
+      1.4999999999999996,
+      3.2499999999999996,
+      -0.7
+    ],
+    [
+      1.4999999999999996,
+      3.2499999999999996,
+      7.534403065089098
+    ],
+    [
+      1.4999999999999996,
+      13.449999999999998,
+      -0.7
+    ],
+    [
+      1.4999999999999996,
+      13.449999999999998,
+      7.534403065089098
+    ],
+    [
+      10.750000000000002,
+      3.2499999999999996,
+      -0.7
+    ],
+    [
+      10.750000000000002,
+      3.2499999999999996,
+      7.534403065089098
+    ],
+    [
+      10.750000000000002,
+      13.449999999999998,
+      -0.7
+    ],
+    [
+      10.750000000000002,
+      13.449999999999998,
+      7.534403065089098
+    ]
+  ]
+}

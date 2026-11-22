@@ -1,0 +1,231 @@
+[
+  {
+    "View": "03 PROJETO EXECUTIVO - Q04 - Areas",
+    "Rooms": [
+      {
+        "Number": "001",
+        "Name": "Abrigo",
+        "Area": 14.616000000000005
+      },
+      {
+        "Number": "002",
+        "Name": "Servi\u00E7o",
+        "Area": 9.360000000000005
+      },
+      {
+        "Number": "003",
+        "Name": "Cozinha",
+        "Area": 9.2625
+      },
+      {
+        "Number": "004",
+        "Name": "Despensa",
+        "Area": 5.548000000000007
+      },
+      {
+        "Number": "005",
+        "Name": "Lavabo",
+        "Area": 1.559999999999998
+      },
+      {
+        "Number": "006",
+        "Name": "Estar e jantar",
+        "Area": 23.823875
+      },
+      {
+        "Number": "007",
+        "Name": "Escada",
+        "Area": 7.766249999999998
+      },
+      {
+        "Number": "101",
+        "Name": "Quarto 01",
+        "Area": 14.400000000000004
+      },
+      {
+        "Number": "102",
+        "Name": "Su\u00EDte",
+        "Area": 9.360000000000003
+      },
+      {
+        "Number": "103",
+        "Name": "Closet",
+        "Area": 5.415000000000004
+      },
+      {
+        "Number": "104",
+        "Name": "Banheiro su\u00EDte",
+        "Area": 5.548000000000007
+      },
+      {
+        "Number": "105",
+        "Name": "Hall",
+        "Area": 6.680999999999992
+      },
+      {
+        "Number": "106",
+        "Name": "Banheiro social",
+        "Area": 4.4529999999999985
+      },
+      {
+        "Number": "107",
+        "Name": "Quarto 02",
+        "Area": 16.6075
+      }
+    ]
+  },
+  {
+    "View": "02 PROJETO LEGAL     - Q04 - \u00C1reas dos ambientes",
+    "Rooms": [
+      {
+        "Number": "001",
+        "Name": "Abrigo",
+        "Area": 14.616000000000005
+      },
+      {
+        "Number": "002",
+        "Name": "Servi\u00E7o",
+        "Area": 9.360000000000005
+      },
+      {
+        "Number": "003",
+        "Name": "Cozinha",
+        "Area": 9.2625
+      },
+      {
+        "Number": "004",
+        "Name": "Despensa",
+        "Area": 5.548000000000007
+      },
+      {
+        "Number": "005",
+        "Name": "Lavabo",
+        "Area": 1.559999999999998
+      },
+      {
+        "Number": "006",
+        "Name": "Estar e jantar",
+        "Area": 23.823875
+      },
+      {
+        "Number": "007",
+        "Name": "Escada",
+        "Area": 7.766249999999998
+      },
+      {
+        "Number": "101",
+        "Name": "Quarto 01",
+        "Area": 14.400000000000004
+      },
+      {
+        "Number": "102",
+        "Name": "Su\u00EDte",
+        "Area": 9.360000000000003
+      },
+      {
+        "Number": "103",
+        "Name": "Closet",
+        "Area": 5.415000000000004
+      },
+      {
+        "Number": "104",
+        "Name": "Banheiro su\u00EDte",
+        "Area": 5.548000000000007
+      },
+      {
+        "Number": "105",
+        "Name": "Hall",
+        "Area": 6.680999999999992
+      },
+      {
+        "Number": "106",
+        "Name": "Banheiro social",
+        "Area": 4.4529999999999985
+      },
+      {
+        "Number": "107",
+        "Name": "Quarto 02",
+        "Area": 16.6075
+      }
+    ]
+  },
+  {
+    "View": "01 PRE-PROJETO       - Q04 - Programa e \u00E1reas",
+    "Rooms": [
+      {
+        "Number": "001",
+        "Name": "Abrigo",
+        "Area": 14.616000000000005
+      },
+      {
+        "Number": "002",
+        "Name": "Servi\u00E7o",
+        "Area": 9.360000000000005
+      },
+      {
+        "Number": "003",
+        "Name": "Cozinha",
+        "Area": 9.2625
+      },
+      {
+        "Number": "004",
+        "Name": "Despensa",
+        "Area": 5.548000000000007
+      },
+      {
+        "Number": "005",
+        "Name": "Lavabo",
+        "Area": 1.559999999999998
+      },
+      {
+        "Number": "006",
+        "Name": "Estar e jantar",
+        "Area": 23.823875
+      },
+      {
+        "Number": "007",
+        "Name": "Escada",
+        "Area": 7.766249999999998
+      },
+      {
+        "Number": "101",
+        "Name": "Quarto 01",
+        "Area": 14.400000000000004
+      },
+      {
+        "Number": "102",
+        "Name": "Su\u00EDte",
+        "Area": 9.360000000000003
+      },
+      {
+        "Number": "103",
+        "Name": "Closet",
+        "Area": 5.415000000000004
+      },
+      {
+        "Number": "104",
+        "Name": "Banheiro su\u00EDte",
+        "Area": 5.548000000000007
+      },
+      {
+        "Number": "105",
+        "Name": "Hall",
+        "Area": 6.680999999999992
+      },
+      {
+        "Number": "106",
+        "Name": "Banheiro social",
+        "Area": 4.4529999999999985
+      },
+      {
+        "Number": "107",
+        "Name": "Quarto 02",
+        "Area": 16.6075
+      }
+    ]
+  },
+  {
+    "View": "02 PROJETO LEGAL - Q04 - \u00C1reas descobertas",
+    "Rooms": []
+  }
+]
