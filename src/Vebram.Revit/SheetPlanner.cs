@@ -89,17 +89,7 @@ public static partial class SheetPlanner
    foreach(var pair in scaleOverrides??new())
    {
     var view=(View)doc.GetElement(new ElementId(pair.Key));var label=items.Single(i=>i.ViewId==pair.Key).Label;
-    if(view.get_Parameter(BuiltInParameter.VIEW_SCALE) is {IsReadOnly:true}&&
-       doc.GetElement(view.ViewTemplateId) is View preset&&preset.Name=="ARQ VT - IMPLANTACAO - VEBRAM")
-    {
-     var free=preset.GetNonControlledTemplateParameterIds().ToHashSet();
-     free.UnionWith(preset.GetTemplateParameterIds().Where(id=>((BuiltInParameter)id.Value).ToString().StartsWith("VIEW_SCALE",StringComparison.Ordinal)));
-     preset.SetNonControlledTemplateParameterIds(free.ToList());
-     doc.Regenerate();
-    }
-    if(view.get_Parameter(BuiltInParameter.VIEW_SCALE) is {IsReadOnly:true})throw new InvalidOperationException(label+": libere a escala no modelo de vista para aplicar esta alteração.");
-    view.Scale=pair.Value;
-    if(view.Scale!=pair.Value)throw new InvalidOperationException(label+": o Revit não aceitou a escala escolhida.");
+    ApplyPreviewScale(doc,view,pair.Value,label);
     scales[pair.Key]=pair.Value;
     warnings.Add(label+" em 1:"+pair.Value+" conforme escolha nesta prévia.");
    }
@@ -199,6 +189,29 @@ public static partial class SheetPlanner
    if(tx.Commit()!=TransactionStatus.Committed)throw new InvalidOperationException("Distribuição revertida pelo Revit.");return result;
   }
   catch{if(tx.GetStatus()==TransactionStatus.Started)tx.RollBack();throw;}
+ }
+ static void ApplyPreviewScale(Document doc,View view,int scale,string label)
+ {
+  if(view.Scale==scale)return;
+  if(doc.GetElement(view.ViewTemplateId) is View preset&&preset.Name=="ARQ VT - IMPLANTACAO - VEBRAM")
+  {
+   var free=preset.GetNonControlledTemplateParameterIds().ToHashSet();
+   bool changed=false;
+   foreach(var id in preset.GetTemplateParameterIds().Where(Implantation.IsScaleTemplateParameter))changed|=free.Add(id);
+   if(changed)
+   {
+    preset.SetNonControlledTemplateParameterIds(free.ToList());
+    doc.Regenerate();
+   }
+  }
+  // View.Scale is the writable API; the raw scale parameter can be reported as read-only.
+  try{view.Scale=scale;}
+  catch(Autodesk.Revit.Exceptions.InvalidOperationException ex)
+  {
+   throw new InvalidOperationException(label+": o Revit recusou a escala. Confira se o modelo de vista controla a escala.",ex);
+  }
+  doc.Regenerate();
+  if(view.Scale!=scale)throw new InvalidOperationException(label+": desmarque a opção de incluir a escala no modelo de vista e tente aplicar novamente.");
  }
  static List<PaperPlacement>? PreferredLayout(int group,LegalPaperRect area,List<LegalPaperRect> obstacles,List<PlannerItem> items,Dictionary<long,PaperItem> sizes)
  {
