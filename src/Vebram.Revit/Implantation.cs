@@ -333,6 +333,9 @@ public static class Implantation
             p.Set(pair.Item2);
         }
     }
+    internal static bool IsScaleTemplateParameter(ElementId id) => (BuiltInParameter)id.Value is
+        BuiltInParameter.VIEW_SCALE or BuiltInParameter.VIEW_SCALE_PULLDOWN_METRIC or BuiltInParameter.VIEW_SCALE_PULLDOWN_IMPERIAL;
+
     private static void PreparePreset(Document doc, ViewPlan view, ImplantationPlan plan)
     {
         var name="ARQ VT - IMPLANTACAO - VEBRAM";
@@ -343,7 +346,7 @@ public static class Implantation
         foreach(var guid in new[]{LegalCatalog.StageId,LegalCatalog.FunctionId})
             if(SharedParameterElement.Lookup(doc,guid) is { } element && controlled.Contains(element.Id))excluded.Add(element.Id);
         foreach(var id in controlled)
-            if(new[]{"PLAN_VIEW_RANGE","VIEW_SCALE","VIEWER_CROP_REGION","VIEWER_CROP_REGION_VISIBLE","VIEWER_ANNOTATION_CROP_ACTIVE","VIEW_PHASE","PLAN_VIEW_NORTH"}
+            if(IsScaleTemplateParameter(id)||new[]{"PLAN_VIEW_RANGE","VIEWER_CROP_REGION","VIEWER_CROP_REGION_VISIBLE","VIEWER_ANNOTATION_CROP_ACTIVE","VIEW_PHASE","PLAN_VIEW_NORTH"}
                 .Contains(((BuiltInParameter)id.Value).ToString()))excluded.Add(id);
         preset.SetNonControlledTemplateParameterIds(excluded.ToList());
         preset.DisplayStyle=DisplayStyle.HLR;

@@ -65,7 +65,7 @@ public static partial class SheetPlanner
   // Sheet names always start with a capital letter ("Fachadas", not "fachadas").
   return char.ToUpperInvariant(text[0])+text[1..];
  }
- static void Renumber(Document doc,List<PlannerPage> pages,List<ViewSheet> sheets,List<string> reserved,List<string> warnings,NumberStampProfile? stampProfile)
+ static void Renumber(Document doc,List<PlannerPage> pages,List<ViewSheet> sheets,List<string> reserved,List<string> warnings,NumberStampProfile? stampProfile,IReadOnlyDictionary<long,NumberStampProfile?>? stamps=null)
  {
   // Issue all occupied LEG sheets in order, including unselected/manual sheets. Empty references
   // remain in the document, outside the issued LEG set, so they cannot create holes or inflate its total.
@@ -87,7 +87,8 @@ public static partial class SheetPlanner
   for(int i=0;i<issued.Count;i++)
   {
    var s=issued[i];s.SheetNumber="LEG-"+(i+1).ToString("00");int index=pages.FindIndex(p=>p.Number==old[s.Id.Value]);
-   if(stampProfile!=null)SheetNumberStamp.Draw(doc,s,stampProfile,issued.Count);
+   var stamp=Title(doc,s) is {} title&&stamps!=null&&stamps.TryGetValue(title.GetTypeId().Value,out var specific)?specific:stampProfile;
+   if(stamp!=null)SheetNumberStamp.Draw(doc,s,stamp,issued.Count);
    if(index>=0)pages[index]=pages[index] with{Number=s.SheetNumber,LayoutKey=old[s.Id.Value]};
    foreach(var e in new Element?[]{s,Title(doc,s)})if(e!=null)foreach(Parameter p in e.Parameters)
    {

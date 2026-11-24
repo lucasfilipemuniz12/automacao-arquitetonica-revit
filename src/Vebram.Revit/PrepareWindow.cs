@@ -35,7 +35,7 @@ public sealed partial class PrepareWindow : Window
     public FacadeSelection? Facades{get;private set;}
     public SheetSelection? Sheet{get;private set;}
     public bool ComposeSheets{get;private set;}
-    public SheetPlan? Plan{get;private set;}
+    public ModuleResult? OrganizedSheets{get;private set;}
     public IReadOnlyList<Request> Requests{get;}=[];
     ViewPlan? Source=>sources.SelectedItem is SourceChoice c?doc.GetElement(new ElementId(c.Id)) as ViewPlan:null;
     public PrepareWindow(UIApplication app)
@@ -193,8 +193,8 @@ public sealed partial class PrepareWindow : Window
     }
     void ChoosePlan()
     {
-        var window=new SheetPlannerWindow(SheetPlanner.Items(doc),(profile,ids,optimize)=>SheetPlanner.Preview(doc,profile,ids,optimize),SheetPlanner.Unprepared(doc),(profile,ids,optimize,scales)=>SheetPlanner.Preview(doc,profile,ids,optimize,scales),(profile,ids,optimize,scales,moves)=>SheetPlanner.Preview(doc,profile,ids,optimize,scales,moves)){Owner=this};
-        if(window.ShowDialog()==true){Plan=window.Result;DialogResult=true;}
+        var window=new SheetPlannerWindow(SheetPlanner.Items(doc),(profile,ids,optimize)=>SheetPlanner.Preview(doc,profile,ids,optimize),SheetPlanner.Unprepared(doc),plan=>SheetPlanner.Apply(doc,plan),()=>SheetPlanner.Formats(doc),plan=>SheetPreviewImages.Read(doc,plan)){Owner=this};
+        if(window.ShowDialog()==true){OrganizedSheets=window.Applied;DialogResult=true;}
     }
     void ChooseNotes()
     {
