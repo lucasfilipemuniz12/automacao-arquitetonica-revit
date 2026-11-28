@@ -1,4 +1,4 @@
-﻿using Autodesk.Revit.DB;
+using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
 namespace Vebram.Revit;
 
@@ -7,7 +7,7 @@ public sealed record PlanAnnotationResult(int RoomDimensions,int WallDimensions,
 // Coordinates are Revit internal feet; distances and references come from the model.
 public static class PlanAnnotations
 {
- sealed record Edge(Line Line,Wall Wall);
+ sealed record Edge(Line Line,Element? Boundary);
  internal sealed record Rect(double X0,double Y0,double X1,double Y1)
  {
   public bool Overlaps(Rect b,double gap)=>X0<b.X1+gap&&X1>b.X0-gap&&Y0<b.Y1+gap&&Y1>b.Y0-gap;
@@ -26,7 +26,12 @@ public static class PlanAnnotations
    using var boundary=new SpatialElementBoundaryOptions{SpatialElementBoundaryLocation=SpatialElementBoundaryLocation.Finish};
    var loops=room.GetBoundarySegments(boundary);var edges=new List<Edge>();
    if(loops!=null)foreach(var loop in loops)foreach(var segment in loop)
-    if(segment.GetCurve() is Line line&&doc.GetElement(segment.ElementId) is Wall wall){edges.Add(new(line,wall));walls[wall.Id.Value]=wall;}
+    if(segment.GetCurve() is Line line)
+    {
+     var element=doc.GetElement(segment.ElementId);
+     edges.Add(new(line,element));
+     if(element is Wall wall)walls[wall.Id.Value]=wall;
+    }
    var box=room.get_BoundingBox(null);if(box==null)continue;
    var candidates=new List<XYZ>();
    // Search the interior rather than relying on a room insertion point near a wall.
@@ -70,20 +75,23 @@ public static class PlanAnnotations
      var sides=edges.Where(e=>Math.Abs(horizontal?e.Line.Direction.Y:e.Line.Direction.X)>.999&&Crosses(e.Line,cross,horizontal)).OrderBy(e=>horizontal?e.Line.GetEndPoint(0).X:e.Line.GetEndPoint(0).Y).ToList();
      var low=sides.LastOrDefault(e=>(horizontal?e.Line.GetEndPoint(0).X:e.Line.GetEndPoint(0).Y)<(horizontal?anchor.X:anchor.Y));
      var high=sides.FirstOrDefault(e=>(horizontal?e.Line.GetEndPoint(0).X:e.Line.GetEndPoint(0).Y)>(horizontal?anchor.X:anchor.Y));
-     if(low==null||high==null){pending.Add("Ambiente "+room.Number+": limite "+(horizontal?"horizontal":"vertical")+" não é um par de paredes ortogonais.");continue;}
-     var a=Face(doc,low);var b=Face(doc,high);if(a==null||b==null){pending.Add("Ambiente "+room.Number+": referência de acabamento não disponível.");continue;}
+     if(low==null||high==null){pending.Add("Ambiente "+room.Number+": limite "+(horizontal?"horizontal":"vertical")+" não é um par de limites ortogonais.");continue;}
+     var a=BoundaryReference(low);var b=BoundaryReference(high);if(a==null||b==null){pending.Add("Ambiente "+room.Number+": referência geométrica do limite não disponível.");continue;}
      double start=horizontal?low.Line.GetEndPoint(0).X:low.Line.GetEndPoint(0).Y;
      double end=horizontal?high.Line.GetEndPoint(0).X:high.Line.GetEndPoint(0).Y;
      var p0=horizontal?new XYZ(start,cross,z):new XYZ(cross,start,z);var p1=horizontal?new XYZ(end,cross,z):new XYZ(cross,end,z);
      // Offset dimension text toward one side of the room to leave its central label clear.
      // Several lines to try (near both edges, then a quarter of the way in), so the dimension rarely has to be skipped.
      double margin=paper*1.2;double lo=horizontal?box.Min.Y:box.Min.X,hi=horizontal?box.Max.Y:box.Max.X;
-     var targets=horizontal?new[]{lo+margin,hi-margin,lo+(hi-lo)*.25,lo+(hi-lo)*.75}:new[]{hi-margin,lo+margin,lo+(hi-lo)*.75,lo+(hi-lo)*.25};
+     var targets=horizontal
+      ?new[]{lo+margin,hi-margin,lo+(hi-lo)*.25,lo+(hi-lo)*.75,lo+paper*.8,hi-paper*.8,lo+(hi-lo)*.35,lo+(hi-lo)*.65}
+      :new[]{hi-margin,lo+margin,lo+(hi-lo)*.75,lo+(hi-lo)*.25,hi-paper*.8,lo+paper*.8,lo+(hi-lo)*.65,lo+(hi-lo)*.35};
      var baseStart=p0;var baseEnd=p1;Rect? chosenBand=null;XYZ q0=p0,q1=p1;bool irregular=false;
      foreach(bool strict in new[]{true,false})
      {
       foreach(double crossTarget in targets)
       {
+       if(crossTarget<=lo||crossTarget>=hi)continue;
        double shift=horizontal?cross-crossTarget:crossTarget-cross;var offset=horizontal?new XYZ(0,-shift,0):new XYZ(shift,0,0);
        var s0=baseStart+offset;var s1=baseEnd+offset;
        var band=horizontal?new Rect(s0.X,(s0.Y+s1.Y)/2-paper*.7,s1.X,(s0.Y+s1.Y)/2+paper*.7):new Rect((s0.X+s1.X)/2-paper*.7,s0.Y,(s0.X+s1.X)/2+paper*.7,s1.Y);
@@ -97,7 +105,7 @@ public static class PlanAnnotations
       }
       if(chosenBand!=null)break;
      }
-     if(chosenBand==null){pending.Add("Ambiente "+room.Number+": cota "+(horizontal?"horizontal":"vertical")+(irregular?" pendente: ambiente pequeno ou irregular, sem faixa livre entre as mesmas duas paredes. Cote manualmente.":" pendente para preservar leitura do rótulo."));continue;}
+     if(chosenBand==null){pending.Add("Ambiente "+room.Number+": cota "+(horizontal?"horizontal":"vertical")+(irregular?" pendente: ambiente pequeno ou irregular, sem faixa livre entre os mesmos dois limites.":" pendente para preservar leitura do rótulo."));continue;}
      p0=q0;p1=q1;var dimensionBand=chosenBand;
      if(TryDimension(doc,view,dimType,new[]{a,b},p0,p1,made,pending,"Ambiente "+room.Number))
      {roomDims++;var center=(p0+p1)/2;occupied.Add(new(center.X-paper*2,center.Y-paper,center.X+paper*2,center.Y+paper));}
@@ -224,16 +232,25 @@ public static class PlanAnnotations
  }
  static bool Inside(Room room,Rect b,double z)=>new[]{new XYZ(b.X0,b.Y0,z),new XYZ(b.X0,b.Y1,z),new XYZ(b.X1,b.Y0,z),new XYZ(b.X1,b.Y1,z),new XYZ((b.X0+b.X1)/2,(b.Y0+b.Y1)/2,z)}.All(room.IsPointInRoom);
  static Reference? Side(Wall wall,ShellLayerType side){try{return HostObjectUtils.GetSideFaces(wall,side).FirstOrDefault();}catch(Autodesk.Revit.Exceptions.ArgumentException){return null;}}
- static Reference? Face(Document doc,Edge edge)
+ static Reference? BoundaryReference(Edge edge)
  {
   var point=(edge.Line.GetEndPoint(0)+edge.Line.GetEndPoint(1))/2;
+  if(edge.Boundary is ModelCurve separator&&separator.Category?.Id.Value==(long)BuiltInCategory.OST_RoomSeparationLines&&
+     separator.GeometryCurve is Line axis&&Math.Abs(axis.Direction.DotProduct(edge.Line.Direction))>.99999&&
+     axis.Project(point) is {} projection&&projection.Distance<Implantation.Feet(.002))
+   return axis.Reference;
+  if(edge.Boundary is not Wall wall)return null;
+  Reference? best=null;
+  double closest=Implantation.Feet(.015);
   foreach(var side in new[]{ShellLayerType.Exterior,ShellLayerType.Interior})
   {
-   var reference=Side(edge.Wall,side);if(reference==null||edge.Wall.GetGeometryObjectFromReference(reference) is not PlanarFace face)continue;
-   if(Math.Abs(face.FaceNormal.Z)>.001||Math.Abs((point-face.Origin).DotProduct(face.FaceNormal))>Implantation.Feet(.015))continue;
-   return reference;
+   var reference=Side(wall,side);
+   if(reference==null||wall.GetGeometryObjectFromReference(reference) is not PlanarFace face)continue;
+   double distance=Math.Abs((point-face.Origin).DotProduct(face.FaceNormal));
+   if(Math.Abs(face.FaceNormal.Z)>.001||distance>=closest)continue;
+   closest=distance;best=reference;
   }
-  return null;
+  return best;
  }
  static bool TryDimension(Document doc,View view,DimensionType type,IEnumerable<Reference> references,XYZ a,XYZ b,List<Element> made,List<string> pending,string label)
  {

@@ -52,6 +52,28 @@ public static partial class SheetPlanner
   return result;
  }
  public static SheetPlan Preview(Document doc,string profile,IEnumerable<long> ids,bool optimize=true,Dictionary<long,int>? scaleOverrides=null,List<PlannerMove>? moves=null)=>Run(doc,profile,ids.Distinct().ToList(),optimize,null,scaleOverrides,moves);
+ internal static SheetPlan PreviewForEditor(Document doc,string profile,IEnumerable<long> selected,bool optimize)
+ {
+  var ids=selected.ToList();
+  var site=Items(doc).FirstOrDefault(i=>i.Key=="implantacao"&&ids.Contains(i.ViewId));
+  bool SiteDoesNotFit(InvalidOperationException ex)=>site!=null&&ex.Message.StartsWith(site.Label+" não cabe no carimbo",StringComparison.Ordinal);
+  try{return Preview(doc,profile,ids,optimize);}
+  catch(InvalidOperationException ex) when(SiteDoesNotFit(ex))
+  {
+   var view=(View)doc.GetElement(new ElementId(site!.ViewId));
+   foreach(int scale in new[]{100,200}.Where(s=>s>view.Scale))
+   {
+    try
+    {
+     var plan=Preview(doc,profile,ids,optimize,new(){{site.ViewId,scale}});
+     plan.Warnings.Add("A Implantação não cabia na escala atual. A prévia começa em 1:"+scale+"; escolha o formato e a escala antes de aplicar.");
+     return plan;
+    }
+    catch(InvalidOperationException failure) when(SiteDoesNotFit(failure)){}
+   }
+   throw;
+  }
+ }
  public static ModuleResult Apply(Document doc,SheetPlan plan)
  {
   var result=Run(doc,plan.Profile,plan.ViewIds,plan.Optimize,plan,plan.ScaleOverrides,plan.Moves);

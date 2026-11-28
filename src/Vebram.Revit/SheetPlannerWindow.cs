@@ -160,7 +160,7 @@ public sealed class SheetPlannerWindow:Window
       scalePicker.SelectedItem is not string label||!int.TryParse(label[2..],out int scale))return;
    var initial=original.Pages.SelectMany(p=>p.Drawings).Single(d=>d.ViewId==id);
    var scales=new Dictionary<long,int>(draft.ScaleOverrides??new());
-   if(initial.Scale==scale)scales.Remove(id);else scales[id]=scale;
+   if(initial.Scale==scale&&original.ScaleOverrides?.ContainsKey(id)!=true)scales.Remove(id);else scales[id]=scale;
    var pages=draft.Pages.Select(p=>p with{Drawings=p.Drawings.Select(d=>
    {
     if(d.ViewId!=id)return d;

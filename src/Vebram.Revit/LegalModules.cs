@@ -126,6 +126,19 @@ public static class LegalModules
   // (on the floor plan they show where each section cuts, which the legal set needs). Applied every time, so older presets are cleaned too.
   var hiddenMarks=item.Key=="cobertura"?new[]{BuiltInCategory.OST_Elev,BuiltInCategory.OST_Callouts,BuiltInCategory.OST_Sections}:new[]{BuiltInCategory.OST_Elev,BuiltInCategory.OST_Callouts};
   foreach(var mark in hiddenMarks){var markId=new ElementId(mark);if(preset.CanCategoryBeHidden(markId))preset.SetCategoryHidden(markId,true);}
+  if(item.Key is "planta-1" or "planta-2")
+  {
+   var separators=new ElementId(BuiltInCategory.OST_RoomSeparationLines);
+   if(preset.CanCategoryBeHidden(separators))
+   {
+    // Dimensions attached to room separators are unavailable when the category is hidden.
+    preset.SetCategoryHidden(separators,false);
+    var style=preset.GetCategoryOverrides(separators);
+    style.SetProjectionLineColor(new Color(110,110,110));
+    style.SetProjectionLineWeight(1);
+    preset.SetCategoryOverrides(separators,style);
+   }
+  }
   target.ViewTemplateId=preset.Id;target.Scale=scale;
   var phase=target.get_Parameter(BuiltInParameter.VIEW_PHASE);if(phase is {IsReadOnly:false})phase.Set(source.get_Parameter(BuiltInParameter.VIEW_PHASE).AsElementId());
   foreach(var pair in new[]{(LegalCatalog.StageId,LegalCatalog.Stage),(LegalCatalog.FunctionId,item.Role)}){var p=target.get_Parameter(pair.Item1);if(p==null)throw new InvalidOperationException("Parâmetro ARQ ausente.");if(!LegalCatalog.Same(p.AsString(),pair.Item2)){if(p.IsReadOnly)throw new InvalidOperationException("Classificação ARQ bloqueada.");p.Set(pair.Item2);}}

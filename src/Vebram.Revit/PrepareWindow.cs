@@ -193,7 +193,7 @@ public sealed partial class PrepareWindow : Window
     }
     void ChoosePlan()
     {
-        var window=new SheetPlannerWindow(SheetPlanner.Items(doc),(profile,ids,optimize)=>SheetPlanner.Preview(doc,profile,ids,optimize),SheetPlanner.Unprepared(doc),plan=>SheetPlanner.Apply(doc,plan),()=>SheetPlanner.Formats(doc),plan=>SheetPreviewImages.Read(doc,plan)){Owner=this};
+        var window=new SheetPlannerWindow(SheetPlanner.Items(doc),(profile,ids,optimize)=>SheetPlanner.PreviewForEditor(doc,profile,ids,optimize),SheetPlanner.Unprepared(doc),plan=>SheetPlanner.Apply(doc,plan),()=>SheetPlanner.Formats(doc),plan=>SheetPreviewImages.Read(doc,plan)){Owner=this};
         if(window.ShowDialog()==true){OrganizedSheets=window.Applied;DialogResult=true;}
     }
     void ChooseNotes()
